@@ -1,0 +1,99 @@
+# ---------------------------------------------------------------------------
+# Dependencies and build output
+# ---------------------------------------------------------------------------
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+.turbo/
+.vercel/
+
+# ---------------------------------------------------------------------------
+# Secrets
+#
+# CLAIM_CODE_PEPPER is the entire security boundary around every claim code
+# ever printed, and it can never be rotated once holograms exist.
+# FACTORY_EXPORT_KEY decrypts the one file in the world that holds plaintext
+# claim codes. Neither ever goes near this repository.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+known_hosts
+secrets/
+credentials*.json
+
+# ---------------------------------------------------------------------------
+# Factory output
+#
+# factory-exports/ holds PLAINTEXT claim codes for real sellable pieces. A
+# leaked row means that piece can be claimed by whoever read it, and the only
+# remedy is voiding the piece and reprinting the hologram.
+#
+# The *.xlsx rule is deliberately global rather than scoped to that folder,
+# so an export written to an unexpected path is still caught.
+# ---------------------------------------------------------------------------
+factory-exports/
+*.xlsx
+*.xls
+*.binkis
+*.binkis-archive
+*.enc
+*.sha256
+
+# ---------------------------------------------------------------------------
+# Client-supplied material
+#
+# Production breakdowns, hologram artwork, voice notes. Commercially
+# confidential to BINKIS and not source code. Kept out of the repository
+# regardless of whether it is public or private.
+# ---------------------------------------------------------------------------
+assets/
+
+# ---------------------------------------------------------------------------
+# Local databases and test clusters
+# ---------------------------------------------------------------------------
+.pgdata/
+.embedded-postgres/
+*.sqlite
+*.sqlite3
+pgdata/
+
+# ---------------------------------------------------------------------------
+# Test and tooling artefacts
+# ---------------------------------------------------------------------------
+coverage/
+.nyc_output/
+*.log
+npm-debug.log*
+yarn-error.log*
+.eslintcache
+playwright-report/
+test-results/
+
+# Scratch files. Anything named *.tmp.* is a throwaway, never a deliverable.
+*.tmp
+*.tmp.*
+tmp/
+scratch/
+
+# ---------------------------------------------------------------------------
+# Editors and operating systems
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,24 @@
+/* Placeholder. The real design system lands in build step 3.
+   Tailwind v4 is not installed yet - it is a frontend-milestone dependency. */
+:root {
+  color-scheme: dark;
+  --bg: #08090c;
+  --fg: #e8e9ee;
+  --muted: #8a8fa0;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, .mono {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}

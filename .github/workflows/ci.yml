@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Typecheck and test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 24 runs the TypeScript sources directly via native type
+          # stripping, which is what lets scripts/generate-batch.ts run with
+          # no transpiler in the deployment path.
+          node-version: '24'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # The database suites prove the two guarantees that cannot be faked:
+      # uniqueness enforced by real constraints, and exactly one winner under
+      # a concurrent claim. They need a real PostgreSQL 16, not a stub.
+      - name: Start PostgreSQL 16
+        run: |
+          docker run -d --name binkis-test \
+            -e POSTGRES_USER=binkis \
+            -e POSTGRES_PASSWORD=binkis \
+            -e POSTGRES_DB=binkis_test \
+            -p 5432:5432 \
+            --health-cmd "pg_isready -U binkis" \
+            --health-interval 3s --health-timeout 5s --health-retries 20 \
+            postgres:16-alpine
+          for i in $(seq 1 40); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' binkis-test)" = healthy ] && break
+            sleep 2
+          done
+          docker exec binkis-test psql -U binkis -d binkis_test -c 'CREATE DATABASE binkis_staging'
+
+      - name: Test
+        env:
+          TEST_DATABASE_URL: postgresql://binkis:binkis@127.0.0.1:5432/binkis_test?schema=public
+          TEST_STAGING_DATABASE_URL: postgresql://binkis:binkis@127.0.0.1:5432/binkis_staging?schema=public
+        run: npx vitest run
+
+  deploy:
+    name: Deploy to id.binkis.com
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    environment: production
+
+    steps:
+      # No application secret is present in this job, by design.
+      #
+      # CLAIM_CODE_PEPPER and FACTORY_EXPORT_KEY live only in
+      # /opt/binkis-id/.env on the server, mode 600. The pepper can never be
+      # rotated once holograms are printed, so putting it in Actions secrets
+      # would mean a repository compromise costs a re-manufacture of ~137,000
+      # holograms. This job carries a deploy key and nothing else.
+      - name: Open an SSH session and trigger the deploy
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          HOST: ${{ vars.VPS_HOST }}
+          USER_NAME: ${{ vars.VPS_USER }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          # The server pins this key to /opt/binkis-id/deploy.sh via a forced
+          # command, so no command is sent from here and none would be honoured.
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+              "$USER_NAME@$HOST"

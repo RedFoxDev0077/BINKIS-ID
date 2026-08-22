@@ -1,0 +1,226 @@
+// BINKIS ID — registry schema
+//
+// Invariants encoded here, not in application code:
+//   * Piece.serial / qr_token / claim_hash are UNIQUE at the database level.
+//     The generator relies on these constraints to guarantee uniqueness; it
+//     never pre-checks with a SELECT.
+//   * There is no current_owner column. Ownership is derived from the latest
+//     OwnershipEvent row. @@unique([pieceId, seq]) makes a duplicate
+//     ownership row physically impossible, even under a concurrent claim.
+//   * Piece.id is a uuid and is INTERNAL. It never appears in a URL, an API
+//     response, or the factory export.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EditionType {
+  CLASSIC
+  LIMITED
+  LEGENDARY
+  SPARE
+  ARTIST_PROOF
+}
+
+enum PieceStatus {
+  UNCLAIMED
+  CLAIMED
+  VOID
+  RESERVED
+}
+
+enum BatchStatus {
+  DRAFT
+  GENERATED
+  EXPORTED
+  PRINTED
+  CANCELLED
+}
+
+enum AcquiredVia {
+  CLAIM
+  TRANSFER
+}
+
+/// PassportEvent.type is a plain String, deliberately.
+///
+/// CLAUDE.md requires that adding an eighth event type needs no schema
+/// change. A Postgres enum would require a migration; a String + an
+/// application-level whitelist does not. The seven launch types are
+/// BORN, CLAIMED, TRANSFERRED, MILESTONE, OFFICIAL_EVENT, VERIFICATION, VOIDED.
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  handle       String   @unique
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  collectorId CollectorId?
+
+  @@map("users")
+}
+
+model CollectorId {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @map("user_id") @db.Uuid
+  displayName   String   @map("display_name")
+  avatar        String?
+  joinedAt      DateTime @default(now()) @map("joined_at")
+  publicProfile Boolean  @default(true) @map("public_profile")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  ownershipEventsFrom OwnershipEvent[] @relation("FromCollector")
+  ownershipEventsTo   OwnershipEvent[] @relation("ToCollector")
+
+  @@map("collector_ids")
+}
+
+model Product {
+  id            String      @id @default(uuid()) @db.Uuid
+  character     String
+  characterCode String      @map("character_code") @db.Char(2)
+  editionType   EditionType @map("edition_type")
+  series        String
+  rarity        String
+  runSize       Int         @map("run_size")
+  artworkUrl    String?     @map("artwork_url")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  batches Batch[]
+  pieces  Piece[]
+
+  // One product per (character, edition type, series). Prevents two products
+  // silently competing for the same serial range.
+  @@unique([characterCode, editionType, series])
+  @@map("products")
+}
+
+model Batch {
+  id         String      @id @default(uuid()) @db.Uuid
+  code       String      @unique
+  productId  String      @map("product_id") @db.Uuid
+  quantity   Int
+  status     BatchStatus @default(DRAFT)
+  exportedAt DateTime?   @map("exported_at")
+  /// SHA-256 of the factory .xlsx. Set once, at export. Its presence is what
+  /// freezes the batch: generated production data is immutable.
+  checksum   String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  pieces  Piece[]
+
+  @@map("batches")
+}
+
+model Piece {
+  /// INTERNAL. Never exposed in a URL, an API response, or the factory file.
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Printed on the hologram, public. e.g. "SP-014278"
+  serial String @unique
+
+  /// The entire content of the QR payload's path. Public lookup key.
+  /// 12 chars from the 31-char unambiguous alphabet.
+  qrToken String @unique @map("qr_token")
+
+  /// HMAC-SHA256(pepper, normalised claim code), hex. Never exposed.
+  /// Plaintext is never stored, logged, or returned.
+  claimHash String @unique @map("claim_hash")
+
+  productId      String      @map("product_id") @db.Uuid
+  batchId        String      @map("batch_id") @db.Uuid
+  editionNumber  Int?        @map("edition_number")
+  productionYear Int         @map("production_year")
+  producedAt     DateTime    @map("produced_at")
+  country        String
+  status         PieceStatus @default(UNCLAIMED)
+  verified       Boolean     @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  batch   Batch   @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  ownershipEvents OwnershipEvent[]
+  passportEvents  PassportEvent[]
+
+  // Edition position is unique within a product: there is exactly one 45/777.
+  @@unique([productId, editionNumber])
+  @@index([batchId])
+  @@index([status])
+  @@map("pieces")
+}
+
+/// APPEND ONLY. Never UPDATE, never DELETE.
+/// Current owner = the row with the highest seq for a piece.
+model OwnershipEvent {
+  id              String      @id @default(uuid()) @db.Uuid
+  pieceId         String      @map("piece_id") @db.Uuid
+  seq             Int
+  fromCollectorId String?     @map("from_collector_id") @db.Uuid
+  toCollectorId   String      @map("to_collector_id") @db.Uuid
+  acquiredVia     AcquiredVia @map("acquired_via")
+  occurredAt      DateTime    @default(now()) @map("occurred_at")
+
+  piece         Piece        @relation(fields: [pieceId], references: [id], onDelete: Restrict)
+  fromCollector CollectorId? @relation("FromCollector", fields: [fromCollectorId], references: [id], onDelete: Restrict)
+  toCollector   CollectorId  @relation("ToCollector", fields: [toCollectorId], references: [id], onDelete: Restrict)
+
+  /// The race guard. Two simultaneous claims both try to insert seq = 1;
+  /// exactly one commits, the other hits this constraint and is rejected.
+  @@unique([pieceId, seq])
+  @@index([toCollectorId])
+  @@map("ownership_events")
+}
+
+/// APPEND ONLY. The piece's public history.
+model PassportEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  pieceId    String   @map("piece_id") @db.Uuid
+  seq        Int
+  /// One of the seven launch types. String, not enum, so an eighth type
+  /// needs no migration. See note above.
+  type       String
+  title      String
+  body       String?
+  actor      String?
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  metadata   Json?
+
+  piece Piece @relation(fields: [pieceId], references: [id], onDelete: Restrict)
+
+  @@unique([pieceId, seq])
+  @@index([pieceId, occurredAt])
+  @@map("passport_events")
+}
+
+model AuditLog {
+  id     String   @id @default(uuid()) @db.Uuid
+  actor  String
+  action String
+  entity String
+  before Json?
+  after  Json?
+  ip     String?
+  at     DateTime @default(now())
+
+  @@index([entity, at])
+  @@map("audit_logs")
+}
+
+model ClaimAttempt {
+  id        String   @id @default(uuid()) @db.Uuid
+  ip        String
+  qrToken   String   @map("qr_token")
+  succeeded Boolean
+  at        DateTime @default(now())
+
+  @@index([ip, at])
+  @@map("claim_attempts")
+}

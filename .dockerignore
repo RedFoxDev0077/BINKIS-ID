@@ -1,0 +1,36 @@
+# Build context hygiene. Anything listed here never reaches the Docker
+# daemon, which keeps the image small and, more importantly, keeps secrets
+# and plaintext claim codes out of image layers.
+
+node_modules
+.next
+out
+dist
+coverage
+
+# Secrets. The container receives these through the environment at runtime,
+# from /opt/binkis-id/.env on the host. They must never be baked into a layer,
+# because image layers are readable by anyone who can pull the image.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Plaintext claim codes and client material.
+factory-exports
+assets
+
+# Local databases and scratch.
+.pgdata
+*.log
+*.tmp
+*.tmp.*
+
+.git
+.github
+.vscode
+.idea
+Dockerfile
+.dockerignore
+README.md

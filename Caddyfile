@@ -1,0 +1,47 @@
+# BINKIS ID reverse proxy.
+#
+# Caddy obtains and renews the certificate automatically over ACME. That
+# requires id.binkis.com to already resolve to this server and port 80 to be
+# reachable, which is why the DNS A record is a hard prerequisite rather than
+# a tidy-up task.
+
+{
+	# Staging CA would avoid rate limits during testing, but this domain is
+	# printed inside 137,000 QR codes and needs a genuinely trusted cert.
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+id.binkis.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# A passport page is public data about an object, not about a person.
+		# It should be indexable and shareable, so no restrictive CSP here yet;
+		# that lands with the real pages in build step 3.
+		-Server
+	}
+
+	reverse_proxy app:3000 {
+		health_uri /
+		health_interval 10s
+		health_timeout 5s
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+# Temporary. Lets the stack be verified by IP before the DNS record exists,
+# and lets us prove Caddy reaches the app container independently of ACME.
+# Remove once id.binkis.com resolves and TLS is confirmed working.
+:80 {
+	reverse_proxy app:3000
+}

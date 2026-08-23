@@ -18,8 +18,8 @@ import {
   sealFactoryExport,
   sha256,
 } from '../../src/lib/export/archive.ts';
-import { generateClaimCode, formatClaimCode } from '../../src/lib/codes/claim-code.ts';
-import { generateQrToken } from '../../src/lib/codes/qr-token.ts';
+import { formatClaimCode } from '../../src/lib/codes/claim-code.ts';
+import { generateClaimCode, generateQrToken } from '../../src/lib/codes/mint.ts';
 import { hashClaimCode } from '../../src/lib/hash.ts';
 import { formatSerial, editionNumberForNumber } from '../../src/lib/serial.ts';
 import type { GeneratedPiece } from '../../src/lib/generator.ts';

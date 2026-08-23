@@ -3,7 +3,8 @@ import { encodeQr } from '../../src/lib/qr/encode.ts';
 import { renderQrSvg, parseQrSvg } from '../../src/lib/qr/svg.ts';
 import { decodeQr, QrDecodeError } from '../../src/lib/qr/decode.ts';
 import { matricesEqual, getModule, setModule } from '../../src/lib/qr/matrix.ts';
-import { generateQrToken, qrPayload } from '../../src/lib/codes/qr-token.ts';
+import { qrPayload } from '../../src/lib/codes/qr-token.ts';
+import { generateQrToken } from '../../src/lib/codes/mint.ts';
 
 // Requirement 5: every QR is machine-decoded back to confirm it resolves to
 // the intended URL. The decoder is written from ISO/IEC 18004 and the encoder

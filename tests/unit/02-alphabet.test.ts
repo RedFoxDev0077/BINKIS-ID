@@ -8,8 +8,9 @@ import {
   indexOfChar,
   charAtIndex,
 } from '../../src/lib/codes/alphabet.ts';
-import { generateClaimCode, formatClaimCode, parseClaimCode } from '../../src/lib/codes/claim-code.ts';
-import { generateQrToken, QR_TOKEN_LENGTH } from '../../src/lib/codes/qr-token.ts';
+import { formatClaimCode, parseClaimCode } from '../../src/lib/codes/claim-code.ts';
+import { QR_TOKEN_LENGTH } from '../../src/lib/codes/qr-token.ts';
+import { generateClaimCode, generateQrToken } from '../../src/lib/codes/mint.ts';
 
 // The alphabet exists so a code cannot be misread off reflective holographic
 // foil. If an excluded character ever reaches a printed sticker, that sticker

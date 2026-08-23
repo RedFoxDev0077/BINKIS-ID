@@ -1,6 +1,5 @@
 import { isAlphabetString, normaliseCode } from './alphabet.ts';
-import { appendCheckCharacter, hasValidCheckCharacter } from './check-character.ts';
-import { cryptoRandom, drawFromAlphabet, type RandomSource } from './random.ts';
+import { hasValidCheckCharacter } from './check-character.ts';
 
 /**
  * The Claim Code.
@@ -15,15 +14,16 @@ import { cryptoRandom, drawFromAlphabet, type RandomSource } from './random.ts';
  * Plaintext exists in exactly two places for its whole life: in memory during
  * generation, and inside the encrypted factory export. It is never stored,
  * never logged, never returned.
+ *
+ * This module is PURE: formatting, parsing and validation only, with no
+ * node:crypto import, so a client component can use it to check a typed code
+ * without dragging the minting path into the browser bundle. Minting lives
+ * in mint.ts.
  */
 
 export const CLAIM_CODE_LENGTH = 11;
 export const CLAIM_CODE_PAYLOAD_LENGTH = 10;
 
-export function generateClaimCode(rng: RandomSource = cryptoRandom): string {
-  const payload = drawFromAlphabet(rng, CLAIM_CODE_PAYLOAD_LENGTH);
-  return appendCheckCharacter(payload);
-}
 
 /** XXXX-XXXX-XXX, the form printed under the scratch panel. */
 export function formatClaimCode(code: string): string {

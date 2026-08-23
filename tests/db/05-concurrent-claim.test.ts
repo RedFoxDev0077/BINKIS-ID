@@ -3,7 +3,8 @@ import type { PrismaClient } from '@prisma/client';
 import { testClient, reset, seedProductAndBatch, seedCollector, TEST_PEPPER } from '../support/fixtures.ts';
 import { generatePieces } from '../../src/lib/generator.ts';
 import { claimPiece, GENERIC_CLAIM_FAILURE, type ClaimOutcome } from '../../src/lib/db/claim.ts';
-import { formatClaimCode, generateClaimCode } from '../../src/lib/codes/claim-code.ts';
+import { formatClaimCode } from '../../src/lib/codes/claim-code.ts';
+import { generateClaimCode } from '../../src/lib/codes/mint.ts';
 
 // Non-negotiable 3: claiming is a single atomic transaction with a conditional
 // write. Two simultaneous claims with the same valid code must produce exactly

@@ -3,8 +3,7 @@ import type { PrismaClient } from '@prisma/client';
 import { testClient, reset, seedProductAndBatch, TEST_PEPPER } from '../support/fixtures.ts';
 import { generatePieces } from '../../src/lib/generator.ts';
 import { hashClaimCode } from '../../src/lib/hash.ts';
-import { generateQrToken } from '../../src/lib/codes/qr-token.ts';
-import { generateClaimCode } from '../../src/lib/codes/claim-code.ts';
+import { generateQrToken, generateClaimCode } from '../../src/lib/codes/mint.ts';
 import type { RandomSource } from '../../src/lib/codes/random.ts';
 
 // Requirement: uniqueness is enforced with database constraints, not

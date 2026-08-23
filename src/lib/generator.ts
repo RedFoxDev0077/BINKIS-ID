@@ -1,6 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
-import { generateClaimCode } from './codes/claim-code.ts';
-import { generateQrToken } from './codes/qr-token.ts';
+import { generateClaimCode, generateQrToken } from './codes/mint.ts';
 import { cryptoRandom, type RandomSource } from './codes/random.ts';
 import { hashClaimCode } from './hash.ts';
 import {

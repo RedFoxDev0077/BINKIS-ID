@@ -1,5 +1,4 @@
 import { isAlphabetString, normaliseCode } from './alphabet.ts';
-import { cryptoRandom, drawFromAlphabet, type RandomSource } from './random.ts';
 
 /**
  * The QR token.
@@ -20,9 +19,6 @@ export const QR_TOKEN_LENGTH = 12;
 
 export const DEFAULT_PUBLIC_ORIGIN = 'https://id.binkis.com';
 
-export function generateQrToken(rng: RandomSource = cryptoRandom): string {
-  return drawFromAlphabet(rng, QR_TOKEN_LENGTH);
-}
 
 export function isWellFormedQrToken(value: string): boolean {
   return value.length === QR_TOKEN_LENGTH && isAlphabetString(value);

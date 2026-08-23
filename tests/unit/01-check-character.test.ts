@@ -6,9 +6,10 @@ import {
   hasValidCheckCharacter,
 } from '../../src/lib/codes/check-character.ts';
 import {
-  generateClaimCode,
+
   CLAIM_CODE_PAYLOAD_LENGTH,
 } from '../../src/lib/codes/claim-code.ts';
+import { generateClaimCode } from '../../src/lib/codes/mint.ts';
 
 // The check character is the thing that stops a typo from ever reaching the
 // database and burning a rate-limited attempt. It is validated client-side, so

@@ -62,8 +62,33 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
 
   collectorId CollectorId?
+  sessions    Session[]
 
   @@map("users")
+}
+
+/// Server-side sessions, as CLAUDE.md requires. Not JWTs.
+///
+/// A JWT cannot be revoked before it expires. This registry is the permanent
+/// record of who owns a physical object, so "log out everywhere" and "revoke
+/// a stolen session" have to actually work, immediately.
+///
+/// `id` is the SHA-256 of the session token, never the token itself. The
+/// plaintext token exists only in the user's cookie, so a database dump does
+/// not hand over live sessions. Same reasoning as claim_hash, one layer up.
+model Session {
+  id        String   @id
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  ip        String?
+  userAgent String?  @map("user_agent")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
 }
 
 model CollectorId {

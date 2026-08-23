@@ -29,6 +29,25 @@ services:
       retries: 20
       start_period: 10s
 
+  # One-shot. Applies pending migrations, then exits. The app waits for it to
+  # exit zero, so a failed migration stops the deploy rather than starting an
+  # app against a schema it does not match.
+  #
+  # Built from the builder stage because the Prisma CLI needs its full
+  # dependency tree, which the slim runtime image deliberately does not carry.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+    restart: 'no'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+
   app:
     build:
       context: .
@@ -37,6 +56,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
       STAGING_DATABASE_URL: ${STAGING_DATABASE_URL:-}

@@ -51,10 +51,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# The schema, the migrations and the Prisma CLI, so the container can apply
-# migrations to itself at start-up.
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+# The Prisma CLI is deliberately NOT copied here. It needs its own dependency
+# tree (@prisma/config, effect, and more) which standalone tracing omits, and
+# pulling all of node_modules in to satisfy a one-shot command would triple
+# the runtime image. Migrations run in the `migrate` service, built from the
+# builder stage above, which already has everything.
 
 COPY --chown=nextjs:nodejs docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

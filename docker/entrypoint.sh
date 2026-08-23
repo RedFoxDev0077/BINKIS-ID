@@ -1,11 +1,12 @@
 #!/bin/sh
-# Applies pending migrations, then hands off to the server.
+# Runtime guard, then hand off to the server.
 #
-# `migrate deploy` only ever applies migrations that already exist in
-# prisma/migrations. It never generates one, never prompts, and never resets,
-# so it is safe to run unattended on every container start. That matters here:
-# a piece row losing its claim_hash would mean a hologram that can never be
-# claimed, and there is no recovery from that short of a reprint.
+# Migrations deliberately do NOT run here. The Prisma CLI drags in a
+# dependency tree (@prisma/config, effect, and more) that Next's standalone
+# tracing does not include, and copying all of node_modules into the runtime
+# image to satisfy a CLI that runs once would triple its size. Migrations run
+# in the `migrate` service instead, built from the builder stage, which
+# already has the full dependency tree. See docker-compose.yml.
 set -e
 
 if [ -z "${DATABASE_URL:-}" ]; then
@@ -13,8 +14,11 @@ if [ -z "${DATABASE_URL:-}" ]; then
   exit 1
 fi
 
-echo "[entrypoint] applying migrations"
-node node_modules/prisma/build/index.js migrate deploy
+if [ -z "${CLAIM_CODE_PEPPER:-}" ]; then
+  echo "[entrypoint] CLAIM_CODE_PEPPER is not set, refusing to start" >&2
+  echo "[entrypoint] without it no claim code can be verified" >&2
+  exit 1
+fi
 
 echo "[entrypoint] starting: $*"
 exec "$@"

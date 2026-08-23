@@ -1,0 +1,25 @@
+# Normalise line endings.
+#
+# Development happens on Windows, deployment is Linux containers. A shell
+# script committed with CRLF fails inside the container with
+# "bad interpreter: /bin/sh^M", which is an obscure error for an obvious
+# cause. Forcing LF on everything that a Linux process executes or parses
+# removes the class entirely.
+
+* text=auto eol=lf
+
+*.sh      text eol=lf
+*.sql     text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf
+.env.example text eol=lf
+
+# Binary, never touched.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff  binary
+*.woff2 binary
+*.xlsx binary

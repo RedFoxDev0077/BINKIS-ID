@@ -63,7 +63,7 @@ describe('the 31-character unambiguous alphabet', () => {
 
     it('are 11 characters drawn only from the alphabet', () => {
       for (const code of codes) {
-        expect(code).toHaveLength(11);
+        expect(code).toHaveLength(9);
         expect(isAlphabetString(code)).toBe(true);
       }
     });
@@ -74,9 +74,9 @@ describe('the 31-character unambiguous alphabet', () => {
       const counts = new Map<string, number>([...ALPHABET].map((c) => [c, 0]));
       // The check character is derived, not drawn - exclude it.
       for (const code of codes) {
-        for (const ch of code.slice(0, 10)) counts.set(ch, counts.get(ch)! + 1);
+        for (const ch of code.slice(0, 8)) counts.set(ch, counts.get(ch)! + 1);
       }
-      const total = SAMPLES * 10;
+      const total = SAMPLES * 8;
       const expected = total / ALPHABET_SIZE;
       let chiSquare = 0;
       for (const observed of counts.values()) {
@@ -100,18 +100,18 @@ describe('the 31-character unambiguous alphabet', () => {
 
   describe('normalisation of what a human types on a phone', () => {
     it('uppercases and strips hyphens and whitespace', () => {
-      expect(normaliseCode('7k9p-2m4x-q3f')).toBe('7K9P2M4XQ3F');
-      expect(normaliseCode('  7K9P 2M4X Q3F ')).toBe('7K9P2M4XQ3F');
-      expect(normaliseCode('7K9P—2M4X—Q3F')).toBe('7K9P2M4XQ3F'); // em dash from iOS autocorrect
+      expect(normaliseCode('7k9-p2m-4xq')).toBe('7K9P2M4XQ');
+      expect(normaliseCode('  7K9 P2M 4XQ ')).toBe('7K9P2M4XQ');
+      expect(normaliseCode('7K9—P2M—4XQ')).toBe('7K9P2M4XQ'); // em dash from iOS autocorrect
     });
 
     it('does NOT silently rewrite an excluded character into a valid one', () => {
       // Mapping O->0 or I->1 would be meaningless here: 0 and 1 are not in
       // the alphabet either. Guessing what the user meant would let a typo
       // reach the database. Reject instead.
-      expect(parseClaimCode('7K9P2M4XQ3O')).toBeNull();
-      expect(parseClaimCode('7K9P2M4XQ3I')).toBeNull();
-      expect(parseClaimCode('7K9P2M4XQ3L')).toBeNull();
+      expect(parseClaimCode('7K9P2M4XO')).toBeNull();
+      expect(parseClaimCode('7K9P2M4XI')).toBeNull();
+      expect(parseClaimCode('7K9P2M4XL')).toBeNull();
     });
   });
 
@@ -120,7 +120,7 @@ describe('the 31-character unambiguous alphabet', () => {
       for (let i = 0; i < 1000; i++) {
         const code = generateClaimCode();
         const formatted = formatClaimCode(code);
-        expect(formatted).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{3}$/);
+        expect(formatted).toMatch(/^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/);
         expect(parseClaimCode(formatted)).toBe(code);
         expect(parseClaimCode(formatted.toLowerCase())).toBe(code);
       }

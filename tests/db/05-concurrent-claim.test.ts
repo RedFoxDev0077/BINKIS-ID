@@ -342,8 +342,8 @@ describe('the claim endpoint is not an oracle', () => {
 
     // Last character mangled, so the check character no longer validates.
     const good = pieces[0]!.claimCode;
-    const badChar = good[10] === 'Z' ? 'Y' : 'Z';
-    const typo = good.slice(0, 10) + badChar;
+    const badChar = good[8] === 'Z' ? 'Y' : 'Z';
+    const typo = good.slice(0, 8) + badChar;
 
     const result = await claimPiece(prisma, {
       qrToken: pieces[0]!.qrToken, submittedCode: typo,

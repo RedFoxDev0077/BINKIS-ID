@@ -4,12 +4,19 @@ import { hasValidCheckCharacter } from './check-character.ts';
 /**
  * The Claim Code.
  *
- * Ten random characters from the 31-character alphabet plus one GF(31)
- * weighted check character, displayed as XXXX-XXXX-XXX.
+ * Eight random characters from the 31-character alphabet plus one GF(31)
+ * weighted check character, displayed as XXX-XXX-XXX.
  *
- * Keyspace is 31^10, about 8.2e14. Against roughly 140,000 live codes that is
- * one guess in ~5.9 billion - and a guess also has to be aimed at the right
- * piece, because a code only claims the piece it was minted for.
+ * Keyspace is 31^8, about 8.5e11. A code only ever claims the piece it was
+ * minted for, so the number that matters is the odds of guessing one specific
+ * piece's code: about one in 850 billion, per attempt, against a rate limit.
+ *
+ * Shortened from eleven characters at the client's request on 24 Aug 2026, to
+ * reduce typing on a phone. Nine is the floor, and the binding constraint is
+ * not guessing - it is PARTIAL DISCLOSURE. Scratch panels get rubbed in
+ * transit, opened halfway, and photographed. With nine characters, half a code
+ * showing still leaves ~923,000 combinations. At seven it leaves ~30,000,
+ * which is guessable if rate limiting ever fails.
  *
  * Plaintext exists in exactly two places for its whole life: in memory during
  * generation, and inside the encrypted factory export. It is never stored,
@@ -21,17 +28,22 @@ import { hasValidCheckCharacter } from './check-character.ts';
  * in mint.ts.
  */
 
-export const CLAIM_CODE_LENGTH = 11;
-export const CLAIM_CODE_PAYLOAD_LENGTH = 10;
+export const CLAIM_CODE_LENGTH = 9;
+export const CLAIM_CODE_PAYLOAD_LENGTH = 8;
 
 
-/** XXXX-XXXX-XXX, the form printed under the scratch panel. */
+/**
+ * XXX-XXX-XXX, the form printed under the scratch panel.
+ *
+ * Three groups of three rather than 4-4-3: shorter groups are easier to read
+ * back off foil and to dictate over a phone.
+ */
 export function formatClaimCode(code: string): string {
   const normalised = normaliseCode(code);
   if (normalised.length !== CLAIM_CODE_LENGTH) {
     throw new Error(`Cannot format a claim code of length ${normalised.length}`);
   }
-  return `${normalised.slice(0, 4)}-${normalised.slice(4, 8)}-${normalised.slice(8, 11)}`;
+  return `${normalised.slice(0, 3)}-${normalised.slice(3, 6)}-${normalised.slice(6, 9)}`;
 }
 
 /**

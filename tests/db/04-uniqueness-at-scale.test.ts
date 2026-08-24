@@ -82,7 +82,7 @@ describe('the database refuses duplicates even when the application does not', (
 
   it('rejects a duplicate claim_hash via raw SQL', async () => {
     const { product, batch } = await seedProductAndBatch(prisma);
-    const sharedHash = hashClaimCode('7K9P2M4XQ3F', TEST_PEPPER);
+    const sharedHash = hashClaimCode('7K9P2M4XQ', TEST_PEPPER);
 
     await prisma.piece.create({
       data: {
@@ -281,7 +281,7 @@ describe('what is stored is only the hash', () => {
   });
 
   it('refuses to hash without a pepper', () => {
-    expect(() => hashClaimCode('7K9P2M4XQ3F', '')).toThrow();
-    expect(() => hashClaimCode('7K9P2M4XQ3F', 'short')).toThrow();
+    expect(() => hashClaimCode('7K9P2M4XQ', '')).toThrow();
+    expect(() => hashClaimCode('7K9P2M4XQ', 'short')).toThrow();
   });
 });

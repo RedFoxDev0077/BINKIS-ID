@@ -20,6 +20,8 @@ import {
 } from '../../src/lib/export/archive.ts';
 import { formatClaimCode } from '../../src/lib/codes/claim-code.ts';
 import { generateClaimCode, generateQrToken } from '../../src/lib/codes/mint.ts';
+import { rowCheck, rowCheckMatches } from '../../src/lib/export/row-check.ts';
+import { isAlphabetString } from '../../src/lib/codes/alphabet.ts';
 import { hashClaimCode } from '../../src/lib/hash.ts';
 import { formatSerial, editionNumberForNumber } from '../../src/lib/serial.ts';
 import type { GeneratedPiece } from '../../src/lib/generator.ts';
@@ -65,6 +67,7 @@ describe('factory rows', () => {
       'PIECE_NUMBER',
       'QR_URL',
       'CLAIM_CODE',
+      'ROW_CHECK',
       'CHARACTER',
       'EDITION',
       'BATCH',
@@ -79,7 +82,7 @@ describe('factory rows', () => {
   it('carries the printable claim code, hyphenated', () => {
     for (const [i, row] of rows.entries()) {
       expect(row.CLAIM_CODE).toBe(formatClaimCode(pieces[i]!.claimCode));
-      expect(row.CLAIM_CODE).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{3}$/);
+      expect(row.CLAIM_CODE).toMatch(/^[0-9A-Z]{3}-[0-9A-Z]{3}-[0-9A-Z]{3}$/);
     }
   });
 
@@ -141,6 +144,7 @@ describe('the .xlsx', () => {
         expected.PIECE_NUMBER,
         expected.QR_URL,
         expected.CLAIM_CODE,
+        expected.ROW_CHECK,
         expected.CHARACTER,
         expected.EDITION,
         expected.BATCH,
@@ -315,5 +319,50 @@ describe('sealing an export', () => {
       expect(manifest).not.toContain(piece.claimCode);
       expect(manifest).not.toContain(piece.claimHash);
     }
+  });
+});
+
+describe('ROW_CHECK binds the three printed fields together', () => {
+  it('is stable for the same row and recomputable without any key', () => {
+    const a = rowCheck('SP-000001', 'https://id.binkis.com/p/AAAAAAAAAAAA', 'ABC-DEF-GHJ');
+    const b = rowCheck('SP-000001', 'https://id.binkis.com/p/AAAAAAAAAAAA', 'ABC-DEF-GHJ');
+    expect(a).toBe(b);
+    expect(a).toHaveLength(4);
+    expect(isAlphabetString(a)).toBe(true);
+  });
+
+  it('changes when ANY one of the three fields changes', () => {
+    // This is the whole point: a one-row shift moves exactly one field, and
+    // that has to be visible.
+    const base = rowCheck('SP-000001', 'https://id.binkis.com/p/AAAAAAAAAAAA', 'ABC-DEF-GHJ');
+    expect(rowCheck('SP-000002', 'https://id.binkis.com/p/AAAAAAAAAAAA', 'ABC-DEF-GHJ')).not.toBe(base);
+    expect(rowCheck('SP-000001', 'https://id.binkis.com/p/BBBBBBBBBBBB', 'ABC-DEF-GHJ')).not.toBe(base);
+    expect(rowCheck('SP-000001', 'https://id.binkis.com/p/AAAAAAAAAAAA', 'ABC-DEF-GHK')).not.toBe(base);
+  });
+
+  it('detects a one-row shift of the claim code across a real batch', () => {
+    const pieces = fakePieces(200);
+    const rows = buildFactoryRows(pieces, {
+      character: 'Superman',
+      editionLabel: 'Classic',
+      runSize: 30_000,
+      batchCode: 'B-SHIFT',
+      origin: 'https://id.binkis.com',
+    });
+
+    // Every row verifies against itself.
+    for (const row of rows) {
+      expect(rowCheckMatches(row.PIECE_NUMBER, row.QR_URL, row.CLAIM_CODE, row.ROW_CHECK)).toBe(true);
+    }
+
+    // Now slide the claim codes up by one, as a misconfigured press would.
+    let caught = 0;
+    for (let i = 0; i < rows.length - 1; i++) {
+      const shifted = rows[i + 1]!.CLAIM_CODE;
+      if (!rowCheckMatches(rows[i]!.PIECE_NUMBER, rows[i]!.QR_URL, shifted, rows[i]!.ROW_CHECK)) {
+        caught++;
+      }
+    }
+    expect(caught).toBe(rows.length - 1);
   });
 });

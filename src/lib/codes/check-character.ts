@@ -52,7 +52,7 @@ import { ALPHABET_SIZE, charAtIndex, indexOfChar, isAlphabetString } from './alp
  */
 
 /** Claim codes are the only codes in the system that carry a check character. */
-export const CHECKED_CODE_LENGTH = 11;
+export const CHECKED_CODE_LENGTH = 9;
 
 /**
  * Weight 1 belongs to the check character, so payload weights start at 2.
@@ -63,7 +63,7 @@ const FIRST_PAYLOAD_WEIGHT = 2;
 
 /**
  * Beyond this the weights would reach 31 and wrap to 0, silently blinding the
- * checksum at that position. Our payload is 10 characters, so this is a guard
+ * checksum at that position. Our payload is 8 characters, so this is a guard
  * against a future change rather than a live constraint.
  */
 const MAX_PAYLOAD_LENGTH = ALPHABET_SIZE - FIRST_PAYLOAD_WEIGHT; // 29

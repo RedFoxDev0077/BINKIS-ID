@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { formatClaimCode } from '../codes/claim-code.ts';
 import { qrPayload } from '../codes/qr-token.ts';
+import { rowCheck } from './row-check.ts';
 import type { GeneratedPiece } from '../generator.ts';
 
 /**
@@ -11,15 +12,22 @@ import type { GeneratedPiece } from '../generator.ts';
  * under the right scratch panel on the right sticker, and for no other reason.
  * It is written, hashed, encrypted, and the plaintext is deleted.
  *
+ * Three columns are printed on the label: PIECE_NUMBER, QR_URL, CLAIM_CODE.
+ * The rest are not. ROW_CHECK binds those three together, so a one-row shift
+ * anywhere in the factory's pipeline is detectable from a single comparison
+ * rather than three. LINE lets both sides refer to a row by number. CHARACTER,
+ * EDITION and BATCH exist so output can be separated by character on the press,
+ * and can be dropped if the factory prefers fewer columns.
+ *
  * Note what is NOT in it: no internal database id, no claim hash, no pepper,
  * no owner data. The internal id never leaves the database (non-negotiable 6).
  */
-
 export const FACTORY_COLUMNS = [
   'LINE',
   'PIECE_NUMBER',
   'QR_URL',
   'CLAIM_CODE',
+  'ROW_CHECK',
   'CHARACTER',
   'EDITION',
   'BATCH',
@@ -39,6 +47,7 @@ export interface FactoryRow {
   PIECE_NUMBER: string;
   QR_URL: string;
   CLAIM_CODE: string;
+  ROW_CHECK: string;
   CHARACTER: string;
   EDITION: string;
   BATCH: string;
@@ -48,18 +57,23 @@ export function buildFactoryRows(
   pieces: readonly GeneratedPiece[],
   context: FactoryRowContext,
 ): FactoryRow[] {
-  return pieces.map((piece, index) => ({
-    LINE: index + 1,
-    PIECE_NUMBER: piece.serial,
-    QR_URL: qrPayload(piece.qrToken, context.origin),
-    CLAIM_CODE: formatClaimCode(piece.claimCode),
-    CHARACTER: context.character,
-    EDITION:
-      piece.editionNumber === null
-        ? context.editionLabel
-        : `${context.editionLabel} ${piece.editionNumber}/${context.runSize}`,
-    BATCH: context.batchCode,
-  }));
+  return pieces.map((piece, index) => {
+    const url = qrPayload(piece.qrToken, context.origin);
+    const code = formatClaimCode(piece.claimCode);
+    return {
+      LINE: index + 1,
+      PIECE_NUMBER: piece.serial,
+      QR_URL: url,
+      CLAIM_CODE: code,
+      ROW_CHECK: rowCheck(piece.serial, url, code),
+      CHARACTER: context.character,
+      EDITION:
+        piece.editionNumber === null
+          ? context.editionLabel
+          : `${context.editionLabel} ${piece.editionNumber}/${context.runSize}`,
+      BATCH: context.batchCode,
+    };
+  });
 }
 
 /**
@@ -94,7 +108,8 @@ export async function writeFactoryWorkbook(
     { header: 'LINE', key: 'LINE', width: 8 },
     { header: 'PIECE_NUMBER', key: 'PIECE_NUMBER', width: 16 },
     { header: 'QR_URL', key: 'QR_URL', width: 42 },
-    { header: 'CLAIM_CODE', key: 'CLAIM_CODE', width: 18 },
+    { header: 'CLAIM_CODE', key: 'CLAIM_CODE', width: 16 },
+    { header: 'ROW_CHECK', key: 'ROW_CHECK', width: 12 },
     { header: 'CHARACTER', key: 'CHARACTER', width: 18 },
     { header: 'EDITION', key: 'EDITION', width: 22 },
     { header: 'BATCH', key: 'BATCH', width: 14 },
@@ -108,7 +123,7 @@ export async function writeFactoryWorkbook(
 
   // Serials and codes are read character by character off a screen next to a
   // print run. Monospace, no autocorrect, no scientific notation.
-  for (const key of ['PIECE_NUMBER', 'QR_URL', 'CLAIM_CODE'] as const) {
+  for (const key of ['PIECE_NUMBER', 'QR_URL', 'CLAIM_CODE', 'ROW_CHECK'] as const) {
     const column = sheet.getColumn(key);
     column.font = { name: 'Consolas' };
     column.numFmt = '@';

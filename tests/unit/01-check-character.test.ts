@@ -24,7 +24,7 @@ const payloadOf = () => generateClaimCode().slice(0, CLAIM_CODE_PAYLOAD_LENGTH);
 
 describe('GF(31) check character', () => {
   it('is deterministic', () => {
-    const payload = '7K9P2M4XQ3';
+    const payload = '7K9P2M4X';
     const first = checkCharacter(payload);
     for (let i = 0; i < 100; i++) {
       expect(checkCharacter(payload)).toBe(first);
@@ -44,19 +44,19 @@ describe('GF(31) check character', () => {
   });
 
   it('the documented example from CLAUDE.md is 11 characters with a valid check character', () => {
-    // 7K9P-2M4X-Q3F is quoted in CLAUDE.md as the shape of a claim code.
-    const payload = '7K9P2M4XQ3';
+    // 7K9-P2M-4XQ is the documented shape of a claim code.
+    const payload = '7K9P2M4X';
     expect(payload).toHaveLength(CLAIM_CODE_PAYLOAD_LENGTH);
     const full = appendCheckCharacter(payload);
-    expect(full).toHaveLength(11);
+    expect(full).toHaveLength(9);
     expect(hasValidCheckCharacter(full)).toBe(true);
   });
 
   it('rejects a code whose check character has been altered', () => {
-    const full = appendCheckCharacter('7K9P2M4XQ3');
+    const full = appendCheckCharacter('7K9P2M4X');
     for (const c of ALPHABET) {
-      if (c === full[10]) continue;
-      expect(hasValidCheckCharacter(full.slice(0, 10) + c)).toBe(false);
+      if (c === full[8]) continue;
+      expect(hasValidCheckCharacter(full.slice(0, 8) + c)).toBe(false);
     }
   });
 
@@ -77,8 +77,8 @@ describe('GF(31) check character', () => {
         }
       }
     }
-    // 200 samples x 11 positions x 30 substitutions
-    expect(checked).toBe(200 * 11 * 30);
+    // 200 samples x 9 positions x 30 substitutions
+    expect(checked).toBe(200 * 9 * 30);
   });
 
   it('detects EVERY transposition, adjacent or not', () => {
@@ -128,9 +128,9 @@ describe('GF(31) check character', () => {
     ];
 
     for (const [a, b] of formerBlindSpots) {
-      for (let pos = 0; pos < 11; pos++) {
+      for (let pos = 0; pos < 9; pos++) {
         const base = payloadOf();
-        const seeded = (base.slice(0, pos) + a + base.slice(pos + 1)).slice(0, 10);
+        const seeded = (base.slice(0, pos) + a + base.slice(pos + 1)).slice(0, 8);
         const full = appendCheckCharacter(seeded);
         if (full[pos] !== a) continue;
 
@@ -149,7 +149,7 @@ describe('GF(31) check character', () => {
   it('rejects wrong-length input', () => {
     expect(hasValidCheckCharacter('')).toBe(false);
     expect(hasValidCheckCharacter('7K9P')).toBe(false);
-    expect(hasValidCheckCharacter(appendCheckCharacter('7K9P2M4XQ3') + 'A')).toBe(false);
+    expect(hasValidCheckCharacter(appendCheckCharacter('7K9P2M4X') + 'A')).toBe(false);
   });
 
   it('spreads check characters across the whole alphabet', () => {

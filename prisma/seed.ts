@@ -54,7 +54,22 @@ async function main() {
     },
   });
 
+  // Idempotent: clear a previous seed batch child-first. Deleting the batch
+  // on its own violates pieces_batch_id_fkey, which is the foreign key doing
+  // exactly its job - a batch must never be removable out from under the
+  // pieces that were manufactured from it.
   const batchCode = 'B-SEED-01';
+  const previous = await prisma.piece.findMany({
+    where: { batch: { code: batchCode } },
+    select: { id: true },
+  });
+  const previousIds = previous.map((piece) => piece.id);
+  if (previousIds.length > 0) {
+    await prisma.transfer.deleteMany({ where: { pieceId: { in: previousIds } } });
+    await prisma.passportEvent.deleteMany({ where: { pieceId: { in: previousIds } } });
+    await prisma.ownershipEvent.deleteMany({ where: { pieceId: { in: previousIds } } });
+    await prisma.piece.deleteMany({ where: { id: { in: previousIds } } });
+  }
   await prisma.batch.deleteMany({ where: { code: batchCode } });
   const batch = await prisma.batch.create({
     data: { code: batchCode, productId: product.id, quantity: 6, status: 'GENERATED' },
@@ -84,8 +99,20 @@ async function main() {
     });
   }
 
+  // Same story for the demo account: CollectorId is onDelete: Restrict, so a
+  // user cannot be removed while a collector profile points at them. That is
+  // deliberate - a collector who owns pieces must never vanish and orphan the
+  // ownership ledger - so the seed clears the profile explicitly.
   const email = 'demo@binkis.test';
-  await prisma.user.deleteMany({ where: { email } });
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+  if (existing) {
+    await prisma.collectorId.deleteMany({ where: { userId: existing.id } });
+    await prisma.session.deleteMany({ where: { userId: existing.id } });
+    await prisma.user.delete({ where: { id: existing.id } });
+  }
   const user = await prisma.user.create({
     data: { email, handle: 'demo', passwordHash: await hashPassword('demo-password-1234') },
   });

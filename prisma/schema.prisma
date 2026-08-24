@@ -47,6 +47,19 @@ enum AcquiredVia {
   TRANSFER
 }
 
+enum UserRole {
+  COLLECTOR
+  ADMIN
+}
+
+enum TransferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+  EXPIRED
+}
+
 /// PassportEvent.type is a plain String, deliberately.
 ///
 /// CLAUDE.md requires that adding an eighth event type needs no schema
@@ -59,6 +72,7 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   handle       String   @unique
+  role         UserRole @default(COLLECTOR)
   createdAt    DateTime @default(now()) @map("created_at")
 
   collectorId CollectorId?
@@ -103,6 +117,8 @@ model CollectorId {
 
   ownershipEventsFrom OwnershipEvent[] @relation("FromCollector")
   ownershipEventsTo   OwnershipEvent[] @relation("ToCollector")
+  transfersSent       Transfer[]       @relation("TransferFrom")
+  transfersReceived   Transfer[]       @relation("TransferTo")
 
   @@map("collector_ids")
 }
@@ -174,6 +190,7 @@ model Piece {
 
   ownershipEvents OwnershipEvent[]
   passportEvents  PassportEvent[]
+  transfers       Transfer[]
 
   // Edition position is unique within a product: there is exactly one 45/777.
   @@unique([productId, editionNumber])
@@ -248,4 +265,45 @@ model ClaimAttempt {
 
   @@index([ip, at])
   @@map("claim_attempts")
+}
+
+/// A transfer in flight.
+///
+/// Transfers are a REQUEST, not a mutation. Nothing about ownership changes
+/// until the receiver accepts; at that point a new OwnershipEvent is appended
+/// and this row is closed. The ledger is never rewritten, so a piece that
+/// changes hands five times carries all five owners forever.
+///
+/// The receiver may not have an account yet. CLAUDE.md requires that a
+/// transfer to an unregistered email stays pending and completes on signup,
+/// so toCollectorId is nullable and toEmail carries the invitation until the
+/// account exists.
+///
+/// A partial unique index on (piece_id) WHERE status = 'PENDING' is added in
+/// the migration by hand, because Prisma cannot express partial indexes. It
+/// makes two simultaneous pending transfers for one piece impossible at the
+/// database level rather than by checking first.
+model Transfer {
+  id              String         @id @default(uuid()) @db.Uuid
+  pieceId         String         @map("piece_id") @db.Uuid
+  fromCollectorId String         @map("from_collector_id") @db.Uuid
+  /// Null until the recipient has an account.
+  toCollectorId   String?        @map("to_collector_id") @db.Uuid
+  /// Lowercased at write time. Used to match a pending transfer on signup.
+  toEmail         String?        @map("to_email")
+  toHandle        String?        @map("to_handle")
+  status          TransferStatus @default(PENDING)
+  message         String?
+  createdAt       DateTime       @default(now()) @map("created_at")
+  respondedAt     DateTime?      @map("responded_at")
+  expiresAt       DateTime       @map("expires_at")
+
+  piece         Piece        @relation(fields: [pieceId], references: [id], onDelete: Restrict)
+  fromCollector CollectorId  @relation("TransferFrom", fields: [fromCollectorId], references: [id], onDelete: Restrict)
+  toCollector   CollectorId? @relation("TransferTo", fields: [toCollectorId], references: [id], onDelete: Restrict)
+
+  @@index([toCollectorId, status])
+  @@index([toEmail, status])
+  @@index([fromCollectorId, status])
+  @@map("transfers")
 }

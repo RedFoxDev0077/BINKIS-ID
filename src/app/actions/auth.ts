@@ -13,6 +13,7 @@ import {
 } from '@/lib/auth/session';
 import { getCurrentSession } from '@/lib/auth/current';
 import { signInSchema, signUpSchema } from '@/lib/validation/auth';
+import { claimPendingTransfersForEmail } from '@/lib/db/transfer';
 import { getTranslations } from '@/lib/i18n';
 
 export interface AuthState {
@@ -62,9 +63,13 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     // ID cannot own anything, so a half-created account would be a dead end.
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({ data: { email, handle, passwordHash } });
-      await tx.collectorId.create({
+      const collector = await tx.collectorId.create({
         data: { userId: created.id, displayName: displayName ?? handle },
       });
+      // A transfer sent to this address before the account existed resolves
+      // here, inside the same transaction that creates the collector, so an
+      // invitation can never be left dangling by a partial signup.
+      await claimPendingTransfersForEmail(tx, email, collector.id);
       return created;
     });
     userId = user.id;

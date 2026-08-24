@@ -128,21 +128,33 @@ function stopAt(bin: string, dataDir: string): void {
 }
 
 /**
- * Push the Prisma schema into a database.
+ * Build a database's schema by APPLYING THE MIGRATIONS.
  *
- * Runs Prisma's JS entry point under the current Node rather than going
- * through `npx`. Node 22.13+ refuses to spawn a .cmd shim without shell: true,
- * and enabling a shell here would mean interpolating a connection string into
- * a command line.
+ * Deliberately `migrate deploy`, not `db push`.
+ *
+ * `db push` only materialises what schema.prisma can express. Anything written
+ * by hand in a migration is invisible to it, and this project has exactly such
+ * a thing: the partial unique index that permits only one PENDING transfer per
+ * piece, which Prisma cannot describe.
+ *
+ * With `db push` the test database silently lacked that constraint while
+ * production had it, so the suite was testing a schema that would never be
+ * deployed. Running the real migrations means the tests exercise precisely the
+ * database production runs.
+ *
+ * Runs Prisma's JS entry point under the current Node rather than through
+ * `npx`: Node 22.13+ refuses to spawn a .cmd shim without shell: true, and
+ * enabling a shell would mean interpolating a connection string into a
+ * command line.
  */
 export function pushSchema(databaseUrl: string): void {
   const cli = findPrismaCli();
 
-  execFileSync(
-    process.execPath,
-    [cli, 'db', 'push', '--skip-generate', '--accept-data-loss'],
-    { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'pipe', cwd: process.cwd() },
-  );
+  execFileSync(process.execPath, [cli, 'migrate', 'deploy'], {
+    env: { ...process.env, DATABASE_URL: databaseUrl },
+    stdio: 'pipe',
+    cwd: process.cwd(),
+  });
 }
 
 /**

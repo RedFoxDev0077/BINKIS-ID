@@ -3,18 +3,26 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db/client';
 import { getCurrentUser } from '@/lib/auth/current';
 import { getTranslations, fill } from '@/lib/i18n';
+import { normaliseRarity } from '@/lib/passport';
 import { RarityChip } from '@/components/RarityChip';
 import { Serial } from '@/components/Serial';
+import { VerifiedBadge } from '@/components/VerifiedBadge';
+import { HoloCard } from '@/components/ui/HoloCard';
+import { Reveal } from '@/components/ui/Reveal';
+import { CountUp } from '@/components/ui/CountUp';
+import { Progress } from '@/components/ui/Progress';
+import { Card, SectionTitle } from '@/components/ui/Card';
+import { ButtonLink } from '@/components/ui/Button';
 
 /**
  * My Collection.
  *
- * Build step 4 fills this in properly with progress bars per series and
- * milestone recognition. This is the honest minimum: the claim flow has to
- * land somewhere, and a collector who has just claimed their first piece
- * should see it immediately rather than a placeholder.
+ * Ownership is read from the ledger, never from a column on the piece, so a
+ * transferred piece leaves this page the moment its new owner accepts.
  *
- * Ownership is read from the ledger, not from a column on the piece.
+ * The progress bars are the reason a collector comes back. Seeing "14 / 20" on
+ * a series is what turns a pile of objects into a set worth completing, so
+ * they sit above the grid rather than below it.
  */
 export default async function CollectionPage() {
   const user = await getCurrentUser();
@@ -33,77 +41,173 @@ export default async function CollectionPage() {
           serial: true,
           qrToken: true,
           verified: true,
+          status: true,
           editionNumber: true,
-          product: { select: { character: true, series: true, rarity: true, runSize: true } },
+          product: {
+            select: { character: true, series: true, rarity: true, runSize: true },
+          },
         },
       },
     },
   });
 
-  // A transfer appends a new row, so the same piece can appear more than once.
-  // Only the latest row per piece represents current ownership.
+  // A transfer appends a row, so the same piece can appear more than once.
+  // Only the latest row per piece is current ownership, and only if that row
+  // is still the newest one in the whole ledger for that piece.
   const seen = new Set<string>();
-  const pieces = owned.filter((row) => {
+  const mine = owned.filter((row) => {
     if (seen.has(row.pieceId)) return false;
     seen.add(row.pieceId);
     return true;
   });
 
+  const stillOwned = await prisma.ownershipEvent.findMany({
+    where: { pieceId: { in: mine.map((m) => m.pieceId) } },
+    orderBy: [{ pieceId: 'asc' }, { seq: 'desc' }],
+    distinct: ['pieceId'],
+    select: { pieceId: true, toCollectorId: true },
+  });
+  const currentlyMine = new Set(
+    stillOwned.filter((row) => row.toCollectorId === user.collectorId).map((r) => r.pieceId),
+  );
+  const pieces = mine.filter((row) => currentlyMine.has(row.pieceId));
+
   const verifiedCount = pieces.filter((p) => p.piece.verified).length;
-  const seriesCount = new Set(pieces.map((p) => p.piece.product.series)).size;
+  const seriesNames = [...new Set(pieces.map((p) => p.piece.product.series))];
+
+  // Progress per series, against the true size of each series in the registry
+  // rather than against what the collector already has.
+  const seriesTotals = await prisma.product.groupBy({
+    by: ['series'],
+    where: { series: { in: seriesNames } },
+    _sum: { runSize: true },
+  });
+  const totalFor = new Map(seriesTotals.map((row) => [row.series, row._sum.runSize ?? 0]));
+
+  const bySeries = seriesNames
+    .map((series) => {
+      const held = pieces.filter((p) => p.piece.product.series === series);
+      const best = held
+        .map((p) => normaliseRarity(p.piece.product.rarity))
+        .sort()
+        .at(-1);
+      return {
+        series,
+        owned: held.length,
+        total: totalFor.get(series) ?? held.length,
+        tone: `rarity-${(best ?? 'Common').toLowerCase()}`,
+      };
+    })
+    .sort((a, b) => b.owned - a.owned);
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+    <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
       <header className="mb-8">
-        <h1 className="font-display text-4xl tracking-wide text-ink-50">{t.nav.collection}</h1>
-        <p className="mono mt-1 text-sm text-ink-500">@{user.handle}</p>
+        <h1 className="font-display text-4xl tracking-wide text-ink-50 sm:text-5xl">
+          {t.nav.collection}
+        </h1>
+        <p className="mono mt-1.5 text-sm text-ink-500">@{user.handle}</p>
       </header>
 
       {pieces.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-ink-700 bg-ink-900/40 p-10 text-center">
-          <p className="font-display text-2xl tracking-wide text-ink-200">
-            {t.passport.unclaimedTitle}
-          </p>
-          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-400">
-            {t.passport.unclaimedBody}
-          </p>
-        </div>
+        /* The empty state is an invitation, not a blank page. */
+        <Card className="px-6 py-16 text-center">
+          <div className="relative">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-dashed border-ink-700 bg-ink-925">
+              <svg viewBox="0 0 24 24" className="size-7 text-ink-600" fill="currentColor">
+                <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.4 7.2 16.9l.9-5.4L4.2 7.7l5.4-.8L12 2z" />
+              </svg>
+            </div>
+            <p className="mt-6 font-display text-2xl tracking-wide text-ink-100">
+              {t.passport.unclaimedTitle}
+            </p>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-400">
+              {t.passport.unclaimedBody}
+            </p>
+            <div className="mt-7">
+              <ButtonLink href="/" size="lg">
+                {t.passport.claimAction}
+              </ButtonLink>
+            </div>
+          </div>
+        </Card>
       ) : (
         <>
           <div className="mb-8 grid grid-cols-3 gap-3">
-            <Stat value={pieces.length} label={t.nav.collection} />
+            <Stat value={pieces.length} label={t.nav.collection} accent />
             <Stat value={verifiedCount} label={t.passport.verified} />
-            <Stat value={seriesCount} label={t.passport.series} />
+            <Stat value={seriesNames.length} label={t.passport.series} />
           </div>
 
-          <ul className="stagger grid gap-4 sm:grid-cols-2">
+          {bySeries.length > 0 ? (
+            <Reveal>
+              <Card className="mb-9 p-6">
+                <div className="relative space-y-5">
+                  {bySeries.map((row) => (
+                    <Progress
+                      key={row.series}
+                      label={row.series}
+                      value={row.owned}
+                      total={row.total}
+                      tone={row.tone}
+                    />
+                  ))}
+                </div>
+              </Card>
+            </Reveal>
+          ) : null}
+
+          <SectionTitle hint={`${pieces.length}`}>{t.nav.collection}</SectionTitle>
+
+          <ul className="grid gap-4 sm:grid-cols-2">
             {pieces.map((row, index) => (
-              <li key={row.pieceId} style={{ animationDelay: `${Math.min(index, 10) * 45}ms` }}>
-                <Link
-                  href={`/p/${row.piece.qrToken}`}
-                  className="grain relative block overflow-hidden rounded-2xl border border-ink-800 bg-ink-900/60 p-5 transition hover:border-ink-600"
-                >
-                  <div className="relative flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-display text-2xl leading-tight tracking-wide text-ink-50">
-                        {row.piece.product.character}
-                      </p>
-                      <p className="text-xs uppercase tracking-[0.16em] text-ink-500">
-                        {row.piece.product.series}
-                      </p>
-                    </div>
-                    <RarityChip rarity={row.piece.product.rarity} />
-                  </div>
-                  <Serial value={row.piece.serial} className="relative mt-4 text-xl" />
-                  {row.piece.editionNumber !== null ? (
-                    <p className="relative mt-1 text-xs text-ink-500">
-                      {fill(t.passport.editionPosition, {
-                        number: row.piece.editionNumber,
-                        total: row.piece.product.runSize,
-                      })}
-                    </p>
-                  ) : null}
-                </Link>
+              <li key={row.pieceId}>
+                <Reveal delay={Math.min(index, 8) * 50}>
+                  <HoloCard
+                    as="div"
+                    intensity={7}
+                    className="h-full rounded-2xl border border-ink-800 bg-gradient-to-b from-ink-900/80 to-ink-925/60"
+                  >
+                    <Link
+                      href={`/p/${row.piece.qrToken}` as never}
+                      className="tilt-layer block p-5 focus-visible:outline-none"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-display text-2xl leading-tight tracking-wide text-ink-50">
+                            {row.piece.product.character}
+                          </p>
+                          <p className="text-[11px] uppercase tracking-[0.16em] text-ink-500">
+                            {row.piece.product.series}
+                          </p>
+                        </div>
+                        <RarityChip rarity={row.piece.product.rarity} size="sm" />
+                      </div>
+
+                      <Serial value={row.piece.serial} className="mt-5 text-xl" />
+
+                      <div className="mt-4 flex items-center justify-between gap-2">
+                        {row.piece.editionNumber !== null ? (
+                          <span className="text-xs text-ink-500">
+                            {fill(t.passport.editionPosition, {
+                              number: row.piece.editionNumber,
+                              total: row.piece.product.runSize,
+                            })}
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+                        <VerifiedBadge
+                          size="sm"
+                          verified={row.piece.verified}
+                          label={
+                            row.piece.verified ? t.passport.verified : t.passport.unverified
+                          }
+                        />
+                      </div>
+                    </Link>
+                  </HoloCard>
+                </Reveal>
               </li>
             ))}
           </ul>
@@ -113,11 +217,19 @@ export default async function CollectionPage() {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({ value, label, accent }: { value: number; label: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl border border-ink-800 bg-ink-900/50 p-4 text-center">
-      <p className="mono text-2xl text-ink-50">{value}</p>
-      <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-ink-600">{label}</p>
-    </div>
+    <Card className="p-4 text-center sm:p-5">
+      <p
+        className={`mono relative text-3xl leading-none ${
+          accent ? 'text-[--color-accent]' : 'text-ink-50'
+        }`}
+      >
+        <CountUp value={value} />
+      </p>
+      <p className="relative mt-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-600">
+        {label}
+      </p>
+    </Card>
   );
 }

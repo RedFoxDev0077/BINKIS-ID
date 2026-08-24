@@ -31,6 +31,7 @@ export const en = {
     batch: 'Batch',
     pieceNumber: 'Piece number',
     editionPosition: '{number} of {total}',
+    provenance: 'Provenance',
     history: 'History',
     historyEmpty: 'Nothing has happened to this piece yet.',
     notFoundTitle: 'No BINKI here',
@@ -71,6 +72,8 @@ export const en = {
   auth: {
     signUpTitle: 'Create your Collector ID',
     signInTitle: 'Welcome back',
+    signUpBlurb: 'Your pieces, their history, and every transfer, in one place.',
+    signInBlurb: 'Your collection is waiting for you.',
     email: 'Email',
     handle: 'Handle',
     handleHint: 'This is what other collectors see. Your real name is never public.',
@@ -140,6 +143,24 @@ export const en = {
     exportXlsx: 'Export Excel',
     noResults: 'Nothing matches that.',
     forbidden: 'This area is for administrators.',
+  },
+  lookup: {
+    label: 'Find a BINKI',
+    placeholder: 'SP-000001',
+    action: 'Open',
+    hint: 'Enter the number printed on the hologram, or its QR code, if the camera will not scan.',
+    notFound: 'Nothing in the registry matches',
+  },
+  home: {
+    identityTitle: 'One piece, one identity',
+    identityBody:
+      'Every physical BINKI carries its own number, QR and hidden Claim Code. No two are alike, and none of them can be derived from another.',
+    proofTitle: 'Proof you hold it',
+    proofBody:
+      'A photographed QR opens the same public page anyone can see. Claiming needs the code under the scratch panel, which only the holder has.',
+    historyTitle: 'A history that keeps',
+    historyBody:
+      'Owners change. The piece keeps its identity and every owner it has ever had, appended and never rewritten.',
   },
   common: {
     back: 'Back',

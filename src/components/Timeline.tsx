@@ -78,21 +78,28 @@ export function Timeline({
             </span>
 
             <div className="min-w-0 flex-1 pt-0.5">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h3 className="text-sm font-semibold text-ink-50">{event.title}</h3>
+              {/* Date as a pill on the rail, so the eye can scan the timeline
+                  by when rather than by reading each title. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <time
+                  dateTime={event.occurredAt.toISOString()}
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
+                    ACCENT[event.type]
+                      ? 'border border-current/30 bg-current/10 ' + ACCENT[event.type]
+                      : 'border border-ink-700 bg-ink-850 text-ink-400'
+                  }`}
+                >
+                  {formatDate(event.occurredAt, locale)}
+                </time>
                 <span className="mono text-[11px] uppercase tracking-[0.14em] text-ink-600">
                   #{String(event.seq).padStart(2, '0')} · {label}
                 </span>
               </div>
+
+              <h3 className="mt-2 text-sm font-semibold text-ink-50">{event.title}</h3>
               {event.body ? (
                 <p className="mt-1 text-sm leading-relaxed text-ink-400">{event.body}</p>
               ) : null}
-              <time
-                dateTime={event.occurredAt.toISOString()}
-                className="mt-1.5 block text-xs text-ink-600"
-              >
-                {formatDate(event.occurredAt, locale)}
-              </time>
             </div>
           </li>
         );

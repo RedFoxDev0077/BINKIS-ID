@@ -102,11 +102,44 @@ export default async function CollectionPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <header className="mb-8">
-        <h1 className="font-display text-4xl tracking-wide text-ink-50 sm:text-5xl">
-          {t.nav.collection}
-        </h1>
-        <p className="mono mt-1.5 text-sm text-ink-500">@{user.handle}</p>
+      {/* Gradient status card. The headline number is the collection size,
+          because that is the thing a collector opens this page to see. */}
+      <header className="grain relative mb-8 overflow-hidden rounded-3xl border border-ink-800 p-7 sm:p-9"
+        style={{
+          background:
+            'linear-gradient(135deg, oklch(0.30 0.11 250) 0%, oklch(0.22 0.07 275) 45%, oklch(0.17 0.02 265) 100%)',
+        }}
+      >
+        <div className="relative flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/55">
+              {t.nav.collection}
+            </p>
+            <p className="mono mt-3 text-6xl leading-none text-white">
+              <CountUp value={pieces.length} />
+            </p>
+            <p className="mono mt-2 text-sm text-white/60">@{user.handle}</p>
+          </div>
+
+          <dl className="flex gap-7">
+            <div>
+              <dt className="text-[10px] uppercase tracking-[0.16em] text-white/45">
+                {t.passport.verified}
+              </dt>
+              <dd className="mono mt-1 text-2xl text-white">
+                <CountUp value={verifiedCount} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[10px] uppercase tracking-[0.16em] text-white/45">
+                {t.passport.series}
+              </dt>
+              <dd className="mono mt-1 text-2xl text-white">
+                <CountUp value={seriesNames.length} />
+              </dd>
+            </div>
+          </dl>
+        </div>
       </header>
 
       {pieces.length === 0 ? (
@@ -133,12 +166,6 @@ export default async function CollectionPage() {
         </Card>
       ) : (
         <>
-          <div className="mb-8 grid grid-cols-3 gap-3">
-            <Stat value={pieces.length} label={t.nav.collection} accent />
-            <Stat value={verifiedCount} label={t.passport.verified} />
-            <Stat value={seriesNames.length} label={t.passport.series} />
-          </div>
-
           {bySeries.length > 0 ? (
             <Reveal>
               <Card className="mb-9 p-6">
@@ -214,22 +241,5 @@ export default async function CollectionPage() {
         </>
       )}
     </main>
-  );
-}
-
-function Stat({ value, label, accent }: { value: number; label: string; accent?: boolean }) {
-  return (
-    <Card className="p-4 text-center sm:p-5">
-      <p
-        className={`mono relative text-3xl leading-none ${
-          accent ? 'text-accent' : 'text-ink-50'
-        }`}
-      >
-        <CountUp value={value} />
-      </p>
-      <p className="relative mt-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-600">
-        {label}
-      </p>
-    </Card>
   );
 }

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="8%" r="72%">
+      <stop offset="0%" stop-color="#1ec8d8" stop-opacity="0.42"/>
+      <stop offset="45%" stop-color="#2a3ea8" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#08090c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="deep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1420"/>
+      <stop offset="55%" stop-color="#0a0d15"/>
+      <stop offset="100%" stop-color="#08090c"/>
+    </linearGradient>
+    <linearGradient id="shaft" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%" stop-color="#7fe6f2" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#7fe6f2" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+    <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0H0v46" fill="none" stroke="#ffffff" stroke-opacity="0.028" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#deep)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+
+  <!-- light shafts, echoing the hologram catching light -->
+  <g filter="url(#soft)" opacity="0.85">
+    <polygon points="520,-80 760,-80 470,900 250,900" fill="url(#shaft)"/>
+    <polygon points="880,-80 1010,-80 900,900 700,900" fill="url(#shaft)"/>
+    <polygon points="1180,-80 1400,-80 1320,900 1080,900" fill="url(#shaft)"/>
+  </g>
+
+  <rect width="1600" height="900" fill="url(#glow)"/>
+
+  <!-- horizon so the hero has depth rather than reading as a flat panel -->
+  <path d="M0 700 Q 400 640 800 690 T 1600 660 L1600 900 L0 900 Z" fill="#06070a" opacity="0.92"/>
+  <path d="M0 700 Q 400 640 800 690 T 1600 660" fill="none" stroke="#1ec8d8" stroke-opacity="0.22" stroke-width="1.5"/>
+</svg>

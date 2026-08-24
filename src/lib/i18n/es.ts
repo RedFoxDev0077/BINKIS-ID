@@ -37,6 +37,7 @@ export const es: typeof en = {
     batch: 'Lote',
     pieceNumber: 'Número de pieza',
     editionPosition: '{number} de {total}',
+    provenance: 'Procedencia',
     history: 'Historial',
     historyEmpty: 'A esta pieza todavía no le ha pasado nada.',
     notFoundTitle: 'Aquí no hay ningún BINKI',
@@ -77,6 +78,8 @@ export const es: typeof en = {
   auth: {
     signUpTitle: 'Crea tu Collector ID',
     signInTitle: 'Bienvenido de vuelta',
+    signUpBlurb: 'Tus piezas, su historial y cada transferencia, en un solo lugar.',
+    signInBlurb: 'Tu colección te está esperando.',
     email: 'Correo',
     handle: 'Usuario',
     handleHint: 'Esto es lo que ven otros coleccionistas. Tu nombre real nunca es público.',
@@ -146,6 +149,24 @@ export const es: typeof en = {
     exportXlsx: 'Exportar Excel',
     noResults: 'No hay coincidencias.',
     forbidden: 'Esta zona es para administradores.',
+  },
+  lookup: {
+    label: 'Buscar un BINKI',
+    placeholder: 'SP-000001',
+    action: 'Abrir',
+    hint: 'Escribe el número impreso en el holograma, o su código QR, si la cámara no lo lee.',
+    notFound: 'No hay nada en el registro que coincida con',
+  },
+  home: {
+    identityTitle: 'Una pieza, una identidad',
+    identityBody:
+      'Cada BINKI físico lleva su propio número, QR y Código de Reclamo oculto. No hay dos iguales, y ninguno se puede deducir de otro.',
+    proofTitle: 'La prueba de que lo tienes',
+    proofBody:
+      'Un QR fotografiado abre la misma página pública que ve cualquiera. Para reclamar hace falta el código bajo el panel raspable, que solo tiene quien la posee.',
+    historyTitle: 'Un historial que permanece',
+    historyBody:
+      'Los dueños cambian. La pieza conserva su identidad y a todos los dueños que ha tenido, agregados y nunca reescritos.',
   },
   common: {
     back: 'Volver',

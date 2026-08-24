@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getPassportByToken } from '@/lib/passport';
+import { getPassportByToken, provenanceStatement, ownerCountForToken } from '@/lib/passport';
 import { getTranslations, fill } from '@/lib/i18n';
 import { getCurrentUser } from '@/lib/auth/current';
 import { prisma } from '@/lib/db/client';
@@ -9,6 +9,7 @@ import { RarityChip } from '@/components/RarityChip';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { Timeline } from '@/components/Timeline';
 import { ClaimForm } from '@/components/ClaimForm';
+import { PieceArtwork } from '@/components/PieceArtwork';
 import { TransferPanel } from '@/components/TransferPanel';
 import { HoloCard } from '@/components/ui/HoloCard';
 import { Reveal } from '@/components/ui/Reveal';
@@ -73,6 +74,7 @@ export default async function PassportPage({ params }: Params) {
   }
 
   const user = await getCurrentUser();
+  const ownerCount = await ownerCountForToken(passport.qrToken);
   const voided = passport.status === 'VOID';
   const claimable = passport.status === 'UNCLAIMED';
 
@@ -101,7 +103,16 @@ export default async function PassportPage({ params }: Params) {
       <article className="space-y-6 py-6 sm:py-10">
         {/* ---- hero: the piece's identity ---------------------------------- */}
         <HoloCard className="rounded-3xl border border-ink-800 bg-gradient-to-b from-ink-900/90 to-ink-925/70 p-6 sm:p-9">
-          <div className="tilt-layer relative">
+          <div className="tilt-layer relative sm:flex sm:items-start sm:gap-7">
+            <PieceArtwork
+              characterCode={passport.characterCode}
+              character={passport.character}
+              rarity={passport.rarity}
+              artworkUrl={passport.artworkUrl}
+              className="mb-6 aspect-[4/5] w-full sm:mb-0 sm:w-44 sm:shrink-0"
+            />
+
+            <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-500">
@@ -139,6 +150,7 @@ export default async function PassportPage({ params }: Params) {
                 </span>
               </div>
             ) : null}
+            </div>
           </div>
         </HoloCard>
 
@@ -201,6 +213,18 @@ export default async function PassportPage({ params }: Params) {
             <TransferPanel serial={passport.serial} hasPending={pendingTransfer} t={t} />
           </Reveal>
         ) : null}
+
+        {/* ---- provenance, as a sentence ----------------------------------- */}
+        <Reveal>
+          <Card className="p-6 sm:p-7">
+            <h2 className="relative text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500">
+              {t.passport.provenance}
+            </h2>
+            <p className="relative mt-3 text-[15px] leading-relaxed text-ink-200">
+              {provenanceStatement(passport, ownerCount, locale)}
+            </p>
+          </Card>
+        </Reveal>
 
         {/* ---- the facts --------------------------------------------------- */}
         <Reveal>

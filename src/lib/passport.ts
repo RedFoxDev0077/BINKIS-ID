@@ -165,3 +165,75 @@ export function normaliseRarity(value: string): Rarity {
   const match = RARITY_TIERS.find((tier) => tier.toLowerCase() === value.trim().toLowerCase());
   return match ?? 'Common';
 }
+
+/**
+ * Provenance, written as a sentence.
+ *
+ * The structured fields below it already carry every one of these values, so
+ * this is not new information. It is there because a certificate reads as a
+ * statement and a database row reads as a table, and this record is meant to
+ * be the former. It is also the part a collector can screenshot and send to a
+ * buyer, which the field grid is not.
+ *
+ * Built from the ledger, so the owner count is the real number of hands the
+ * piece has passed through rather than a stored counter that could drift.
+ */
+export function provenanceStatement(
+  passport: PublicPassport,
+  ownerCount: number,
+  locale: string,
+): string {
+  const es = locale === 'es';
+  const date = new Intl.DateTimeFormat(es ? 'es-MX' : 'en-GB', {
+    year: 'numeric',
+    month: 'long',
+  }).format(passport.producedAt);
+
+  const position =
+    passport.editionNumber !== null
+      ? es
+        ? `, pieza ${passport.editionNumber} de ${passport.runSize}`
+        : `, piece ${passport.editionNumber} of ${passport.runSize}`
+      : '';
+
+  const origin = es
+    ? `${passport.character} ${passport.serial}${position}, de la ${passport.editionLabel} de ${passport.series}, fabricado en ${passport.country} en ${date}.`
+    : `${passport.character} ${passport.serial}${position}, from the ${passport.series} ${passport.editionLabel}, manufactured in ${passport.country} in ${date}.`;
+
+  if (passport.status === 'VOID') {
+    return `${origin} ${es ? 'Esta pieza fue anulada y retirada del registro.' : 'This piece was voided and withdrawn from the registry.'}`;
+  }
+
+  if (!passport.owner) {
+    return `${origin} ${es ? 'Todavía no ha sido reclamado por ningún coleccionista.' : 'It has not yet been claimed by any collector.'}`;
+  }
+
+  const hands =
+    ownerCount <= 1
+      ? es
+        ? `Sigue con su primer dueño, @${passport.owner.handle}.`
+        : `It remains with its first owner, @${passport.owner.handle}.`
+      : es
+        ? `Ha pasado por ${ownerCount} dueños y actualmente pertenece a @${passport.owner.handle}.`
+        : `It has passed through ${ownerCount} owners and currently belongs to @${passport.owner.handle}.`;
+
+  const seal = passport.verified
+    ? es
+      ? ' Su identidad está verificada por BINKIS.'
+      : ' Its identity is verified by BINKIS.'
+    : '';
+
+  return `${origin} ${hands}${seal}`;
+}
+
+/** How many collectors have held this piece, from the ledger. */
+export async function ownerCountForToken(
+  qrToken: string,
+  client: PrismaClient = defaultPrisma,
+): Promise<number> {
+  const piece = await client.piece.findUnique({
+    where: { qrToken },
+    select: { _count: { select: { ownershipEvents: true } } },
+  });
+  return piece?._count.ownershipEvents ?? 0;
+}

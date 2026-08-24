@@ -54,14 +54,14 @@ export function AuthForm({
         error={state.fieldErrors?.password}
       />
 
-      <p aria-live="polite" className="min-h-5 text-sm text-[--color-danger]">
+      <p aria-live="polite" className="min-h-5 text-sm text-danger">
         {state.error ?? ''}
       </p>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-[--color-accent] px-6 py-4 text-base font-semibold text-ink-950 transition hover:bg-[--color-accent-bright] disabled:opacity-55"
+        className="w-full rounded-xl bg-accent px-6 py-4 text-base font-semibold text-ink-950 transition hover:bg-accent-bright disabled:opacity-55"
       >
         {mode === 'signup' ? t.auth.submitSignUp : t.auth.submitSignIn}
       </button>
@@ -70,7 +70,7 @@ export function AuthForm({
         {mode === 'signup' ? t.auth.haveAccount : t.auth.noAccount}{' '}
         <Link
           href={mode === 'signup' ? '/login' : '/signup'}
-          className="text-[--color-accent] underline underline-offset-4"
+          className="text-accent underline underline-offset-4"
         >
           {mode === 'signup' ? t.auth.submitSignIn : t.auth.submitSignUp}
         </Link>
@@ -111,11 +111,11 @@ function Field({
         aria-invalid={error ? true : undefined}
         aria-describedby={hint || error ? `${name}-hint` : undefined}
         className={`w-full rounded-xl border bg-ink-900 px-4 py-3.5 text-base text-ink-50 outline-none transition ${
-          error ? 'border-[--color-danger]' : 'border-ink-700 focus:border-[--color-accent]'
+          error ? 'border-danger' : 'border-ink-700 focus:border-accent'
         }`}
       />
       {hint || error ? (
-        <p id={`${name}-hint`} className={`text-xs ${error ? 'text-[--color-danger]' : 'text-ink-600'}`}>
+        <p id={`${name}-hint`} className={`text-xs ${error ? 'text-danger' : 'text-ink-600'}`}>
           {error ?? hint}
         </p>
       ) : null}

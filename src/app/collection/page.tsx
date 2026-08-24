@@ -222,7 +222,7 @@ function Stat({ value, label, accent }: { value: number; label: string; accent?:
     <Card className="p-4 text-center sm:p-5">
       <p
         className={`mono relative text-3xl leading-none ${
-          accent ? 'text-[--color-accent]' : 'text-ink-50'
+          accent ? 'text-accent' : 'text-ink-50'
         }`}
       >
         <CountUp value={value} />

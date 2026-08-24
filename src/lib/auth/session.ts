@@ -111,14 +111,40 @@ export async function invalidateAllSessions(prisma: PrismaClient, userId: string
   await prisma.session.deleteMany({ where: { userId } });
 }
 
-export function sessionCookieOptions(expiresAt: Date) {
+/**
+ * Cookie flags.
+ *
+ * `secure` is decided by the ACTUAL request protocol, not by NODE_ENV.
+ *
+ * Keying it off NODE_ENV is the usual advice and it is wrong for this
+ * deployment. A Secure cookie is silently discarded by the browser over plain
+ * HTTP, so a production build reached at http://<ip> - which is exactly how
+ * this server is reachable until the DNS record exists - would set a session
+ * cookie that the browser throws away. Sign-up succeeds, the redirect happens,
+ * and the collector arrives signed out, with no error anywhere to explain it.
+ *
+ * Behind Caddy the app sees X-Forwarded-Proto, so the flag follows reality:
+ * on for https, off for http, and no worse than the NODE_ENV version once TLS
+ * is live.
+ */
+export function sessionCookieOptions(expiresAt: Date, secure: boolean) {
   return {
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
     expires: expiresAt,
   };
+}
+
+/** True when the request actually arrived over HTTPS. */
+export function isSecureRequest(headers: {
+  forwardedProto?: string | null;
+  origin?: string | null;
+}): boolean {
+  const proto = headers.forwardedProto?.split(',')[0]?.trim().toLowerCase();
+  if (proto) return proto === 'https';
+  return (headers.origin ?? '').startsWith('https://');
 }
 
 /** Constant-time string comparison, for anything compared against user input. */

@@ -35,7 +35,7 @@ export function VerifiedBadge({
       <svg
         aria-hidden
         viewBox="0 0 20 20"
-        className={`${size === 'sm' ? 'size-3' : 'size-3.5'} text-[--color-verified]`}
+        className={`${size === 'sm' ? 'size-3' : 'size-3.5'} text-verified`}
         fill="currentColor"
       >
         <path

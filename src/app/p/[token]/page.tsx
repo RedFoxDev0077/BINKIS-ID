@@ -155,8 +155,8 @@ export default async function PassportPage({ params }: Params) {
             <div className="space-y-6">
               <Card tone="accent" className="p-6 sm:p-7">
                 <div className="relative flex items-start gap-4">
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-[--color-accent]/15">
-                    <svg viewBox="0 0 24 24" className="size-5 text-[--color-accent]" fill="currentColor">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                    <svg viewBox="0 0 24 24" className="size-5 text-accent" fill="currentColor">
                       <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.4 7.2 16.9l.9-5.4L4.2 7.7l5.4-.8L12 2z" />
                     </svg>
                   </span>
@@ -188,7 +188,7 @@ export default async function PassportPage({ params }: Params) {
                   </p>
                   <p className="mono mt-0.5 text-sm text-ink-500">@{passport.owner.handle}</p>
                 </div>
-                <span className="flex size-11 items-center justify-center rounded-full border border-[--color-verified]/30 bg-[--color-verified]/10 font-display text-lg text-[--color-verified]">
+                <span className="flex size-11 items-center justify-center rounded-full border border-verified/30 bg-verified/10 font-display text-lg text-verified">
                   {passport.owner.displayName.slice(0, 1).toUpperCase()}
                 </span>
               </div>

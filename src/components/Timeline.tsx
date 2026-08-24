@@ -24,9 +24,9 @@ const ICONS: Record<string, string> = {
 };
 
 const ACCENT: Record<string, string> = {
-  CLAIMED: 'text-[--color-accent]',
-  VERIFICATION: 'text-[--color-verified]',
-  VOIDED: 'text-[--color-danger]',
+  CLAIMED: 'text-accent',
+  VERIFICATION: 'text-verified',
+  VOIDED: 'text-danger',
 };
 
 function formatDate(date: Date, locale: string): string {

@@ -61,14 +61,14 @@ export function ImportPanel({ t }: { t: Dictionary }) {
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <Metric label="rows" value={state.report.totalRows} />
               <Metric label="matched" value={state.report.matched} />
-              <Metric label="changes" value={state.report.changes.length} tone="text-[--color-accent]" />
+              <Metric label="changes" value={state.report.changes.length} tone="text-accent" />
               <Metric
                 label="issues"
                 value={state.report.issues.length}
-                tone={state.report.issues.length ? 'text-[--color-danger]' : 'text-ink-400'}
+                tone={state.report.issues.length ? 'text-danger' : 'text-ink-400'}
               />
               {state.report.applied ? (
-                <span className="rounded-full border border-[--color-verified]/40 bg-[--color-verified]/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-[--color-verified]">
+                <span className="rounded-full border border-verified/40 bg-verified/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-verified">
                   applied
                 </span>
               ) : (
@@ -84,16 +84,16 @@ export function ImportPanel({ t }: { t: Dictionary }) {
                   <li key={i} className="flex flex-wrap gap-2 text-ink-400">
                     <span className="text-ink-200">{change.serial}</span>
                     <span className="text-ink-600">{change.field}</span>
-                    <span className="text-[--color-danger]/80">{change.from}</span>
+                    <span className="text-danger/80">{change.from}</span>
                     <span className="text-ink-600">→</span>
-                    <span className="text-[--color-verified]">{change.to}</span>
+                    <span className="text-verified">{change.to}</span>
                   </li>
                 ))}
               </ul>
             ) : null}
 
             {state.report.issues.length > 0 ? (
-              <ul className="mono mt-4 max-h-40 space-y-1 overflow-y-auto text-xs text-[--color-danger]/85">
+              <ul className="mono mt-4 max-h-40 space-y-1 overflow-y-auto text-xs text-danger/85">
                 {state.report.issues.slice(0, 100).map((issue, i) => (
                   <li key={i}>
                     line {issue.line} {issue.serial} — {issue.problem}
@@ -105,7 +105,7 @@ export function ImportPanel({ t }: { t: Dictionary }) {
         ) : null}
 
         {state.status === 'error' ? (
-          <p className="relative mt-4 text-sm text-[--color-danger]">{state.message}</p>
+          <p className="relative mt-4 text-sm text-danger">{state.message}</p>
         ) : null}
       </Card>
     </section>

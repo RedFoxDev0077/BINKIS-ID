@@ -63,7 +63,7 @@ export default async function AdminPieces({
           placeholder={t.admin.search}
           autoComplete="off"
           spellCheck={false}
-          className="mono min-h-11 flex-1 rounded-xl border border-ink-700 bg-ink-950/60 px-4 text-sm text-ink-50 outline-none transition focus:border-[--color-accent]"
+          className="mono min-h-11 flex-1 rounded-xl border border-ink-700 bg-ink-950/60 px-4 text-sm text-ink-50 outline-none transition focus:border-accent"
         />
         <Button type="submit" variant="secondary">
           {t.admin.search}
@@ -109,7 +109,7 @@ export default async function AdminPieces({
                       <RarityChip rarity={piece.product.rarity} size="sm" />
                       <StatusPill status={piece.status} />
                       {piece.verified ? (
-                        <span className="rounded-full border border-[--color-verified]/40 bg-[--color-verified]/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-[--color-verified]">
+                        <span className="rounded-full border border-verified/40 bg-verified/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-verified">
                           {t.passport.verified}
                         </span>
                       ) : null}
@@ -158,9 +158,9 @@ export default async function AdminPieces({
 
 function StatusPill({ status }: { status: string }) {
   const TONE: Record<string, string> = {
-    CLAIMED: 'border-[--color-verified]/40 text-[--color-verified]',
-    UNCLAIMED: 'border-[--color-accent]/40 text-[--color-accent]',
-    VOID: 'border-[--color-danger]/45 text-[--color-danger]',
+    CLAIMED: 'border-verified/40 text-verified',
+    UNCLAIMED: 'border-accent/40 text-accent',
+    VOID: 'border-danger/45 text-danger',
     RESERVED: 'border-ink-700 text-ink-400',
   };
   return (

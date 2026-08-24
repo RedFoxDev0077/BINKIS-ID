@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="mb-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-3xl tracking-wide text-ink-50">{t.admin.title}</h1>
-          <span className="mono rounded-full border border-[--color-warn]/35 bg-[--color-warn]/10 px-3 py-1 text-xs text-[--color-warn]">
+          <span className="mono rounded-full border border-warn/35 bg-warn/10 px-3 py-1 text-xs text-warn">
             @{admin.handle}
           </span>
         </div>

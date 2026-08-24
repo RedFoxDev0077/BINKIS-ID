@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-[--color-accent] focus:px-4 focus:py-2 focus:text-ink-950"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-ink-950"
         >
           Skip to content
         </a>
@@ -89,7 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <NavLink href="/login">{t.nav.signIn}</NavLink>
                   <Link
                     href="/signup"
-                    className="press rounded-lg bg-[--color-accent] px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-[--color-accent-bright]"
+                    className="press rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-ink-950 transition hover:bg-accent-bright"
                   >
                     {t.nav.signUp}
                   </Link>
@@ -122,13 +122,13 @@ function NavLink({
       href={href as never}
       className={`press relative hidden rounded-lg px-3 py-2 text-sm transition hover:bg-ink-900 sm:block ${
         tone === 'warn'
-          ? 'text-[--color-warn]/85 hover:text-[--color-warn]'
+          ? 'text-warn/85 hover:text-warn'
           : 'text-ink-400 hover:text-ink-50'
       }`}
     >
       {children}
       {badge && badge > 0 ? (
-        <span className="mono absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-[--color-accent] text-[10px] font-bold text-ink-950">
+        <span className="mono absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-ink-950">
           {badge > 9 ? '9+' : badge}
         </span>
       ) : null}

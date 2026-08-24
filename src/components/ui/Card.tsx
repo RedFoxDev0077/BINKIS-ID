@@ -11,9 +11,9 @@ export function Card({
 }) {
   const TONES = {
     default: 'border-ink-800 bg-ink-900/55',
-    accent: 'border-[--color-accent]/25 bg-[--color-accent]/6',
-    danger: 'border-[--color-danger]/35 bg-[--color-danger]/8',
-    verified: 'border-[--color-verified]/28 bg-[--color-verified]/6',
+    accent: 'border-accent/25 bg-accent/6',
+    danger: 'border-danger/35 bg-danger/8',
+    verified: 'border-verified/28 bg-verified/6',
   } as const;
 
   return (

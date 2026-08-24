@@ -32,8 +32,8 @@ export function TransferPanel({
       <Card className="p-5">
         <div className="relative flex items-center gap-3">
           <span className="relative flex size-2.5 shrink-0">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-[--color-warn] opacity-60" />
-            <span className="relative inline-flex size-2.5 rounded-full bg-[--color-warn]" />
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-warn opacity-60" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-warn" />
           </span>
           <p className="text-sm text-ink-200">{t.transfer.outgoing}</p>
         </div>
@@ -91,7 +91,7 @@ export function TransferPanel({
               autoCapitalize="none"
               spellCheck={false}
               placeholder="@handle · email@example.com"
-              className="min-h-12 w-full rounded-xl border border-ink-700 bg-ink-950/60 px-4 text-base text-ink-50 outline-none transition focus:border-[--color-accent]"
+              className="min-h-12 w-full rounded-xl border border-ink-700 bg-ink-950/60 px-4 text-base text-ink-50 outline-none transition focus:border-accent"
             />
             <p className="text-xs leading-relaxed text-ink-600">{t.transfer.recipientHint}</p>
           </div>
@@ -108,11 +108,11 @@ export function TransferPanel({
               name="message"
               rows={2}
               maxLength={500}
-              className="w-full resize-none rounded-xl border border-ink-700 bg-ink-950/60 px-4 py-3 text-sm text-ink-50 outline-none transition focus:border-[--color-accent]"
+              className="w-full resize-none rounded-xl border border-ink-700 bg-ink-950/60 px-4 py-3 text-sm text-ink-50 outline-none transition focus:border-accent"
             />
           </div>
 
-          <p aria-live="polite" className="min-h-5 text-sm text-[--color-danger]">
+          <p aria-live="polite" className="min-h-5 text-sm text-danger">
             {state.status === 'error' ? state.message : ''}
           </p>
 

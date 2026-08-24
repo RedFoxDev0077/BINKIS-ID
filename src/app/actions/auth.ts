@@ -10,6 +10,7 @@ import {
   createSession,
   invalidateSession,
   sessionCookieOptions,
+  isSecureRequest,
 } from '@/lib/auth/session';
 import { getCurrentSession } from '@/lib/auth/current';
 import { signInSchema, signUpSchema } from '@/lib/validation/auth';
@@ -31,8 +32,14 @@ async function requestContext() {
 
 async function startSession(userId: string) {
   const { token, session } = await createSession(prisma, userId, await requestContext());
+  const h = await headers();
+  const secure = isSecureRequest({
+    forwardedProto: h.get('x-forwarded-proto'),
+    origin: process.env.PUBLIC_ORIGIN,
+  });
+
   const store = await cookies();
-  store.set(SESSION_COOKIE, token, sessionCookieOptions(session.expiresAt));
+  store.set(SESSION_COOKIE, token, sessionCookieOptions(session.expiresAt, secure));
 }
 
 export async function signUp(_prev: AuthState, formData: FormData): Promise<AuthState> {

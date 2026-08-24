@@ -21,11 +21,11 @@ export default async function AdminOverview() {
 
   const stats = [
     { label: t.admin.totalPieces, value: total, tone: 'text-ink-50' },
-    { label: t.admin.claimedPieces, value: claimed, tone: 'text-[--color-verified]' },
-    { label: t.admin.unclaimedPieces, value: unclaimed, tone: 'text-[--color-accent]' },
-    { label: t.admin.voidPieces, value: voided, tone: 'text-[--color-danger]' },
+    { label: t.admin.claimedPieces, value: claimed, tone: 'text-verified' },
+    { label: t.admin.unclaimedPieces, value: unclaimed, tone: 'text-accent' },
+    { label: t.admin.voidPieces, value: voided, tone: 'text-danger' },
     { label: t.admin.users, value: collectors, tone: 'text-ink-50' },
-    { label: t.admin.transfers, value: pendingTransfers, tone: 'text-[--color-warn]' },
+    { label: t.admin.transfers, value: pendingTransfers, tone: 'text-warn' },
     { label: t.admin.claims, value: failedClaims, tone: 'text-ink-400' },
     { label: t.admin.batches, value: batches, tone: 'text-ink-50' },
   ];

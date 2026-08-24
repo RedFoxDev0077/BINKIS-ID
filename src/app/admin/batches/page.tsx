@@ -50,7 +50,7 @@ export default async function AdminBatches() {
                         <span
                           className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-wider ${
                             batch.checksum
-                              ? 'border-[--color-warn]/40 text-[--color-warn]'
+                              ? 'border-warn/40 text-warn'
                               : 'border-ink-700 text-ink-400'
                           }`}
                         >

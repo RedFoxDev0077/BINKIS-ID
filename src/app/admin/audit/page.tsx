@@ -24,15 +24,15 @@ export default async function AdminAudit() {
   });
 
   const TONE: Record<string, string> = {
-    CLAIM: 'text-[--color-verified]',
+    CLAIM: 'text-verified',
     CLAIM_FAILED: 'text-ink-500',
-    TRANSFER_ACCEPTED: 'text-[--color-accent]',
-    PIECE_VOIDED: 'text-[--color-danger]',
-    PIECE_VERIFIED: 'text-[--color-verified]',
-    PIECE_UNVERIFIED: 'text-[--color-warn]',
+    TRANSFER_ACCEPTED: 'text-accent',
+    PIECE_VOIDED: 'text-danger',
+    PIECE_VERIFIED: 'text-verified',
+    PIECE_UNVERIFIED: 'text-warn',
     PIECE_IMPORTED: 'text-ink-300',
-    USER_ROLE_CHANGED: 'text-[--color-warn]',
-    BATCH_EXPORTED: 'text-[--color-warn]',
+    USER_ROLE_CHANGED: 'text-warn',
+    BATCH_EXPORTED: 'text-warn',
   };
 
   if (entries.length === 0) {

@@ -40,7 +40,7 @@ export function ClaimForm({
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Link
             href={`/signup?next=/p/${qrToken}`}
-            className="rounded-xl bg-[--color-accent] px-6 py-3 text-sm font-semibold text-ink-950 transition hover:bg-[--color-accent-bright]"
+            className="rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-ink-950 transition hover:bg-accent-bright"
           >
             {t.nav.signUp}
           </Link>
@@ -93,14 +93,14 @@ export function ClaimForm({
         />
       </ScratchPanel>
 
-      <p id="claim-error" aria-live="polite" className="min-h-5 text-center text-sm text-[--color-danger]">
+      <p id="claim-error" aria-live="polite" className="min-h-5 text-center text-sm text-danger">
         {localError ?? (state.status === 'error' ? state.message : '')}
       </p>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-[--color-accent] px-6 py-4 text-base font-semibold text-ink-950 transition hover:bg-[--color-accent-bright] disabled:cursor-not-allowed disabled:opacity-55"
+        className="w-full rounded-xl bg-accent px-6 py-4 text-base font-semibold text-ink-950 transition hover:bg-accent-bright disabled:cursor-not-allowed disabled:opacity-55"
       >
         {pending ? `${t.claim.working}...` : t.claim.submit}
       </button>
@@ -110,7 +110,7 @@ export function ClaimForm({
 
 function ClaimSuccess({ serial, t }: { serial: string; t: Dictionary }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-[--color-verified]/30 bg-ink-900/70 p-8 text-center">
+    <div className="relative overflow-hidden rounded-2xl border border-verified/30 bg-ink-900/70 p-8 text-center">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-20"
@@ -123,7 +123,7 @@ function ClaimSuccess({ serial, t }: { serial: string; t: Dictionary }) {
         <svg
           aria-hidden
           viewBox="0 0 24 24"
-          className="mx-auto size-14 text-[--color-verified]"
+          className="mx-auto size-14 text-verified"
           fill="currentColor"
         >
           <path d="M12 1l9 4v6c0 5-3.8 9.7-9 11-5.2-1.3-9-6-9-11V5l9-4zm-1 14l6-6-1.4-1.4L11 12.2 8.4 9.6 7 11l4 4z" />
@@ -137,7 +137,7 @@ function ClaimSuccess({ serial, t }: { serial: string; t: Dictionary }) {
         <p className="mono mt-4 text-lg tracking-[0.14em] text-ink-200">{serial}</p>
         <Link
           href="/collection"
-          className="mt-6 inline-block rounded-xl bg-[--color-accent] px-6 py-3 text-sm font-semibold text-ink-950 transition hover:bg-[--color-accent-bright]"
+          className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-ink-950 transition hover:bg-accent-bright"
         >
           {t.claim.viewCollection}
         </Link>

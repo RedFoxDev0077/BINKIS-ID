@@ -213,55 +213,67 @@
     pointer-events: none;
     border-radius: inherit;
     opacity: 0;
-    transition: opacity 0.35s var(--ease-out-quart);
+    transition: opacity 0.4s var(--ease-out-quart);
   }
 
+  /* The broad wash. Tight and low-alpha: this is a highlight catching the
+     surface, not a coat of paint. colour-dodge is what makes the centre flare
+     rather than merely tint, so the alpha has to stay small or the whole card
+     blows out to white. */
   .holo-foil::before {
     background-image: radial-gradient(
       farthest-corner circle at var(--holo-x) var(--holo-y),
-      oklch(0.98 0.06 195 / 0.55) 4%,
-      oklch(0.80 0.16 285 / 0.35) 18%,
-      oklch(0.75 0.17 340 / 0.28) 34%,
-      oklch(0.82 0.16 75 / 0.22) 50%,
-      transparent 72%
+      oklch(0.98 0.05 195 / 0.16) 0%,
+      oklch(0.80 0.14 285 / 0.10) 22%,
+      oklch(0.78 0.14 340 / 0.06) 38%,
+      transparent 58%
     );
     mix-blend-mode: color-dodge;
-    filter: brightness(1.15) contrast(1.1) saturate(1.4);
   }
 
+  /* The fine diagonal lines. Masked to a small disc around the pointer so it
+     reads as light travelling across foil, rather than a striped texture
+     tiled over the whole surface. */
   .holo-foil::after {
     background-image: repeating-linear-gradient(
-      -22deg,
-      oklch(0.72 0.20 15 / 0.5) 0px,
-      oklch(0.80 0.18 75 / 0.5) 2px,
-      oklch(0.78 0.18 155 / 0.5) 4px,
-      oklch(0.74 0.18 245 / 0.5) 6px,
-      oklch(0.72 0.19 305 / 0.5) 8px,
-      oklch(0.72 0.20 15 / 0.5) 10px
+      -24deg,
+      oklch(0.72 0.18 15 / 0.14) 0px,
+      oklch(0.80 0.16 75 / 0.14) 3px,
+      oklch(0.78 0.16 155 / 0.14) 6px,
+      oklch(0.74 0.16 245 / 0.14) 9px,
+      oklch(0.72 0.17 305 / 0.14) 12px,
+      oklch(0.72 0.18 15 / 0.14) 15px
     );
-    background-position: var(--holo-x) var(--holo-y);
-    background-size: 210% 210%;
-    mix-blend-mode: overlay;
-    filter: brightness(1.05) contrast(1.5);
-    /* Fade the lines away from the pointer, so it reads as a highlight
-       travelling across foil rather than a static striped texture. */
+    mix-blend-mode: soft-light;
     -webkit-mask-image: radial-gradient(
-      farthest-corner circle at var(--holo-x) var(--holo-y),
+      circle 42% at var(--holo-x) var(--holo-y),
       black 0%,
-      transparent 62%
+      transparent 70%
     );
     mask-image: radial-gradient(
-      farthest-corner circle at var(--holo-x) var(--holo-y),
+      circle 42% at var(--holo-x) var(--holo-y),
       black 0%,
-      transparent 62%
+      transparent 70%
     );
   }
 
-  .holo-foil:hover::before,
-  .holo-foil:hover::after,
-  .holo-foil[data-active='true']::before,
-  .holo-foil[data-active='true']::after {
+  /* Only on real hover, and only while the pointer is actually over it.
+     data-active is set by HoloCard on pointermove and cleared on leave, so a
+     touch tap does not leave the foil stuck on. */
+  @media (hover: hover) {
+    .holo-foil:hover::before {
+      opacity: 1;
+    }
+    .holo-foil:hover::after {
+      opacity: 0.85;
+    }
+  }
+
+  .holo-foil[data-active='true']::before {
     opacity: 1;
+  }
+  .holo-foil[data-active='true']::after {
+    opacity: 0.85;
   }
 
   /* 3D tilt. The container establishes perspective; the card leans into it. */

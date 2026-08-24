@@ -66,8 +66,8 @@ export function ClaimCodeInput({
         aria-describedby={describedBy}
         className={`mono w-full rounded-xl border bg-ink-900 px-4 py-4 text-center text-2xl tracking-[0.18em] text-ink-50 outline-none transition placeholder:text-ink-700 sm:text-3xl ${
           invalid
-            ? 'border-[--color-danger] focus:border-[--color-danger]'
-            : 'border-ink-700 focus:border-[--color-accent]'
+            ? 'border-danger focus:border-danger'
+            : 'border-ink-700 focus:border-accent'
         }`}
       />
     </div>

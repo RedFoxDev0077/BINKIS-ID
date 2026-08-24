@@ -10,12 +10,12 @@ import { normaliseRarity, RARITY_TIERS, type Rarity } from '@/lib/passport';
  *   3. a glow on the top two tiers only, so "rare" actually feels rare
  */
 const TONE: Record<Rarity, string> = {
-  Common: 'text-[--color-rarity-common] border-[--color-rarity-common]/30 bg-[--color-rarity-common]/8',
-  Uncommon: 'text-[--color-rarity-uncommon] border-[--color-rarity-uncommon]/38 bg-[--color-rarity-uncommon]/10',
-  Rare: 'text-[--color-rarity-rare] border-[--color-rarity-rare]/42 bg-[--color-rarity-rare]/12',
-  Epic: 'text-[--color-rarity-epic] border-[--color-rarity-epic]/48 bg-[--color-rarity-epic]/14',
-  Legendary: 'text-[--color-rarity-legendary] border-[--color-rarity-legendary]/55 bg-[--color-rarity-legendary]/16',
-  Mythic: 'text-[--color-rarity-mythic] border-[--color-rarity-mythic]/60 bg-[--color-rarity-mythic]/18',
+  Common: 'text-rarity-common border-rarity-common/30 bg-rarity-common/8',
+  Uncommon: 'text-rarity-uncommon border-rarity-uncommon/38 bg-rarity-uncommon/10',
+  Rare: 'text-rarity-rare border-rarity-rare/42 bg-rarity-rare/12',
+  Epic: 'text-rarity-epic border-rarity-epic/48 bg-rarity-epic/14',
+  Legendary: 'text-rarity-legendary border-rarity-legendary/55 bg-rarity-legendary/16',
+  Mythic: 'text-rarity-mythic border-rarity-mythic/60 bg-rarity-mythic/18',
 };
 
 export function RarityChip({

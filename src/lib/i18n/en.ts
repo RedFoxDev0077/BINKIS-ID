@@ -57,7 +57,7 @@ export const en = {
     scratchHint: 'Scratch here',
     scratchHintShort: 'Drag to reveal',
     codeLabel: 'Claim Code',
-    codePlaceholder: 'XXXX-XXXX-XXX',
+    codePlaceholder: 'XXX-XXX-XXX',
     submit: 'Claim it',
     working: 'Checking',
     invalidFormat: 'That code is not complete yet.',

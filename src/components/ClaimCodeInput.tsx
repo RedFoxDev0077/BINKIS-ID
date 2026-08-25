@@ -2,6 +2,7 @@
 
 import { useId } from 'react';
 import { ALPHABET } from '@/lib/codes/alphabet';
+import { CLAIM_CODE_LENGTH } from '@/lib/codes/claim-code';
 
 /**
  * The Claim Code field.
@@ -35,12 +36,17 @@ export function ClaimCodeInput({
       .split('')
       .filter((char) => ALPHABET.includes(char))
       .join('')
-      .slice(0, 11);
+      .slice(0, CLAIM_CODE_LENGTH);
 
-    let formatted = cleaned.slice(0, 4);
-    if (cleaned.length > 4) formatted += `-${cleaned.slice(4, 8)}`;
-    if (cleaned.length > 8) formatted += `-${cleaned.slice(8, 11)}`;
-    onChange(formatted);
+    // Groups of three, matching formatClaimCode and therefore matching what is
+    // physically printed under the scratch panel. This grouped 4-4-3 and
+    // accepted 11 characters until the code dropped to 9, so someone reading
+    // XXX-XXX-XXX off the hologram watched their own typing regroup itself
+    // into a different shape - at the exact moment they are trying to check
+    // one against the other.
+    const groups: string[] = [];
+    for (let i = 0; i < cleaned.length; i += 3) groups.push(cleaned.slice(i, i + 3));
+    onChange(groups.join('-'));
   };
 
   return (

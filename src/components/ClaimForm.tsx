@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ScratchPanel } from './ScratchPanel';
 import { ClaimCodeInput } from './ClaimCodeInput';
 import { submitClaim, type ClaimState } from '@/app/actions/claim';
-import { parseClaimCode } from '@/lib/codes/claim-code';
+import { parseClaimCode, CLAIM_CODE_LENGTH } from '@/lib/codes/claim-code';
 import type { Dictionary } from '@/lib/i18n';
 
 const INITIAL: ClaimState = { status: 'idle' };
@@ -24,7 +24,12 @@ export function ClaimForm({
   const [localError, setLocalError] = useState<string | null>(null);
 
   const normalised = parseClaimCode(code);
-  const complete = code.replace(/-/g, '').length === 11;
+  // Against the constant, not a literal. This read 11 until the code dropped
+  // to 9 characters, which meant `complete` could never be true and a full
+  // code that failed its check character was reported as a format error
+  // instead - telling someone squinting at foil in bad light to look for the
+  // wrong kind of mistake.
+  const complete = code.replace(/-/g, '').length === CLAIM_CODE_LENGTH;
 
   if (state.status === 'success') {
     return <ClaimSuccess serial={state.serial ?? ''} t={t} />;

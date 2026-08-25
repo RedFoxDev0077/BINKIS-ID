@@ -63,7 +63,7 @@ export const es: typeof en = {
     scratchHint: 'Raspa aquí',
     scratchHintShort: 'Desliza para revelar',
     codeLabel: 'Código de Reclamo',
-    codePlaceholder: 'XXXX-XXXX-XXX',
+    codePlaceholder: 'XXX-XXX-XXX',
     submit: 'Reclamar',
     working: 'Verificando',
     invalidFormat: 'Ese código todavía no está completo.',

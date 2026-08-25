@@ -2,10 +2,14 @@
 
 Digital identity registry for physical BINKIS collectible figures.
 
-**Build step 1 only.** This repository currently contains the schema and the
-batch generator — the deliverable that blocks physical manufacturing. The
-public passport page, claim flow, collection, admin and deployment are build
-steps 2–6 and are not started.
+Live at **https://id.binkis.com**. All six build steps are in place: the batch
+generator, the schema and auth, the public passport and claim flow, collection
+and transfers, the admin dashboard, and the deployment.
+
+**Taking this over, or need to operate it? Read
+[`docs/HANDOVER.md`](docs/HANDOVER.md) first.** It covers the invariants that
+must not be broken, the data model, the public surface, the runbook, and the
+known gaps. The rest of this README is about working on the code day to day.
 
 ---
 
@@ -21,13 +25,22 @@ src/lib/serial.ts               serial format and edition range allocation
 src/lib/hash.ts                 HMAC-SHA256 claim-code hashing
 src/lib/generator.ts            minting and constraint-backed insertion
 src/lib/db/claim.ts             the atomic claim transaction
+src/lib/db/rate-limit.ts        progressive lockout, by IP and by piece
+src/lib/db/transfer.ts          request, accept, decline; append-only
 src/lib/qr/                     QR encode, SVG render, and an independent decoder
 src/lib/verify/                 the two pre-flight verification passes
 src/lib/export/                 .xlsx writer and AES-256-GCM archive
+src/lib/auth/                   argon2id passwords and server-side sessions
+src/lib/passport.ts             the public passport query, typed to exclude PII
+src/lib/i18n/                   Spanish and English
+
+src/app/p/[token]/              the passport page — where every scan lands
+src/app/actions/                server actions; all mutations go through here
+src/app/admin/                  admin dashboard
 
 tests/unit/                     no database required
 tests/db/                       real PostgreSQL required
-src/app/                        placeholder Next.js skeleton (step 3 fills it in)
+docs/HANDOVER.md                the operator and takeover document
 ```
 
 ---
@@ -115,6 +128,9 @@ Written in the order the risks matter:
 | 5 | `05-concurrent-claim` | exactly one winner, and no oracle |
 | 6 | `06-qr-roundtrip` | every printed QR resolves to its own piece |
 | 7 | `07-factory-export` | the factory file is correct, sealed and checksummed |
+| 8 | `08-auth-and-passport` | sessions are sound, and the passport leaks no PII |
+| 9 | `09-transfers` | the ledger only ever grows, through every transfer path |
+| 10 | `10-rate-limit` | guessing is actually impossible, not just improbable |
 
 `tests/db/` needs a real PostgreSQL. It boots one automatically via
 `embedded-postgres`, or uses `TEST_DATABASE_URL` if you set it.

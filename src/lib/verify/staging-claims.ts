@@ -119,6 +119,10 @@ export async function rehearseClaims(
           collectorId: collector.id,
           pepper,
           ip: '127.0.0.1',
+          // The rehearsal claims every code in the batch from one address on
+          // purpose, against a throwaway database. Rate limiting it would be
+          // rate limiting ourselves.
+          skipRateLimit: true,
           // A collector tapping CLAIM should fail fast; this rehearsal should
           // not. It drives every piece in the batch through a shared pool as
           // hard as it can, so queueing behind other workers is expected and

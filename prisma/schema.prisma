@@ -256,6 +256,12 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+/// Every claim attempt that reached the server, for rate limiting and audit.
+///
+/// Two indexes because there are two attacks. [ip, at] catches one machine
+/// working through many pieces. [qr_token, at] catches many machines working
+/// on one valuable piece, which is the shape an attack on a Legendary would
+/// actually take.
 model ClaimAttempt {
   id        String   @id @default(uuid()) @db.Uuid
   ip        String
@@ -264,6 +270,7 @@ model ClaimAttempt {
   at        DateTime @default(now())
 
   @@index([ip, at])
+  @@index([qrToken, at])
   @@map("claim_attempts")
 }
 

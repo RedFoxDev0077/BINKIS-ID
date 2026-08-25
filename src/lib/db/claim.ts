@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import { parseClaimCode } from '../codes/claim-code.ts';
 import { parseQrToken } from '../codes/qr-token.ts';
 import { hashClaimCode } from '../hash.ts';
+import { checkClaimRateLimit } from './rate-limit.ts';
 
 /**
  * Claiming.
@@ -22,6 +23,20 @@ import { hashClaimCode } from '../hash.ts';
 
 export const GENERIC_CLAIM_FAILURE = 'That code is not valid for this BINKI.';
 
+/**
+ * Rate limiting speaks with its own voice.
+ *
+ * Telling the caller they are locked out reveals nothing about any code - they
+ * already know how many times they just tried - and leaving them with the
+ * generic failure would send an honest collector back to the hologram looking
+ * for a typo that is not there.
+ *
+ * The per-PIECE lockout is different: it reflects other people's attempts, so
+ * it returns the generic failure instead. Otherwise the endpoint would tell an
+ * attacker which pieces are already being worked on.
+ */
+export const RATE_LIMITED_FAILURE = 'Too many attempts. Try again in {wait}.';
+
 /** Internal only. Recorded in the audit trail, never returned to a caller. */
 type FailureReason =
   | 'malformed_code'
@@ -38,7 +53,7 @@ export type ClaimOutcome =
       editionNumber: number | null;
       occurredAt: Date;
     }
-  | { ok: false; message: string };
+  | { ok: false; message: string; retryAfterSeconds?: number };
 
 export interface ClaimInput {
   qrToken: string;
@@ -46,6 +61,15 @@ export interface ClaimInput {
   collectorId: string;
   pepper: string;
   ip: string;
+  /**
+   * Skip the rate limit.
+   *
+   * Only the batch generator's staging rehearsal sets this. It claims every
+   * code in a batch from one address on purpose, against a throwaway database,
+   * so rate limiting it would only be rate limiting ourselves. Nothing that
+   * touches the live registry may set it.
+   */
+  skipRateLimit?: boolean;
   /**
    * Transaction budget.
    *
@@ -81,6 +105,28 @@ export async function claimPiece(
 
   const code = parseClaimCode(submittedCode);
   if (!code) return FAILURE;
+
+  // Rate limit BEFORE hashing and before touching the piece table, so a flood
+  // costs one indexed count rather than an HMAC and a lookup per request.
+  //
+  // Deliberately after the shape checks: a malformed code never reached the
+  // recorded-attempts table in the first place, so it must not be able to
+  // consume someone's allowance either.
+  if (!input.skipRateLimit) {
+    const limit = await checkClaimRateLimit(prisma, ip, token);
+    if (!limit.allowed) {
+      // A blocked attempt is NOT recorded. Recording it would let an attacker
+      // extend their own lockout indefinitely by continuing to knock, and
+      // would let one attacker lock a piece out for its real owner forever.
+      return limit.scope === 'ip'
+        ? {
+            ok: false,
+            message: RATE_LIMITED_FAILURE,
+            retryAfterSeconds: limit.retryAfterSeconds,
+          }
+        : FAILURE;
+    }
+  }
 
   const claimHash = hashClaimCode(code, pepper);
 

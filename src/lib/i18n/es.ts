@@ -70,6 +70,7 @@ export const es: typeof en = {
     checkFailed: 'Ese código tiene un error. Revísalo contra el holograma.',
     signInFirst: 'Inicia sesión para reclamar esta pieza',
     signInFirstBody: 'Un BINKI se registra a nombre de un coleccionista, así que primero necesitas una cuenta.',
+    tooManyAttempts: 'Demasiados intentos. Inténtalo de nuevo en {wait}.',
     successTitle: 'Es tuyo',
     successBody: 'Este BINKI queda registrado a tu nombre, de forma permanente.',
     viewCollection: 'Ver mi colección',

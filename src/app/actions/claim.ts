@@ -3,7 +3,9 @@
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/client';
-import { claimPiece, GENERIC_CLAIM_FAILURE } from '@/lib/db/claim';
+import { claimPiece, GENERIC_CLAIM_FAILURE, RATE_LIMITED_FAILURE } from '@/lib/db/claim';
+import { describeWait } from '@/lib/db/rate-limit';
+import { getTranslations, fill } from '@/lib/i18n';
 import { getCurrentUser } from '@/lib/auth/current';
 
 export interface ClaimState {
@@ -49,6 +51,18 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
   });
 
   if (!outcome.ok) {
+    // The limiter returns a sentinel rather than prose, so the wait can be
+    // rendered in the collector's own language with a real number of minutes
+    // instead of a shrug.
+    if (outcome.message === RATE_LIMITED_FAILURE) {
+      const { t, locale } = await getTranslations();
+      return {
+        status: 'error',
+        message: fill(t.claim.tooManyAttempts, {
+          wait: describeWait(outcome.retryAfterSeconds ?? 60, locale),
+        }),
+      };
+    }
     return { status: 'error', message: outcome.message };
   }
 

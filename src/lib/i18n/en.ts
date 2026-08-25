@@ -64,6 +64,7 @@ export const en = {
     checkFailed: 'That code has a typo. Check it against the hologram.',
     signInFirst: 'Sign in to claim this piece',
     signInFirstBody: 'A BINKI is registered to a collector, so you need an account first.',
+    tooManyAttempts: 'Too many attempts. Try again in {wait}.',
     successTitle: 'It is yours',
     successBody: 'This BINKI is now registered to you, permanently.',
     viewCollection: 'View my collection',

@@ -337,11 +337,25 @@ npm run dev
 ### Tests
 
 ```bash
-npx vitest run
+npx vitest run      # 153 tests: units, and logic against real PostgreSQL
+npm run test:e2e    # 22 tests: the claim and transfer flows in a real browser
 ```
 
 `tests/unit/` needs nothing. `tests/db/` needs real PostgreSQL and the harness
-boots one for you. Per CLAUDE.md: write the test *before* the logic for
+boots one for you.
+
+`npm run test:e2e` boots its own throwaway PostgreSQL, applies the migrations,
+mints pieces with the real generator, builds the app and serves it exactly the
+way production does - `node .next/standalone/server.js`, not `next start`,
+because `next start` does not work with `output: 'standalone'` and a suite that
+tests a different server than the one that ships can go green over a broken
+deployment. The claim spec also runs at 360px, because that is where a scan in
+a shop actually happens.
+
+These are the only tests that see plaintext claim codes: the e2e seed mints
+them and hands them to the run in memory, then deletes the file on teardown.
+The seed refuses to run against any database that is not local, not named for
+testing, or that holds an exported batch. Per CLAUDE.md: write the test *before* the logic for
 anything touching codes, claiming, or ownership, and never mock a security
 control to make a test pass.
 
@@ -425,17 +439,13 @@ Stated plainly, so nobody discovers them the hard way.
 
 1. **Backups are on-box only.** See above. This is the highest-value hour of
    work left in the system.
-2. **No end-to-end browser tests.** CLAUDE.md asks for Playwright over the
-   claim and transfer flows. The logic underneath both is covered by the
-   database test suite, but the flows have not been driven through a real
-   browser automatically.
-3. **No email notifications.** A pending transfer waits silently until the
+2. **No email notifications.** A pending transfer waits silently until the
    recipient happens to visit the site. The transfer itself is correct and
    completes on signup; the person simply is not told it is waiting.
-4. **Void-on-scrap and reserved-until-delivery are not built.** The `void` and
+3. **Void-on-scrap and reserved-until-delivery are not built.** The `void` and
    `reserved` statuses exist in the schema and an admin can set them by hand,
    but there is no workflow around them.
-5. **Only 200 pieces generated.** The full run is 134,399 plus 3,000 spares.
+4. **Only 200 pieces generated.** The full run is 134,399 plus 3,000 spares.
    The generator has been tested at scale, but the real run has not happened.
 
 ---

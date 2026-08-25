@@ -19,7 +19,9 @@
     "generate-batch": "node scripts/generate-batch.ts",
     "test:unit": "vitest run tests/unit",
     "dev:db": "node scripts/dev-db.ts",
-    "db:seed": "node prisma/seed.ts"
+    "db:seed": "node prisma/seed.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.1.0",
@@ -34,6 +36,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.18",

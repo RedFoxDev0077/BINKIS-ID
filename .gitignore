@@ -97,3 +97,9 @@ scratch/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Playwright
+/test-results/
+/playwright-report/
+tests/e2e/.fixture.json
+tests/e2e/.next-piece

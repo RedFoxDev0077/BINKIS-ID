@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getPassportByToken, provenanceStatement, ownerCountForToken } from '@/lib/passport';
 import { getTranslations, fill } from '@/lib/i18n';
 import { getCurrentUser } from '@/lib/auth/current';
@@ -53,25 +54,9 @@ export default async function PassportPage({ params }: Params) {
   const { t, locale } = await getTranslations();
   const passport = await getPassportByToken(token);
 
-  if (!passport) {
-    return (
-      <Shell>
-        <div className="stagger py-28 text-center">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-ink-800 bg-ink-900">
-            <svg viewBox="0 0 24 24" className="size-7 text-ink-600" fill="currentColor">
-              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-            </svg>
-          </div>
-          <h1 className="mt-6 font-display text-3xl tracking-wide text-ink-50">
-            {t.passport.notFoundTitle}
-          </h1>
-          <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-400">
-            {t.passport.notFoundBody}
-          </p>
-        </div>
-      </Shell>
-    );
-  }
+  // A real 404, not a styled page returned with HTTP 200. The designed
+  // message still shows: it lives in not-found.tsx alongside this file.
+  if (!passport) notFound();
 
   const user = await getCurrentUser();
   const ownerCount = await ownerCountForToken(passport.qrToken);

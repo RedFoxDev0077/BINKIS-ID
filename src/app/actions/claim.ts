@@ -1,9 +1,8 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/client';
-import { claimPiece, GENERIC_CLAIM_FAILURE, RATE_LIMITED_FAILURE } from '@/lib/db/claim';
+import { claimPiece, RATE_LIMITED_FAILURE } from '@/lib/db/claim';
 import { describeWait } from '@/lib/db/rate-limit';
 import { getTranslations, fill } from '@/lib/i18n';
 import { getCurrentUser } from '@/lib/auth/current';
@@ -66,8 +65,18 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
     return { status: 'error', message: outcome.message };
   }
 
-  revalidatePath(`/p/${qrToken}`);
+  // Deliberately NOT revalidatePath(`/p/${qrToken}`) here.
+  //
+  // ClaimForm only renders while the piece is unclaimed, and the success
+  // reveal lives inside it. Revalidating re-renders this page as *claimed*,
+  // which unmounts the form and destroys the reveal before anyone sees it -
+  // the claim works, and the collector watches the form quietly disappear.
+  //
+  // CLAUDE.md: "The claim moment is the product... a real reveal on success,
+  // the Passport visibly flipping to VERIFIED. Do not let it feel like a form
+  // submission." Revalidating here is precisely what made it feel like one.
+  //
+  // Nothing goes stale as a result: /p/[token] is a dynamic route, so the next
+  // visit server-renders the claimed passport from the database anyway.
   return { status: 'success', serial: outcome.serial };
 }
-
-export { GENERIC_CLAIM_FAILURE };

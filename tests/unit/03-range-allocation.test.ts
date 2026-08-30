@@ -17,9 +17,22 @@ import {
 // factory runs.
 
 describe('serial ranges', () => {
-  it('covers exactly the five edition types from CLAUDE.md', () => {
+  it('covers exactly the edition types in CLAUDE.md, and no others', () => {
+    // Eight since 29 August 2026: Variant, Rare and Super Rare were added for
+    // the second production order. The point of pinning the whole list is that
+    // a new edition type has to be a deliberate act, matched in CLAUDE.md, the
+    // Prisma enum and a migration - never a value that quietly appears.
     expect([...EDITION_TYPES].sort()).toEqual(
-      ['ARTIST_PROOF', 'CLASSIC', 'LEGENDARY', 'LIMITED', 'SPARE'].sort(),
+      [
+        'ARTIST_PROOF',
+        'CLASSIC',
+        'LEGENDARY',
+        'LIMITED',
+        'RARE',
+        'SPARE',
+        'SUPER_RARE',
+        'VARIANT',
+      ].sort(),
     );
   });
 
@@ -85,8 +98,12 @@ describe('serial formatting', () => {
     }
   });
 
-  it('only accepts the fourteen character codes in CLAUDE.md', () => {
-    expect(Object.keys(CHARACTER_CODES)).toHaveLength(14);
+  it('only accepts the character codes in CLAUDE.md', () => {
+    // Sixteen since 29 August 2026: Brainiac (BR) for the Rare edition and
+    // Poison Ivy (PI) for the Super Rare.
+    expect(Object.keys(CHARACTER_CODES)).toHaveLength(16);
+    expect(CHARACTER_CODES.BR).toBe('Brainiac');
+    expect(CHARACTER_CODES.PI).toBe('Poison Ivy');
     expect(CHARACTER_CODES.SP).toBe('Superman');
     expect(CHARACTER_CODES.BM).toBe('Batman');
     expect(CHARACTER_CODES.HQ).toBe('Harley Quinn');

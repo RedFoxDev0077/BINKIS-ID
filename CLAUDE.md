@@ -65,13 +65,49 @@ Four identifiers, four jobs, none derivable from another.
 |---|---|
 | `0xxxxx` | Classic |
 | `1xxxxx` | Limited Edition (last 3 digits = edition number, RF-100045 is 45 of 777) |
+| `2xxxxx` | Variant (last 4 digits, BZ-202777 is 2777 of 2777) |
+| `3xxxxx` | Rare (last 4 digits, BR-307777 is 7777 of 7777) |
+| `4xxxxx` | Super Rare (last 4 digits) |
 | `5xxxxx` | Legendary (DS-500007 is 7 of 10) |
 | `8xxxxx` | Spare / replacement |
 | `9xxxxx` | Artist Proof (separate identity, never mixed into the numbered run) |
 
-Character codes: SP Superman, BM Batman, HQ Harley Quinn, FL The Flash, WW Wonder Woman, JK The Joker, SG Supergirl, CY Cyborg, RF Reverse Flash, BZ Bizarro, CH Cheetah, RD Riddler, GL Green Lantern, DS Deathstroke.
+`6xxxxx` and `7xxxxx` stay unallocated for whatever comes next. The edition
+number width is a property of each range, not a global constant: the first
+three numbered editions are read as 3 digits and must stay that way because
+RF-100045 is already specified to the factory as 45 of 777, while Variant, Rare
+and Super Rare are read as 4 because their runs pass 999.
 
-Production run: 130,000 Classic across 8 characters, 5 Limited Editions of 777, 5 A/P sets of 100, Deathstroke Legendary 10 plus 4 A/P. Total 134,399, plus 3,000 spares.
+Character codes: SP Superman, BM Batman, HQ Harley Quinn, FL The Flash, WW Wonder Woman, JK The Joker, SG Supergirl, CY Cyborg, RF Reverse Flash, BZ Bizarro, CH Cheetah, RD Riddler, GL Green Lantern, DS Deathstroke, BR Brainiac, PI Poison Ivy.
+
+Production run, per `assets/BINKIS_Initial_Production_Breakdown_Updated (1).xlsx` (from the client, 18 August 2026). The Classic split is NOT even, so it cannot be inferred:
+
+| Character | Edition | Quantity |
+|---|---|---|
+| SP Superman | Classic | 30,000 |
+| BM Batman | Classic | 25,000 |
+| HQ Harley Quinn | Classic | 18,000 |
+| FL The Flash | Classic | 15,000 |
+| WW Wonder Woman | Classic | 12,000 |
+| JK The Joker | Classic | 12,000 |
+| SG Supergirl | Classic | 10,000 |
+| CY Cyborg | Classic | 8,000 |
+| RF, BZ, CH, RD, GL | Limited Edition | 777 each, 3,885 |
+| RF, BZ, CH, RD, GL | Artist Proof | 100 each, 500 |
+| DS Deathstroke | Legendary | 10 |
+| DS Deathstroke | Artist Proof | 4 |
+
+Total 134,399, plus 3,000 spares. Superman's 30,000 includes the 200 of B-2026-01 already generated, so its remaining run is 29,800 continuing from SP-000201.
+
+Second order, added by the client on 29 August 2026. Additive: it does not change the 134,399 above.
+
+| Character | Edition | Quantity |
+|---|---|---|
+| BZ, BM, HQ, JK | Variant | 2,777 each, 11,108 |
+| BR Brainiac | Rare | 7,777 |
+| PI Poison Ivy | Super Rare | 2,777 |
+
+Total 21,662. The four Variant characters share one hologram design; only the character code and the numbering differ, which is a print concern rather than a data one, since the serial already keeps them apart.
 
 **QR token** — 12 random chars, alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ`. Payload is `https://id.binkis.com/p/{token}` and nothing else. No tracking params. Short payload keeps QR module size large, which is what makes it scan off reflective holographic foil.
 

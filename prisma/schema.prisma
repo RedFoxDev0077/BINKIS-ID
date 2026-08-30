@@ -25,6 +25,12 @@ enum EditionType {
   LEGENDARY
   SPARE
   ARTIST_PROOF
+  // Added 29 August 2026, before any of the three had been printed.
+  // Their runs (2,777 / 7,777 / 2,777) pass 999, so unlike the editions
+  // above they carry a four digit edition number. See src/lib/serial.ts.
+  VARIANT
+  RARE
+  SUPER_RARE
 }
 
 enum PieceStatus {

@@ -7,17 +7,30 @@
  *
  *   0xxxxx  Classic
  *   1xxxxx  Limited Edition   (last three digits are the edition number)
+ *   2xxxxx  Variant           (last four digits are the edition number)
+ *   3xxxxx  Rare              (last four digits are the edition number)
+ *   4xxxxx  Super Rare        (last four digits are the edition number)
  *   5xxxxx  Legendary         (last three digits are the edition number)
  *   8xxxxx  Spare / replacement
  *   9xxxxx  Artist Proof      (last three digits are the edition number)
  *
- * The 2-4 and 6-7 blocks are deliberately unallocated so a future edition
- * type has somewhere to live without disturbing anything already printed.
+ * The 6-7 blocks remain unallocated so a future edition type still has
+ * somewhere to live without disturbing anything already printed.
+ *
+ * Variant, Rare and Super Rare were added on 29 August 2026, before any of the
+ * three had been printed, and they moved the edition-number width from a
+ * global constant to a property of each range. The original numbered editions
+ * are all under 999 - Limited 777, Legendary 10, Artist Proof 100 - so three
+ * digits was enough. A Variant run of 2,777 is not, and reading BZ-202777 as
+ * edition 777 would name a different piece entirely.
  */
 
 export const EDITION_TYPES = [
   'CLASSIC',
   'LIMITED',
+  'VARIANT',
+  'RARE',
+  'SUPER_RARE',
   'LEGENDARY',
   'SPARE',
   'ARTIST_PROOF',
@@ -29,24 +42,49 @@ export interface EditionRange {
   readonly min: number;
   readonly max: number;
   /**
-   * Whether the last three digits are read as the edition position, as in
-   * "45 / 777". When true, a run may not exceed 999 pieces, because at 1000
-   * the printed serial would read as edition 000 and the rule silently breaks.
+   * Whether the trailing digits are read as the edition position, as in
+   * "45 / 777".
    */
   readonly editionNumbered: boolean;
+  /**
+   * The largest edition position this range can express, set by how many
+   * trailing digits a reader is expected to take.
+   *
+   * Per-range rather than global. The first three numbered editions are all
+   * read as three digits and must stay that way, because RF-100045 is already
+   * specified to the factory as 45 of 777. The editions added later are read
+   * as four, because their runs pass 999.
+   */
+  readonly maxEditionNumber: number;
   readonly label: string;
 }
 
+const THREE_DIGIT = 999;
+const FOUR_DIGIT = 9_999;
+
 export const EDITION_RANGES: Record<EditionType, EditionRange> = {
-  CLASSIC: { min: 1, max: 99_999, editionNumbered: false, label: 'Classic' },
-  LIMITED: { min: 100_001, max: 199_999, editionNumbered: true, label: 'Limited Edition' },
-  LEGENDARY: { min: 500_001, max: 599_999, editionNumbered: true, label: 'Legendary' },
-  SPARE: { min: 800_001, max: 899_999, editionNumbered: false, label: 'Spare' },
-  ARTIST_PROOF: { min: 900_001, max: 999_999, editionNumbered: true, label: 'Artist Proof' },
+  CLASSIC:
+    { min: 1, max: 99_999, editionNumbered: false, maxEditionNumber: 0, label: 'Classic' },
+  LIMITED:
+    { min: 100_001, max: 199_999, editionNumbered: true, maxEditionNumber: THREE_DIGIT, label: 'Limited Edition' },
+  VARIANT:
+    { min: 200_001, max: 299_999, editionNumbered: true, maxEditionNumber: FOUR_DIGIT, label: 'Variant' },
+  RARE:
+    { min: 300_001, max: 399_999, editionNumbered: true, maxEditionNumber: FOUR_DIGIT, label: 'Rare' },
+  SUPER_RARE:
+    { min: 400_001, max: 499_999, editionNumbered: true, maxEditionNumber: FOUR_DIGIT, label: 'Super Rare' },
+  LEGENDARY:
+    { min: 500_001, max: 599_999, editionNumbered: true, maxEditionNumber: THREE_DIGIT, label: 'Legendary' },
+  SPARE:
+    { min: 800_001, max: 899_999, editionNumbered: false, maxEditionNumber: 0, label: 'Spare' },
+  ARTIST_PROOF:
+    { min: 900_001, max: 999_999, editionNumbered: true, maxEditionNumber: THREE_DIGIT, label: 'Artist Proof' },
 };
 
-/** The ceiling imposed by "the last three digits are the edition number". */
-export const MAX_EDITION_NUMBER = 999;
+/** The largest edition position a given edition can express. */
+export function maxEditionNumberFor(editionType: EditionType): number {
+  return EDITION_RANGES[editionType].maxEditionNumber;
+}
 
 export const CHARACTER_CODES = {
   SP: 'Superman',
@@ -63,6 +101,8 @@ export const CHARACTER_CODES = {
   RD: 'Riddler',
   GL: 'Green Lantern',
   DS: 'Deathstroke',
+  BR: 'Brainiac',
+  PI: 'Poison Ivy',
 } as const;
 
 export type CharacterCode = keyof typeof CHARACTER_CODES;
@@ -127,7 +167,7 @@ export function editionNumberForNumber(serialNumber: number): number | null {
   if (!range.editionNumbered) return null;
 
   const position = serialNumber - range.min + 1;
-  if (position > MAX_EDITION_NUMBER) return null;
+  if (position > range.maxEditionNumber) return null;
   return position;
 }
 
@@ -166,10 +206,11 @@ export function allocateSerialNumbers(
 
   const endSequence = startSequence + quantity - 1;
 
-  if (range.editionNumbered && endSequence > MAX_EDITION_NUMBER) {
+  if (range.editionNumbered && endSequence > range.maxEditionNumber) {
+    const digits = String(range.maxEditionNumber).length;
     throw new SerialRangeError(
-      `${editionType} serials carry the edition number in their last three digits, ` +
-        `so the run cannot pass ${MAX_EDITION_NUMBER}. This batch would reach ${endSequence}.`,
+      `${editionType} serials carry the edition number in their last ${digits} digits, ` +
+        `so the run cannot pass ${range.maxEditionNumber}. This batch would reach ${endSequence}.`,
     );
   }
 
@@ -238,7 +279,7 @@ export function planProduction(
 
   if (overagePercent > 0 && EDITION_RANGES[editionType].editionNumbered) {
     throw new SerialRangeError(
-      `${editionType} serials carry their edition number in the last three digits, so ` +
+      `${editionType} serials carry their edition number in their trailing digits, so ` +
         'the run cannot be over-generated. Printing extra rows to absorb waste would ' +
         'leave gaps in the numbered sequence, and there is no way to repair a missing ' +
         `${EDITION_RANGES[editionType].label} piece after the press has run. Print the ` +

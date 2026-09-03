@@ -35,6 +35,7 @@ const { values } = parseArgs({
     batch: { type: 'string' },
     dir: { type: 'string' },
     out: { type: 'string' },
+    simple: { type: 'boolean' },
     help: { type: 'boolean', short: 'h' },
   },
 });
@@ -46,6 +47,11 @@ Open a sealed BINKIS factory archive back into its plain .xlsx.
   --batch <CODE>   Batch code, e.g. B-2026-01
   --dir <path>     Export directory. Default ./factory-exports
   --out <path>     Where to write the .xlsx. Default: next to the archive.
+  --simple         Write only the columns the press actually prints:
+                   LINE, PIECE_NUMBER, QR_URL, CLAIM_CODE. The factory
+                   asked for this - they could not tell which columns were
+                   variable data and which were context, and a printer
+                   guessing about that is how a run goes wrong.
 
 Reads FACTORY_EXPORT_KEY from .env. Does not regenerate anything.
 `);
@@ -111,10 +117,17 @@ if (expectedWorkbookHash && expectedWorkbookHash !== workbookHash) {
   fail('Decrypted workbook does not match the manifest. Refusing to write it.');
 }
 
-const outPath = resolve(values.out ?? join(dir, `${batch}.xlsx`));
-writeFileSync(outPath, workbook);
+const defaultName = values.simple ? `${batch}-PRINT.xlsx` : `${batch}.xlsx`;
+const outPath = resolve(values.out ?? join(dir, defaultName));
+
+if (values.simple) {
+  await writeSimplified(workbook, outPath);
+} else {
+  writeFileSync(outPath, workbook);
+}
 
 console.log(`  Workbook SHA  ${workbookHash}${expectedWorkbookHash ? '  (matches manifest)' : ''}`);
+if (values.simple) console.log('  Columns       LINE, PIECE_NUMBER, QR_URL, CLAIM_CODE');
 if (expectedRows !== null) console.log(`  Rows          ${expectedRows}`);
 console.log(`\n  Written       ${outPath}`);
 console.log(`
@@ -122,3 +135,60 @@ console.log(`
   Send it on a channel that does not also carry FACTORY_EXPORT_KEY, and
   delete it once the factory confirms receipt.
 `);
+
+/**
+ * Re-emit the workbook with only the four columns the press consumes.
+ *
+ * The factory could not tell which columns were variable data and which were
+ * fixed context, and said so plainly: "I only know what the three variable
+ * data I marked represent. The rest, I have no idea what they stand for."
+ * A printer guessing at that is exactly how a run goes wrong, so the file they
+ * receive should contain only what they print, in the order they print it.
+ *
+ * LINE stays even though it is not printed. It is the collation order, and it
+ * is what lets anyone check that row N really is piece N after the file has
+ * been through a spreadsheet.
+ */
+async function writeSimplified(workbook: Buffer, outPath: string): Promise<void> {
+  const ExcelJS = (await import('exceljs')).default;
+
+  const source = new ExcelJS.Workbook();
+  await source.xlsx.load(workbook as unknown as ArrayBuffer);
+  const sheet = source.worksheets[0];
+  if (!sheet) throw new Error('The archive workbook has no sheet');
+
+  const header = (sheet.getRow(1).values as unknown[]).slice(1).map(String);
+  const at = (name: string) => {
+    const index = header.indexOf(name);
+    if (index === -1) throw new Error(`Column ${name} not found in the archive`);
+    return index;
+  };
+  const [line, piece, url, code] = [
+    at('LINE'),
+    at('PIECE_NUMBER'),
+    at('QR_URL'),
+    at('CLAIM_CODE'),
+  ];
+
+  const out = new ExcelJS.Workbook();
+  const target = out.addWorksheet(sheet.name);
+  target.columns = [
+    { header: 'LINE', key: 'line', width: 8 },
+    { header: 'PIECE_NUMBER', key: 'piece', width: 16 },
+    { header: 'QR_URL', key: 'url', width: 42 },
+    { header: 'CLAIM_CODE', key: 'code', width: 16 },
+  ];
+  target.getRow(1).font = { bold: true };
+
+  for (let r = 2; r <= sheet.rowCount; r++) {
+    const values = (sheet.getRow(r).values as unknown[]).slice(1);
+    target.addRow({
+      line: values[line],
+      piece: values[piece],
+      url: values[url],
+      code: values[code],
+    });
+  }
+
+  await out.xlsx.writeFile(outPath);
+}

@@ -1,9 +1,23 @@
 /**
  * Serials.
  *
- * XX-NNNNNN. Two-letter character code, hyphen, six digits. The digit block
- * encodes the edition, so a Classic and a Limited Edition can never collide
- * no matter how the production plan changes.
+ * Two forms, and the rule between them is one sentence: all digits means
+ * Classic, a letter means a special edition.
+ *
+ *   SP-000001   Classic, XX-NNNNNN, six digits
+ *   BZ-V01427   Variant piece 1427, XX-LNNNNN, edition letter then position
+ *
+ * The letter form was adopted on 30 August 2026, at the client's request and
+ * before any special edition was printed. BZ-201427 reads as "two hundred and
+ * one thousand" for a run of 2,777, which is nonsense to the person holding
+ * it: the leading digit was doing a machine's job in the one place only humans
+ * look. Classic keeps its six digits because a piece with no edition position
+ * has nothing to show, and because SP-000001 to SP-000400 are already at the
+ * factory.
+ *
+ * Internally nothing changed. Every serial is still a number in an edition
+ * range, and all the allocation and edition arithmetic below is untouched;
+ * only how that number is written down and read back.
  *
  *   0xxxxx  Classic
  *   1xxxxx  Limited Edition   (last three digits are the edition number)
@@ -61,6 +75,27 @@ export interface EditionRange {
 
 const THREE_DIGIT = 999;
 const FOUR_DIGIT = 9_999;
+
+/**
+ * The letter printed on a special edition. Null for Classic, which stays
+ * numeric.
+ *
+ * I and O are deliberately unused, for the same reason the claim-code alphabet
+ * excludes them: beside five digits they are read as 1 and 0.
+ */
+export const EDITION_LETTERS: Record<EditionType, string | null> = {
+  CLASSIC: null,
+  LIMITED: 'L',
+  VARIANT: 'V',
+  RARE: 'R',
+  SUPER_RARE: 'S',
+  LEGENDARY: 'G',
+  SPARE: 'X',
+  ARTIST_PROOF: 'P',
+};
+
+/** Digits after the edition letter. Five covers a full range (1..99,999). */
+const POSITION_DIGITS = 5;
 
 export const EDITION_RANGES: Record<EditionType, EditionRange> = {
   CLASSIC:
@@ -126,7 +161,17 @@ export function formatSerial(characterCode: string, serialNumber: number): strin
   if (!Number.isInteger(serialNumber) || serialNumber < 0 || serialNumber > 999_999) {
     throw new SerialRangeError(`Serial number out of range: ${serialNumber}`);
   }
-  return `${characterCode}-${String(serialNumber).padStart(6, '0')}`;
+
+  const type = editionTypeForNumber(serialNumber);
+  const letter = type ? EDITION_LETTERS[type] : null;
+
+  // Classic, and anything in an unallocated block, stays a plain number.
+  if (!type || letter === null) {
+    return `${characterCode}-${String(serialNumber).padStart(6, '0')}`;
+  }
+
+  const position = serialNumber - EDITION_RANGES[type].min + 1;
+  return `${characterCode}-${letter}${String(position).padStart(POSITION_DIGITS, '0')}`;
 }
 
 export interface ParsedSerial {
@@ -135,17 +180,43 @@ export interface ParsedSerial {
   editionType: EditionType | null;
 }
 
-const SERIAL_PATTERN = /^([A-Z]{2})-(\d{6})$/;
+const CLASSIC_PATTERN = /^([A-Z]{2})-(\d{6})$/;
+const LETTER_PATTERN = /^([A-Z]{2})-([A-Z])(\d{5})$/;
+
+/** Reverse of EDITION_LETTERS, built once. */
+const TYPE_BY_LETTER = new Map<string, EditionType>(
+  EDITION_TYPES.flatMap((type) => {
+    const letter = EDITION_LETTERS[type];
+    return letter === null ? [] : [[letter, type] as const];
+  }),
+);
 
 export function parseSerial(serial: string): ParsedSerial | null {
-  const match = SERIAL_PATTERN.exec(serial);
-  if (!match) return null;
+  const plain = CLASSIC_PATTERN.exec(serial);
+  if (plain) {
+    const [, code, digits] = plain;
+    if (!isCharacterCode(code!)) return null;
+    const number = Number.parseInt(digits!, 10);
+    return { characterCode: code, number, editionType: editionTypeForNumber(number) };
+  }
 
-  const [, code, digits] = match;
+  const lettered = LETTER_PATTERN.exec(serial);
+  if (!lettered) return null;
+
+  const [, code, letter, digits] = lettered;
   if (!isCharacterCode(code!)) return null;
 
-  const number = Number.parseInt(digits!, 10);
-  return { characterCode: code, number, editionType: editionTypeForNumber(number) };
+  const type = TYPE_BY_LETTER.get(letter!);
+  if (!type) return null;
+
+  // Positions are 1-based, so 00000 is not a piece.
+  const position = Number.parseInt(digits!, 10);
+  if (position < 1) return null;
+
+  const number = EDITION_RANGES[type].min + position - 1;
+  if (number > EDITION_RANGES[type].max) return null;
+
+  return { characterCode: code, number, editionType: type };
 }
 
 export function editionTypeForNumber(serialNumber: number): EditionType | null {

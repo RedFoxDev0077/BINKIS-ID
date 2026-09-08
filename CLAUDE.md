@@ -59,7 +59,18 @@ Adding an eighth type later must require no schema change.
 
 Four identifiers, four jobs, none derivable from another.
 
-**Serial** — `XX-NNNNNN`. Two-letter character code, hyphen, six digits. The digit block encodes the edition so ranges can never collide:
+**Serial** — two written forms, and the rule between them is one sentence: **all digits means Classic, a letter means a special edition.**
+
+| Form | Example | Meaning |
+|---|---|---|
+| `XX-NNNNNN` | `SP-014278` | Classic, six digits |
+| `XX-LNNNNN` | `BZ-V01427` | Variant piece 1427, edition letter then position |
+
+Edition letters: `L` Limited, `V` Variant, `R` Rare, `S` Super Rare, `G` Legendary, `P` Artist Proof, `X` Spare. `I` and `O` are never used, for the same reason the claim-code alphabet excludes them — beside five digits they read as 1 and 0.
+
+> Adopted 30 August 2026 at the client's request, before any special edition was printed. `BZ-201427` reads as "two hundred and one thousand" for a run of 2,777, which is nonsense to the person holding the piece: the leading digit was doing a machine's job in the one place only humans look. Classic keeps six digits because a piece with no edition position has nothing to show, and because SP-000001 to SP-000400 were already at the factory. Internally nothing changed — every serial is still a number in an edition range, and the old numeric form still parses, so nothing printed earlier becomes unreadable.
+
+Internally the digit block still encodes the edition, so ranges can never collide:
 
 | Range | Edition |
 |---|---|
@@ -105,9 +116,9 @@ Second order, added by the client on 29 August 2026. Additive: it does not chang
 |---|---|---|
 | BZ, BM, HQ, JK | Variant | 2,777 each, 11,108 |
 | BR Brainiac | Rare | 7,777 |
-| PI Poison Ivy | Super Rare | 2,777 |
+| PI Poison Ivy | Super Rare | 2,222 |
 
-Total 21,662. The four Variant characters share one hologram design; only the character code and the numbering differ, which is a print concern rather than a data one, since the serial already keeps them apart.
+Total 21,107. The four Variant characters share one hologram design; only the character code and the numbering differ, which is a print concern rather than a data one, since the serial already keeps them apart.
 
 **QR token** — 12 random chars, alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ`. Payload is `https://id.binkis.com/p/{token}` and nothing else. No tracking params. Short payload keeps QR module size large, which is what makes it scan off reflective holographic foil.
 

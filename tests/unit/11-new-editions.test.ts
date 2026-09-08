@@ -19,9 +19,9 @@ import {
  *
  *   Variant     4 characters x 2,777   BZ, BM, HQ, JK   11,108
  *   Rare        Brainiac (BR)                            7,777
- *   Super Rare  Poison Ivy (PI)                          2,777
+ *   Super Rare  Poison Ivy (PI)                          2,222
  *                                                       -------
- *                                                        21,662
+ *                                                        21,107
  *
  * The interesting part is not the new ranges, it is that all three runs are
  * larger than 999. The original three numbered editions - Limited 777,
@@ -119,7 +119,7 @@ describe('edition numbering past 999', () => {
     // 777, which is a different piece in a different edition.
     expect(editionNumberForNumber(200_001)).toBe(1);
     expect(editionNumberForNumber(202_777)).toBe(2_777);
-    expect(formatSerial('BZ', 202_777)).toBe('BZ-202777');
+    expect(formatSerial('BZ', 202_777)).toBe('BZ-V02777');
   });
 
   it('reads the top of Brainiac 7,777', () => {
@@ -137,7 +137,7 @@ describe('allocating the new runs', () => {
     expect(numbers).toHaveLength(2_777);
     expect(numbers[0]).toBe(200_001);
     expect(numbers.at(-1)).toBe(202_777);
-    expect(formatSerial('HQ', numbers.at(-1)!)).toBe('HQ-202777');
+    expect(formatSerial('HQ', numbers.at(-1)!)).toBe('HQ-V02777');
   });
 
   it('allocates Brainiac 7,777 as one block', () => {
@@ -147,9 +147,11 @@ describe('allocating the new runs', () => {
     expect(editionNumberForNumber(numbers.at(-1)!)).toBe(7_777);
   });
 
-  it('allocates Poison Ivy 2,777', () => {
-    const numbers = allocateSerialNumbers('SUPER_RARE', 1, 2_777);
-    expect(numbers.at(-1)).toBe(402_777);
+  it('allocates Poison Ivy 2,222', () => {
+    // 2,222 not 2,777: changed by the client on 30 August 2026 to
+    // differentiate Super Rare from the Variant run.
+    const numbers = allocateSerialNumbers('SUPER_RARE', 1, 2_222);
+    expect(numbers.at(-1)).toBe(402_222);
   });
 
   it('refuses a run that would pass the four digit ceiling', () => {
@@ -176,24 +178,24 @@ describe('production planning for the new editions', () => {
     // the run. Same reasoning as Limited and Legendary.
     expect(() => planProduction('VARIANT', 2_777, 30)).toThrow(SerialRangeError);
     expect(() => planProduction('RARE', 7_777, 30)).toThrow(SerialRangeError);
-    expect(() => planProduction('SUPER_RARE', 2_777, 30)).toThrow(SerialRangeError);
+    expect(() => planProduction('SUPER_RARE', 2_222, 30)).toThrow(SerialRangeError);
   });
 
   it('plans the exact rows at zero overage', () => {
     expect(planProduction('VARIANT', 2_777, 0).total).toBe(2_777);
     expect(planProduction('RARE', 7_777, 0).total).toBe(7_777);
-    expect(planProduction('SUPER_RARE', 2_777, 0).total).toBe(2_777);
+    expect(planProduction('SUPER_RARE', 2_222, 0).total).toBe(2_222);
   });
 
   it('adds up to the 21,662 the client asked for', () => {
     const variant = 4 * planProduction('VARIANT', 2_777, 0).total; // BZ, BM, HQ, JK
     const rare = planProduction('RARE', 7_777, 0).total; // Brainiac
-    const superRare = planProduction('SUPER_RARE', 2_777, 0).total; // Poison Ivy
+    const superRare = planProduction('SUPER_RARE', 2_222, 0).total; // Poison Ivy
 
     expect(variant).toBe(11_108);
     expect(rare).toBe(7_777);
-    expect(superRare).toBe(2_777);
-    expect(variant + rare + superRare).toBe(21_662);
+    expect(superRare).toBe(2_222);
+    expect(variant + rare + superRare).toBe(21_107);
   });
 
   it('does not change the Serie 1 total', () => {
@@ -213,7 +215,7 @@ describe('a Variant of one character cannot be confused with another', () => {
     // apart, so this is the property that matters.
     const serials = ['BZ', 'BM', 'HQ', 'JK'].map((c) => formatSerial(c, 200_045));
     expect(new Set(serials).size).toBe(4);
-    expect(serials).toEqual(['BZ-200045', 'BM-200045', 'HQ-200045', 'JK-200045']);
+    expect(serials).toEqual(['BZ-V00045', 'BM-V00045', 'HQ-V00045', 'JK-V00045']);
   });
 
   it('a Variant Batman is not a Classic Batman', () => {

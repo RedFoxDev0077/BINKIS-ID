@@ -74,16 +74,18 @@ describe('serial ranges', () => {
 });
 
 describe('serial formatting', () => {
-  it('is XX-NNNNNN, zero padded to six digits', () => {
+  it('writes Classic as six digits and special editions with their letter', () => {
     expect(formatSerial('SP', 1)).toBe('SP-000001');
     expect(formatSerial('SP', 200)).toBe('SP-000200');
     expect(formatSerial('SP', 14_278)).toBe('SP-014278');
-    expect(formatSerial('RF', 100_045)).toBe('RF-100045');
-    expect(formatSerial('DS', 500_007)).toBe('DS-500007');
+    // Special editions carry their letter and their real position since
+    // 30 August 2026. RF-L00045 is Limited piece 45; DS-G00007 is Legendary 7.
+    expect(formatSerial('RF', 100_045)).toBe('RF-L00045');
+    expect(formatSerial('DS', 500_007)).toBe('DS-G00007');
   });
 
   it('round-trips through parseSerial', () => {
-    const serials = ['SP-000001', 'SP-014278', 'RF-100045', 'DS-500007', 'BM-800001', 'HQ-900100'];
+    const serials = ['SP-000001', 'SP-014278', 'RF-L00045', 'DS-G00007', 'BM-X00001', 'HQ-P00100'];
     for (const serial of serials) {
       const parsed = parseSerial(serial);
       expect(parsed).not.toBeNull();
@@ -163,13 +165,13 @@ describe('allocateSerialNumbers', () => {
     const numbers = allocateSerialNumbers('LIMITED', 1, 777);
     expect(numbers[0]).toBe(100_001);
     expect(numbers[776]).toBe(100_777);
-    expect(formatSerial('RF', numbers[44]!)).toBe('RF-100045');
+    expect(formatSerial('RF', numbers[44]!)).toBe('RF-L00045');
     expect(editionNumberForSerial(formatSerial('RF', numbers[44]!))).toBe(45);
   });
 
   it('starts a Legendary run at 500001, so DS-500007 is the seventh', () => {
     const numbers = allocateSerialNumbers('LEGENDARY', 1, 10);
-    expect(formatSerial('DS', numbers[6]!)).toBe('DS-500007');
+    expect(formatSerial('DS', numbers[6]!)).toBe('DS-G00007');
   });
 
   it('places spares in the 8 block and artist proofs in the 9 block', () => {

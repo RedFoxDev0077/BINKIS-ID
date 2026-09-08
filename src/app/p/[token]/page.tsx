@@ -1,17 +1,14 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getPassportByToken, provenanceStatement, ownerCountForToken } from '@/lib/passport';
+import { provenanceStatement } from '@/lib/passport';
+import { getCachedPassport, getCachedOwnerCount } from '@/lib/passport-cache';
 import { getTranslations, fill } from '@/lib/i18n';
-import { getCurrentUser } from '@/lib/auth/current';
-import { prisma } from '@/lib/db/client';
-import { currentOwnerId } from '@/lib/db/transfer';
 import { Serial } from '@/components/Serial';
 import { RarityChip } from '@/components/RarityChip';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { Timeline } from '@/components/Timeline';
-import { ClaimForm } from '@/components/ClaimForm';
+import { ViewerActions } from '@/components/ViewerActions';
 import { PieceArtwork } from '@/components/PieceArtwork';
-import { TransferPanel } from '@/components/TransferPanel';
 import { HoloCard } from '@/components/ui/HoloCard';
 import { Reveal } from '@/components/ui/Reveal';
 import { Card, SectionTitle, Field } from '@/components/ui/Card';
@@ -33,7 +30,7 @@ type Params = { params: Promise<{ token: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { token } = await params;
-  const passport = await getPassportByToken(token);
+  const passport = await getCachedPassport(token);
   if (!passport) return { title: 'BINKIS ID' };
 
   const position =
@@ -52,36 +49,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function PassportPage({ params }: Params) {
   const { token } = await params;
   const { t, locale } = await getTranslations();
-  const passport = await getPassportByToken(token);
+  const passport = await getCachedPassport(token);
 
   // A real 404, not a styled page returned with HTTP 200. The designed
   // message still shows: it lives in not-found.tsx alongside this file.
   if (!passport) notFound();
 
-  const user = await getCurrentUser();
-  const ownerCount = await ownerCountForToken(passport.qrToken);
+  const ownerCount = await getCachedOwnerCount(passport.qrToken);
   const voided = passport.status === 'VOID';
   const claimable = passport.status === 'UNCLAIMED';
 
-  // Is the signed-in collector the current owner? Only then do they get the
-  // transfer panel. Checked against the ledger, not against the rendered page.
-  let isOwner = false;
-  let pendingTransfer = false;
-  if (user?.collectorId && passport.status === 'CLAIMED') {
-    const piece = await prisma.piece.findUnique({
-      where: { qrToken: passport.qrToken },
-      select: { id: true },
-    });
-    if (piece) {
-      isOwner = (await currentOwnerId(prisma, piece.id)) === user.collectorId;
-      if (isOwner) {
-        pendingTransfer =
-          (await prisma.transfer.count({
-            where: { pieceId: piece.id, status: 'PENDING' },
-          })) > 0;
-      }
-    }
-  }
+  // Nothing below this line depends on who is asking. That is what makes the
+  // page cacheable, and it is also a safety property: a page that rendered
+  // differently for the signed-in owner could be cached and then served to
+  // the next visitor. Whether you are signed in, whether you own this piece
+  // and whether you have a transfer in flight are fetched by ViewerActions
+  // from an endpoint that is never cached.
 
   return (
     <Shell>
@@ -167,7 +150,12 @@ export default async function PassportPage({ params }: Params) {
                   </div>
                 </div>
               </Card>
-              <ClaimForm qrToken={passport.qrToken} signedIn={Boolean(user?.collectorId)} t={t} />
+              <ViewerActions
+                qrToken={passport.qrToken}
+                serial={passport.serial}
+                claimable
+                t={t}
+              />
             </div>
           </Reveal>
         ) : passport.owner ? (
@@ -193,9 +181,14 @@ export default async function PassportPage({ params }: Params) {
           </Reveal>
         ) : null}
 
-        {isOwner ? (
+        {!claimable && !voided ? (
           <Reveal>
-            <TransferPanel serial={passport.serial} hasPending={pendingTransfer} t={t} />
+            <ViewerActions
+              qrToken={passport.qrToken}
+              serial={passport.serial}
+              claimable={false}
+              t={t}
+            />
           </Reveal>
         ) : null}
 

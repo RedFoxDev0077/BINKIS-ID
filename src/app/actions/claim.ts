@@ -6,7 +6,6 @@ import { claimPiece, RATE_LIMITED_FAILURE } from '@/lib/db/claim';
 import { describeWait } from '@/lib/db/rate-limit';
 import { getTranslations, fill } from '@/lib/i18n';
 import { getCurrentUser } from '@/lib/auth/current';
-import { invalidatePiece } from '@/lib/passport-cache';
 
 export interface ClaimState {
   status: 'idle' | 'success' | 'error' | 'unauthenticated';
@@ -66,16 +65,7 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
     return { status: 'error', message: outcome.message };
   }
 
-  // Drop this piece from the read cache so the next scan shows it claimed.
-  //
-  // This is a tag invalidation, not revalidatePath. The distinction matters:
-  // revalidatePath refreshes the route the caller is looking at, which is
-  // exactly what used to unmount ClaimForm and destroy the success reveal
-  // before anyone saw it. A tag only marks the cached data stale for the
-  // NEXT reader.
-  invalidatePiece(qrToken);
-
-  // Still deliberately NOT revalidatePath(`/p/${qrToken}`) here.
+  // Deliberately NOT revalidatePath(`/p/${qrToken}`) here.
   //
   // ClaimForm only renders while the piece is unclaimed, and the success
   // reveal lives inside it. Revalidating re-renders this page as *claimed*,

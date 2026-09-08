@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { invalidatePiece } from '@/lib/passport-cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/client';
 import { getCurrentUser } from '@/lib/auth/current';
@@ -73,21 +72,7 @@ export async function acceptTransferAction(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user?.collectorId) return;
 
-  const transferId = String(formData.get('transferId'));
-
-  // Read the token before accepting: afterwards this is the one action that
-  // changes what the public passport says, so its cache entry has to go.
-  // Sending, declining and cancelling do not appear on the public page at
-  // all, so they deliberately do not invalidate anything.
-  const transfer = await prisma.transfer.findUnique({
-    where: { id: transferId },
-    select: { piece: { select: { qrToken: true } } },
-  });
-
-  await acceptTransfer(prisma, transferId, user.collectorId);
-
-  if (transfer?.piece.qrToken) invalidatePiece(transfer.piece.qrToken);
-
+  await acceptTransfer(prisma, String(formData.get('transferId')), user.collectorId);
   revalidatePath('/transfers');
   revalidatePath('/collection');
 }

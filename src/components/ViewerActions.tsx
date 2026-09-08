@@ -40,6 +40,23 @@ export function ViewerActions({
 }) {
   const [viewer, setViewer] = useState<Viewer | null>(null);
 
+  /**
+   * Whether this visitor arrived at an unclaimed piece, captured once.
+   *
+   * useState ignores its argument after the first render, which is the whole
+   * point here. When a claim succeeds the action invalidates the piece, the
+   * router refreshes this route, and `claimable` arrives as false. If we read
+   * the prop directly we would unmount ClaimForm at that exact moment and
+   * take the success reveal with it - the claim works and the collector
+   * watches the form vanish.
+   *
+   * That has now happened twice, first through revalidatePath and then
+   * through revalidateTag. Tag invalidation refreshes the current route just
+   * as path invalidation does, so the fix cannot be to pick a gentler
+   * invalidation. It has to be that this component stops caring.
+   */
+  const [arrivedUnclaimed] = useState(claimable);
+
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/viewer/${qrToken}`, { credentials: 'same-origin' })
@@ -61,7 +78,7 @@ export function ViewerActions({
     };
   }, [qrToken]);
 
-  if (claimable) {
+  if (arrivedUnclaimed) {
     // Reserve the height the claim box will take, so the page does not jump
     // under someone's thumb as it arrives.
     if (!viewer) return <ClaimSkeleton />;

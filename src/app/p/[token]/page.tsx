@@ -150,12 +150,6 @@ export default async function PassportPage({ params }: Params) {
                   </div>
                 </div>
               </Card>
-              <ViewerActions
-                qrToken={passport.qrToken}
-                serial={passport.serial}
-                claimable
-                t={t}
-              />
             </div>
           </Reveal>
         ) : passport.owner ? (
@@ -181,12 +175,18 @@ export default async function PassportPage({ params }: Params) {
           </Reveal>
         ) : null}
 
-        {!claimable && !voided ? (
+        {/* One instance, always rendered, at a fixed position in the tree.
+            It must never be inside a branch that depends on the piece's
+            status: when a claim succeeds the route refreshes, the branch
+            flips, and React unmounts the component and everything it was
+            showing - which is how the claim reveal was destroyed twice. From
+            here it survives the refresh and decides for itself what to show. */}
+        {!voided ? (
           <Reveal>
             <ViewerActions
               qrToken={passport.qrToken}
               serial={passport.serial}
-              claimable={false}
+              claimable={claimable}
               t={t}
             />
           </Reveal>

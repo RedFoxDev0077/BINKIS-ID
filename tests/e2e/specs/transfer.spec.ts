@@ -31,11 +31,14 @@ test.describe('transferring a piece', () => {
     await page.getByRole('button', { name: /transfer this binki/i }).click();
     await page.getByLabel(/recipient/i).fill(bob.handle);
     await page.getByRole('button', { name: /send transfer/i }).click();
-    // The panel becomes "Waiting on them" rather than flashing a transient
-    // "Transfer sent". That is the better signal - it persists, and it is
-    // still true when the owner comes back tomorrow to check - so it is what
-    // this asserts.
-    await expect(page.getByText(/waiting on them/i).first()).toBeVisible();
+    // The designed confirmation, which is reachable again.
+    //
+    // This asserted "Waiting on them" for a while, because the sent state was
+    // dead code: revalidating after the send unmounted TransferPanel before
+    // it could render its own message, exactly as it did to the claim reveal.
+    // The panel now lives in a stable island and survives the refresh, so the
+    // message it was written to show is the one that appears.
+    await expect(page.getByText(/transfer sent/i).first()).toBeVisible();
 
     // Nothing has moved yet. A request is not a mutation - the piece is still
     // Alice's until Bob says yes.
@@ -65,11 +68,14 @@ test.describe('transferring a piece', () => {
     await page.getByRole('button', { name: /transfer this binki/i }).click();
     await page.getByLabel(/recipient/i).fill(bob.handle);
     await page.getByRole('button', { name: /send transfer/i }).click();
-    // The panel becomes "Waiting on them" rather than flashing a transient
-    // "Transfer sent". That is the better signal - it persists, and it is
-    // still true when the owner comes back tomorrow to check - so it is what
-    // this asserts.
-    await expect(page.getByText(/waiting on them/i).first()).toBeVisible();
+    // The designed confirmation, which is reachable again.
+    //
+    // This asserted "Waiting on them" for a while, because the sent state was
+    // dead code: revalidating after the send unmounted TransferPanel before
+    // it could render its own message, exactly as it did to the claim reveal.
+    // The panel now lives in a stable island and survives the refresh, so the
+    // message it was written to show is the one that appears.
+    await expect(page.getByText(/transfer sent/i).first()).toBeVisible();
 
     await signIn(page, bob);
     await page.goto('/transfers');
@@ -96,11 +102,14 @@ test.describe('transferring a piece', () => {
     await page.getByRole('button', { name: /transfer this binki/i }).click();
     await page.getByLabel(/recipient/i).fill(bob.handle);
     await page.getByRole('button', { name: /send transfer/i }).click();
-    // The panel becomes "Waiting on them" rather than flashing a transient
-    // "Transfer sent". That is the better signal - it persists, and it is
-    // still true when the owner comes back tomorrow to check - so it is what
-    // this asserts.
-    await expect(page.getByText(/waiting on them/i).first()).toBeVisible();
+    // The designed confirmation, which is reachable again.
+    //
+    // This asserted "Waiting on them" for a while, because the sent state was
+    // dead code: revalidating after the send unmounted TransferPanel before
+    // it could render its own message, exactly as it did to the claim reveal.
+    // The panel now lives in a stable island and survives the refresh, so the
+    // message it was written to show is the one that appears.
+    await expect(page.getByText(/transfer sent/i).first()).toBeVisible();
 
     await signIn(page, bob);
     await page.goto('/transfers');

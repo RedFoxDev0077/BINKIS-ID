@@ -68,11 +68,12 @@ export async function submitClaim(_prev: ClaimState, formData: FormData): Promis
 
   // Drop this piece from the read cache so the next scan shows it claimed.
   //
-  // This is a tag invalidation, not revalidatePath. The distinction matters:
-  // revalidatePath refreshes the route the caller is looking at, which is
-  // exactly what used to unmount ClaimForm and destroy the success reveal
-  // before anyone saw it. A tag only marks the cached data stale for the
-  // NEXT reader.
+  // Note: this DOES refresh the route the caller is looking at, exactly as
+  // revalidatePath does. An earlier version of this comment claimed tag
+  // invalidation was gentler; it is not, and the Playwright suite caught it
+  // destroying the claim reveal a second time. ViewerActions is what makes
+  // the reveal survive now, by capturing on mount whether the piece was
+  // unclaimed and ignoring the prop afterwards.
   invalidatePiece(qrToken);
 
   // Still deliberately NOT revalidatePath(`/p/${qrToken}`) here.

@@ -34,12 +34,41 @@ export function pieceTag(qrToken: string): string {
  */
 const TTL_SECONDS = 300;
 
-export const getCachedPassport = (token: string) =>
-  unstable_cache(
+/**
+ * Put the Dates back.
+ *
+ * unstable_cache stores its result as JSON, so a Date goes in and an ISO
+ * string comes out. Nothing complains: the value is still truthy, still
+ * renders in a template, and TypeScript still believes it is a Date because
+ * the cast says so. It fails at the first thing that does real date work,
+ * which on this page is the production date, and the whole passport 500s
+ * with "RangeError: Invalid time value".
+ *
+ * This is not a detail to leave to memory. Every Date on PublicPassport is
+ * revived here, and 14-passport-cache.test.ts fails if a new one is added
+ * without being listed.
+ */
+function revive(passport: PublicPassport | null): PublicPassport | null {
+  if (!passport) return null;
+  return {
+    ...passport,
+    producedAt: new Date(passport.producedAt),
+    events: passport.events.map((event) => ({
+      ...event,
+      occurredAt: new Date(event.occurredAt),
+    })),
+  };
+}
+
+export const getCachedPassport = async (token: string): Promise<PublicPassport | null> => {
+  const cached = (await unstable_cache(
     async () => getPassportByToken(token),
     ['passport', token],
     { tags: [pieceTag(token)], revalidate: TTL_SECONDS },
-  )() as Promise<PublicPassport | null>;
+  )()) as PublicPassport | null;
+
+  return revive(cached);
+};
 
 export const getCachedOwnerCount = (qrToken: string) =>
   unstable_cache(

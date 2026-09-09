@@ -31,8 +31,20 @@ import { parseSerial, formatSerial, EDITION_RANGES } from '../src/lib/serial.ts'
 import { parseQrToken } from '../src/lib/codes/qr-token.ts';
 
 const ROOT = resolve('factory-exports');
-const FULL = join(ROOT, 'FULL-RUN', 'deliver');
-const OUT = join(ROOT, 'MASTER');
+
+/**
+ * Two folders, named so nobody has to remember which is which.
+ *
+ * SEND-TO-KRY holds the six files the factory receives, one per hologram
+ * design. Everything else lives under _SOURCE-DO-NOT-SEND: the per-character
+ * exports these are merged from, the earlier 400-piece Superman samples, and
+ * the encrypted archives. All of it is superseded for sending and none of it
+ * should ever reach the factory, because sending a stale file is how the
+ * wrong batch gets printed.
+ */
+const SOURCE = join(ROOT, '_SOURCE-DO-NOT-SEND');
+const FULL = join(SOURCE, 'FULL-RUN', 'deliver');
+const OUT = join(ROOT, 'SEND-TO-KRY');
 
 interface Row {
   piece: string;
@@ -60,8 +72,8 @@ const MASTERS: MasterFile[] = [
     colour: 'SILVER',
     description: 'Classic, 8 characters',
     sources: [
-      join(ROOT, 'B-2026-01', 'B-2026-01-PRINT.xlsx'),
-      join(ROOT, 'B-2026-02', 'B-2026-02-PRINT.xlsx'),
+      join(SOURCE, 'B-2026-01', 'B-2026-01-PRINT.xlsx'),
+      join(SOURCE, 'B-2026-02', 'B-2026-02-PRINT.xlsx'),
       join(FULL, '1-CLASSIC', 'B-2026-SP-CLASSIC-PRINT.xlsx'),
       join(FULL, '1-CLASSIC', 'B-2026-BM-CLASSIC-PRINT.xlsx'),
       join(FULL, '1-CLASSIC', 'B-2026-HQ-CLASSIC-PRINT.xlsx'),

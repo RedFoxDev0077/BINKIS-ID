@@ -103,3 +103,7 @@ desktop.ini
 /playwright-report/
 tests/e2e/.fixture.json
 tests/e2e/.next-piece
+
+# A clone of the client's other project, kept here only while reviewing it.
+# It is a separate repository and must never be committed into this one.
+/Binkis/

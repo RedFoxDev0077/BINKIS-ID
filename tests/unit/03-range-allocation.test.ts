@@ -81,11 +81,11 @@ describe('serial formatting', () => {
     // Special editions carry their letter and their real position since
     // 30 August 2026. RF-L00045 is Limited piece 45; DS-G00007 is Legendary 7.
     expect(formatSerial('RF', 100_045)).toBe('RF-L00045');
-    expect(formatSerial('DS', 500_007)).toBe('DS-G00007');
+    expect(formatSerial('DS', 500_007)).toBe('DS-00007');
   });
 
   it('round-trips through parseSerial', () => {
-    const serials = ['SP-000001', 'SP-014278', 'RF-L00045', 'DS-G00007', 'BM-X00001', 'HQ-P00100'];
+    const serials = ['SP-000001', 'SP-014278', 'RF-L00045', 'DS-00007', 'BM-X00001', 'HQ-AP00100'];
     for (const serial of serials) {
       const parsed = parseSerial(serial);
       expect(parsed).not.toBeNull();
@@ -171,7 +171,7 @@ describe('allocateSerialNumbers', () => {
 
   it('starts a Legendary run at 500001, so DS-500007 is the seventh', () => {
     const numbers = allocateSerialNumbers('LEGENDARY', 1, 10);
-    expect(formatSerial('DS', numbers[6]!)).toBe('DS-G00007');
+    expect(formatSerial('DS', numbers[6]!)).toBe('DS-00007');
   });
 
   it('places spares in the 8 block and artist proofs in the 9 block', () => {

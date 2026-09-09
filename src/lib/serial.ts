@@ -84,14 +84,21 @@ const FOUR_DIGIT = 9_999;
  * excludes them: beside five digits they are read as 1 and 0.
  */
 export const EDITION_LETTERS: Record<EditionType, string | null> = {
+  // null means "printed as a plain six digit number", which is Classic.
   CLASSIC: null,
   LIMITED: 'L',
   VARIANT: 'V',
   RARE: 'R',
   SUPER_RARE: 'S',
-  LEGENDARY: 'G',
+  // Empty string, not null: Legendary prints its position with no prefix at
+  // all, DS-00001, at the client's request on 9 September 2026. Five digits
+  // where Classic has six is the only thing telling them apart, so no other
+  // edition may ever use an empty prefix.
+  LEGENDARY: '',
   SPARE: 'X',
-  ARTIST_PROOF: 'P',
+  // AP rather than P, also 9 September. Two letters are unambiguous to
+  // someone reading it off a sticker; a lone P is not.
+  ARTIST_PROOF: 'AP',
 };
 
 /** Digits after the edition letter. Five covers a full range (1..99,999). */
@@ -181,7 +188,7 @@ export interface ParsedSerial {
 }
 
 const CLASSIC_PATTERN = /^([A-Z]{2})-(\d{6})$/;
-const LETTER_PATTERN = /^([A-Z]{2})-([A-Z])(\d{5})$/;
+const LETTER_PATTERN = /^([A-Z]{2})-([A-Z]{0,2})(\d{5})$/;
 
 /** Reverse of EDITION_LETTERS, built once. */
 const TYPE_BY_LETTER = new Map<string, EditionType>(

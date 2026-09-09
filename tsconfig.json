@@ -40,7 +40,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
+  "exclude": ["Binkis", 
     "node_modules"
   ]
 }

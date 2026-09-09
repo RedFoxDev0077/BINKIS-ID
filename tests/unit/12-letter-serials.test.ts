@@ -52,6 +52,14 @@ describe('Classic is untouched', () => {
   it('carries no edition letter', () => {
     expect(EDITION_LETTERS.CLASSIC).toBeNull();
   });
+
+  it('is the only edition printed as six digits', () => {
+    // Legendary prints five digits with no prefix (DS-00001), so digit count
+    // is the only thing separating the two all-numeric forms. Nothing else may
+    // ever take an empty prefix.
+    const empty = EDITION_TYPES.filter((t) => EDITION_LETTERS[t] === '');
+    expect(empty).toEqual(['LEGENDARY']);
+  });
 });
 
 describe('every special edition carries its letter', () => {
@@ -60,8 +68,8 @@ describe('every special edition carries its letter', () => {
     expect(formatSerial('BZ', 201_427)).toBe('BZ-V01427'); // Variant 1427 of 2777
     expect(formatSerial('BR', 305_321)).toBe('BR-R05321'); // Rare 5321 of 7777
     expect(formatSerial('PI', 400_189)).toBe('PI-S00189'); // Super Rare 189 of 2222
-    expect(formatSerial('DS', 500_007)).toBe('DS-G00007'); // Legendary 7 of 10
-    expect(formatSerial('RF', 900_045)).toBe('RF-P00045'); // Artist Proof 45
+    expect(formatSerial('DS', 500_007)).toBe('DS-00007'); // Legendary 7 of 10
+    expect(formatSerial('RF', 900_045)).toBe('RF-AP00045'); // Artist Proof 45
     expect(formatSerial('SP', 800_001)).toBe('SP-X00001'); // Spare 1
   });
 
@@ -73,7 +81,7 @@ describe('every special edition carries its letter', () => {
       ['BZ-V01427', 1_427],
       ['BR-R05321', 5_321],
       ['PI-S00189', 189],
-      ['DS-G00007', 7],
+      ['DS-00007', 7],
     ] as const) {
       const parsed = parseSerial(serial)!;
       expect(editionNumberForNumber(parsed.number), serial).toBe(expected);

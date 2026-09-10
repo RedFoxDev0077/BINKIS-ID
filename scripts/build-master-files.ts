@@ -44,6 +44,22 @@ const ROOT = resolve('factory-exports');
  */
 const SOURCE = join(ROOT, '_SOURCE-DO-NOT-SEND');
 const FULL = join(SOURCE, 'FULL-RUN', 'deliver');
+
+/**
+ * The press buffer, generated 10 September.
+ *
+ * The factory's machine consumes a record per attempt and does not reprint a
+ * discarded one, so it needs more rows than the quantity ordered. Classic
+ * takes real extra pieces: it carries no edition position, so a scrapped
+ * label leaves a gap nobody was promised.
+ *
+ * The numbered editions do NOT get their runs extended. Feeding 1,010 records
+ * to harvest 777 good ones would put RF-L00950 inside an edition sold as 777
+ * pieces, which cannot be explained to a collector and cannot be repaired
+ * after printing. Their buffer is SPARE range instead, which exists for
+ * exactly this and reads as RF-X00001, unmistakable against a numbered piece.
+ */
+const TOPUP = join(SOURCE, 'TOPUP');
 const OUT = join(ROOT, 'SEND-TO-KRY');
 
 interface Row {
@@ -82,8 +98,17 @@ const MASTERS: MasterFile[] = [
       join(FULL, '1-CLASSIC', 'B-2026-JK-CLASSIC-PRINT.xlsx'),
       join(FULL, '1-CLASSIC', 'B-2026-SG-CLASSIC-PRINT.xlsx'),
       join(FULL, '1-CLASSIC', 'B-2026-CY-CLASSIC-PRINT.xlsx'),
+      // Press buffer, proportional to each run.
+      join(TOPUP, 'B-2026-SP-CLASSIC-B2', 'B-2026-SP-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-BM-CLASSIC-B2', 'B-2026-BM-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-HQ-CLASSIC-B2', 'B-2026-HQ-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-FL-CLASSIC-B2', 'B-2026-FL-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-WW-CLASSIC-B2', 'B-2026-WW-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-JK-CLASSIC-B2', 'B-2026-JK-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-SG-CLASSIC-B2', 'B-2026-SG-CLASSIC-B2-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-CY-CLASSIC-B2', 'B-2026-CY-CLASSIC-B2-PRINT.xlsx'),
     ],
-    expected: 130_000,
+    expected: 140_000,
   },
   {
     name: 'BINKIS-LIMITED-GOLD',
@@ -100,8 +125,15 @@ const MASTERS: MasterFile[] = [
       join(FULL, '3-ARTIST-PROOF', 'B-2026-CH-ARTISTPROOF-PRINT.xlsx'),
       join(FULL, '3-ARTIST-PROOF', 'B-2026-RD-ARTISTPROOF-PRINT.xlsx'),
       join(FULL, '3-ARTIST-PROOF', 'B-2026-GL-ARTISTPROOF-PRINT.xlsx'),
+      // Press buffer as spares, 600 per character. These do not extend any
+      // numbered run; RF-X00001 cannot be mistaken for RF-L00001.
+      join(TOPUP, 'B-2026-RF-SPARE', 'B-2026-RF-SPARE-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-BZ-SPARE', 'B-2026-BZ-SPARE-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-CH-SPARE', 'B-2026-CH-SPARE-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-RD-SPARE', 'B-2026-RD-SPARE-PRINT.xlsx'),
+      join(TOPUP, 'B-2026-GL-SPARE', 'B-2026-GL-SPARE-PRINT.xlsx'),
     ],
-    expected: 4_385,
+    expected: 7_385,
   },
   {
     name: 'BINKIS-VARIANT-BLUE',

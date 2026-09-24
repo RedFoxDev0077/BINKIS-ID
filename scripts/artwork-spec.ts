@@ -33,6 +33,7 @@ const { values } = parseArgs({
     height: { type: 'string', default: '20' },
     qr: { type: 'string', default: '10' },
     'code-pt': { type: 'string', default: '8' },
+    layout: { type: 'string', default: 'row' },
   },
 });
 
@@ -92,15 +93,51 @@ const patch = QR_SYMBOL + 2 * quiet;
 // Column layout, left to right.
 const logoW = 9.5;
 const gap = 0.4;
-const centreW = LABEL_W - 2 * MARGIN - logoW - patch - PANEL_W - 3 * gap;
+/**
+ * Two ways to arrange the right-hand side.
+ *
+ * "row" puts logo, serial, QR and claim panel in four columns. It is what the
+ * first run used, and inside 60 mm it forces a choice: a serial big enough to
+ * be the hero leaves the claim code at about 4 pt, which is the size that just
+ * failed in the client's hands.
+ *
+ * "stacked" puts the QR above the claim panel in one column. The column is as
+ * wide as the panel and about 18 mm tall, so it fits the label height, and it
+ * hands the width it saves back to the serial. That is the whole trade: the
+ * serial and the code are both fighting for the same 60 mm, and only one of
+ * them has to be on the same line as the QR.
+ */
+const STACKED = values.layout === 'stacked';
+const columnW = STACKED ? Math.max(PANEL_W, patch) : 0;
+
+const centreW = STACKED
+  ? LABEL_W - 2 * MARGIN - logoW - columnW - 2 * gap
+  : LABEL_W - 2 * MARGIN - logoW - patch - PANEL_W - 3 * gap;
 
 const xLogo = MARGIN;
 const xCentre = xLogo + logoW + gap;
-const xPatch = xCentre + centreW + gap;
-const xPanel = xPatch + patch + gap;
+const xPatch = STACKED
+  ? LABEL_W - MARGIN - columnW + (columnW - patch) / 2
+  : xCentre + centreW + gap;
+const xPanel = STACKED
+  ? LABEL_W - MARGIN - columnW + (columnW - PANEL_W) / 2
+  : xPatch + patch + gap;
 
-const yPatch = (LABEL_H - patch) / 2;
-const yPanel = LABEL_H - MARGIN - PANEL_H - 1.2;
+const stackGap = 0.5;
+const stackH = patch + stackGap + PANEL_H;
+const yPatch = STACKED ? (LABEL_H - stackH) / 2 : (LABEL_H - patch) / 2;
+const yPanel = STACKED ? yPatch + patch + stackGap : LABEL_H - MARGIN - PANEL_H - 1.2;
+
+if (STACKED && stackH > LABEL_H - 2 * MARGIN) {
+  console.error(
+    `
+  WARNING: the stacked column is ${stackH.toFixed(2)} mm tall and only ` +
+      `${(LABEL_H - 2 * MARGIN).toFixed(2)} mm fit inside the safe area.` +
+      `
+  Drop the QR a millimetre or the code a point.
+`,
+  );
+}
 
 // ---------------------------------------------------------------------------
 
@@ -184,14 +221,23 @@ push(
 );
 
 // --- claim code panel ---
-push(
-  `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 3.6}" font-family="Helvetica,Arial" font-size="1.15" ` +
-    `font-weight="700" fill="#15171E" text-anchor="middle" letter-spacing="0.06">CLAIM CODE</text>`,
-);
-push(
-  `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 5.2}" font-family="Helvetica,Arial" font-size="0.85" ` +
-    `fill="#4A4E5C" text-anchor="middle" letter-spacing="0.05">SCRATCH TO REVEAL</text>`,
-);
+if (STACKED) {
+  // One thin strip, because the stacked column has no room for two lines.
+  push(
+    `<text x="${xPanel + PANEL_W / 2}" y="${yPanel - 0.9}" font-family="Helvetica,Arial" ` +
+      `font-size="1.05" font-weight="700" fill="#15171E" text-anchor="middle" ` +
+      `letter-spacing="0.06">SCRATCH HERE</text>`,
+  );
+} else {
+  push(
+    `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 3.6}" font-family="Helvetica,Arial" font-size="1.15" ` +
+      `font-weight="700" fill="#15171E" text-anchor="middle" letter-spacing="0.06">CLAIM CODE</text>`,
+  );
+  push(
+    `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 5.2}" font-family="Helvetica,Arial" font-size="0.85" ` +
+      `fill="#4A4E5C" text-anchor="middle" letter-spacing="0.05">SCRATCH TO REVEAL</text>`,
+  );
+}
 push(
   `<rect x="${xPanel}" y="${yPanel}" width="${PANEL_W}" height="${PANEL_H}" rx="0.7" ` +
     `fill="#FFFFFF" stroke="#7C8196" stroke-width="0.1"/>`,
@@ -228,7 +274,12 @@ BINKIS ID hologram, ${LABEL_W} x ${LABEL_H} mm, drawn 1:1
   code box          ${PANEL_W.toFixed(2)} x ${PANEL_H.toFixed(2)} mm
   scratch coverage  ${(PANEL_W + 0.6).toFixed(2)} x ${(PANEL_H + 0.6).toFixed(2)} mm, larger than the box
 
-  columns           logo ${logoW} | centre ${centreW.toFixed(2)} | QR ${patch.toFixed(2)} | code ${PANEL_W.toFixed(2)}
+  layout            ${STACKED ? 'stacked: QR above the claim panel, one column' : 'row: four columns'}
+  columns           ${
+    STACKED
+      ? `logo ${logoW} | serial ${centreW.toFixed(2)} | QR+code ${columnW.toFixed(2)}`
+      : `logo ${logoW} | serial ${centreW.toFixed(2)} | QR ${patch.toFixed(2)} | code ${PANEL_W.toFixed(2)}`
+  }
   margins           ${MARGIN.toFixed(1)} mm, plus ${gap} mm between columns
 ${
   centreW < 12

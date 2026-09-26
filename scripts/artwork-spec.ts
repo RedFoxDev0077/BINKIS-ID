@@ -34,6 +34,7 @@ const { values } = parseArgs({
     qr: { type: 'string', default: '10' },
     'code-pt': { type: 'string', default: '8' },
     layout: { type: 'string', default: 'row' },
+    margin: { type: 'string', default: '1.0' },
   },
 });
 
@@ -43,7 +44,7 @@ const { values } = parseArgs({
 
 const LABEL_W = Number(values.width);
 const LABEL_H = Number(values.height);
-const MARGIN = 1.0;
+const MARGIN = Number(values.margin);
 
 /**
  * QR symbol size.
@@ -80,7 +81,7 @@ const PANEL_W = CODE_TEXT_W + 1.6;
  * to scrape. Too shallow and the scratching runs off the top of the code and
  * takes a character with it, which is what happened on the first run.
  */
-const PANEL_H = Math.max(5.0, CODE_PT * 0.352778 * 2.4);
+const PANEL_H = Math.max(5.0, CODE_PT * 0.352778 * 2.0);
 
 const TOKEN = 'G55JT7ECRC4P'; // a real token from batch B-2026-01
 const payload = qrPayload(TOKEN, 'https://id.binkis.com');

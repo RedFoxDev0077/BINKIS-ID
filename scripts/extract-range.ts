@@ -187,7 +187,7 @@ if (values.db) {
   }
   console.log('Every row matches the registry: serial, QR token and claim code.');
 
-  const claimed = pieces.filter((p) => p.status === 'claimed');
+  const claimed = pieces.filter((p) => p.status === 'CLAIMED');
   if (claimed.length > 0) {
     // Reprinting a claimed piece would put a second physical hologram in the
     // world for a piece that already has an owner.

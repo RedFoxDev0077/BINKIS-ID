@@ -12,19 +12,37 @@
  * fits at the right one. Numbers in a message do not make that obvious. A
  * template at 1:1 does.
  *
- *   node scripts/artwork-spec.ts > artwork/binkis-hologram-50x20.svg
+ *   node scripts/artwork-spec.ts > artwork/binkis-hologram-60x20.svg
+ *   node scripts/artwork-spec.ts --width 60 --qr 10 --code-pt 8
+ *
+ * The label, the QR and the claim code size are all options, because the two
+ * of them trade against each other inside a fixed width and the only honest
+ * way to answer "can the scratch panel be bigger" is to draw it and see what
+ * is left for the serial. The summary says what each choice costs.
  */
+
+import { parseArgs } from 'node:util';
 
 import { encodeQr } from '../src/lib/qr/encode.ts';
 import { qrPayload } from '../src/lib/codes/qr-token.ts';
 import { getModule } from '../src/lib/qr/matrix.ts';
 
+const { values } = parseArgs({
+  options: {
+    width: { type: 'string', default: '60' },
+    height: { type: 'string', default: '20' },
+    qr: { type: 'string', default: '10' },
+    'code-pt': { type: 'string', default: '8' },
+    layout: { type: 'string', default: 'row' },
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Geometry, all in millimetres.
 // ---------------------------------------------------------------------------
 
-const LABEL_W = 50;
-const LABEL_H = 20;
+const LABEL_W = Number(values.width);
+const LABEL_H = Number(values.height);
 const MARGIN = 1.0;
 
 /**
@@ -38,15 +56,31 @@ const MARGIN = 1.0;
  * label can grow to 55 mm the QR goes to 9 mm, and that is the single change
  * that most improves scanning off holographic foil.
  */
-const QR_SYMBOL = 8;
+const QR_SYMBOL = Number(values.qr);
 const QUIET_MODULES = 4; // required by ISO/IEC 18004; scanners fail without it
 
-/** XXX-XXX-XXX at 5 pt monospace: 11 glyphs at ~0.6 em advance. */
-const CODE_PT = 5;
+/**
+ * XXX-XXX-XXX at CODE_PT monospace: 11 glyphs at ~0.6 em advance.
+ *
+ * 5 pt was what fitted on the 50 mm label, and the first physical run proved
+ * it too small: the client could not read his own code with glasses on, and
+ * the foil tore before the whole code was uncovered. A code that cannot be
+ * read is a piece that cannot be claimed, so the panel is now sized first and
+ * the rest of the label works around it.
+ */
+const CODE_PT = Number(values['code-pt']);
 const CODE_GLYPHS = 11;
 const CODE_TEXT_W = CODE_GLYPHS * CODE_PT * 0.352778 * 0.6; // 11.64 mm
-const PANEL_W = CODE_TEXT_W + 1.6; // 13.24 mm
-const PANEL_H = 5.0;
+const PANEL_W = CODE_TEXT_W + 1.6;
+
+/**
+ * Panel height scales with the code, with a floor.
+ *
+ * The panel is not just a box around the text: it is the area a thumbnail has
+ * to scrape. Too shallow and the scratching runs off the top of the code and
+ * takes a character with it, which is what happened on the first run.
+ */
+const PANEL_H = Math.max(5.0, CODE_PT * 0.352778 * 2.4);
 
 const TOKEN = 'G55JT7ECRC4P'; // a real token from batch B-2026-01
 const payload = qrPayload(TOKEN, 'https://id.binkis.com');
@@ -59,15 +93,51 @@ const patch = QR_SYMBOL + 2 * quiet;
 // Column layout, left to right.
 const logoW = 9.5;
 const gap = 0.4;
-const centreW = LABEL_W - 2 * MARGIN - logoW - patch - PANEL_W - 3 * gap;
+/**
+ * Two ways to arrange the right-hand side.
+ *
+ * "row" puts logo, serial, QR and claim panel in four columns. It is what the
+ * first run used, and inside 60 mm it forces a choice: a serial big enough to
+ * be the hero leaves the claim code at about 4 pt, which is the size that just
+ * failed in the client's hands.
+ *
+ * "stacked" puts the QR above the claim panel in one column. The column is as
+ * wide as the panel and about 18 mm tall, so it fits the label height, and it
+ * hands the width it saves back to the serial. That is the whole trade: the
+ * serial and the code are both fighting for the same 60 mm, and only one of
+ * them has to be on the same line as the QR.
+ */
+const STACKED = values.layout === 'stacked';
+const columnW = STACKED ? Math.max(PANEL_W, patch) : 0;
+
+const centreW = STACKED
+  ? LABEL_W - 2 * MARGIN - logoW - columnW - 2 * gap
+  : LABEL_W - 2 * MARGIN - logoW - patch - PANEL_W - 3 * gap;
 
 const xLogo = MARGIN;
 const xCentre = xLogo + logoW + gap;
-const xPatch = xCentre + centreW + gap;
-const xPanel = xPatch + patch + gap;
+const xPatch = STACKED
+  ? LABEL_W - MARGIN - columnW + (columnW - patch) / 2
+  : xCentre + centreW + gap;
+const xPanel = STACKED
+  ? LABEL_W - MARGIN - columnW + (columnW - PANEL_W) / 2
+  : xPatch + patch + gap;
 
-const yPatch = (LABEL_H - patch) / 2;
-const yPanel = LABEL_H - MARGIN - PANEL_H - 1.2;
+const stackGap = 0.5;
+const stackH = patch + stackGap + PANEL_H;
+const yPatch = STACKED ? (LABEL_H - stackH) / 2 : (LABEL_H - patch) / 2;
+const yPanel = STACKED ? yPatch + patch + stackGap : LABEL_H - MARGIN - PANEL_H - 1.2;
+
+if (STACKED && stackH > LABEL_H - 2 * MARGIN) {
+  console.error(
+    `
+  WARNING: the stacked column is ${stackH.toFixed(2)} mm tall and only ` +
+      `${(LABEL_H - 2 * MARGIN).toFixed(2)} mm fit inside the safe area.` +
+      `
+  Drop the QR a millimetre or the code a point.
+`,
+  );
+}
 
 // ---------------------------------------------------------------------------
 
@@ -151,14 +221,23 @@ push(
 );
 
 // --- claim code panel ---
-push(
-  `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 3.6}" font-family="Helvetica,Arial" font-size="1.15" ` +
-    `font-weight="700" fill="#15171E" text-anchor="middle" letter-spacing="0.06">CLAIM CODE</text>`,
-);
-push(
-  `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 5.2}" font-family="Helvetica,Arial" font-size="0.85" ` +
-    `fill="#4A4E5C" text-anchor="middle" letter-spacing="0.05">SCRATCH TO REVEAL</text>`,
-);
+if (STACKED) {
+  // One thin strip, because the stacked column has no room for two lines.
+  push(
+    `<text x="${xPanel + PANEL_W / 2}" y="${yPanel - 0.9}" font-family="Helvetica,Arial" ` +
+      `font-size="1.05" font-weight="700" fill="#15171E" text-anchor="middle" ` +
+      `letter-spacing="0.06">SCRATCH HERE</text>`,
+  );
+} else {
+  push(
+    `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 3.6}" font-family="Helvetica,Arial" font-size="1.15" ` +
+      `font-weight="700" fill="#15171E" text-anchor="middle" letter-spacing="0.06">CLAIM CODE</text>`,
+  );
+  push(
+    `<text x="${xPanel + PANEL_W / 2}" y="${MARGIN + 5.2}" font-family="Helvetica,Arial" font-size="0.85" ` +
+      `fill="#4A4E5C" text-anchor="middle" letter-spacing="0.05">SCRATCH TO REVEAL</text>`,
+  );
+}
 push(
   `<rect x="${xPanel}" y="${yPanel}" width="${PANEL_W}" height="${PANEL_H}" rx="0.7" ` +
     `fill="#FFFFFF" stroke="#7C8196" stroke-width="0.1"/>`,
@@ -180,7 +259,7 @@ process.stdout.write(parts.join('\n') + '\n');
 
 // Numbers to stderr so `> file.svg` still produces a clean SVG.
 console.error(`
-BINKIS ID hologram, 50 x 20 mm, drawn 1:1
+BINKIS ID hologram, ${LABEL_W} x ${LABEL_H} mm, drawn 1:1
 
   QR payload        ${payload}
                     ${payload.length} characters -> version ${qr.version}, ${qr.matrix.size} x ${qr.matrix.size} modules
@@ -195,6 +274,27 @@ BINKIS ID hologram, 50 x 20 mm, drawn 1:1
   code box          ${PANEL_W.toFixed(2)} x ${PANEL_H.toFixed(2)} mm
   scratch coverage  ${(PANEL_W + 0.6).toFixed(2)} x ${(PANEL_H + 0.6).toFixed(2)} mm, larger than the box
 
-  columns           logo ${logoW} | centre ${centreW.toFixed(2)} | QR ${patch.toFixed(2)} | code ${PANEL_W.toFixed(2)}
+  layout            ${STACKED ? 'stacked: QR above the claim panel, one column' : 'row: four columns'}
+  columns           ${
+    STACKED
+      ? `logo ${logoW} | serial ${centreW.toFixed(2)} | QR+code ${columnW.toFixed(2)}`
+      : `logo ${logoW} | serial ${centreW.toFixed(2)} | QR ${patch.toFixed(2)} | code ${PANEL_W.toFixed(2)}`
+  }
   margins           ${MARGIN.toFixed(1)} mm, plus ${gap} mm between columns
-`);
+${
+  centreW < 12
+    ? `
+  WARNING: only ${centreW.toFixed(2)} mm left for the serial. It is the hero of the` +
+      `
+  label, so either widen the label or take a point off the claim code.
+`
+    : ''
+}${
+  modulePx < 0.3
+    ? `
+  WARNING: ${modulePx.toFixed(3)} mm modules. Below 0.30 mm scanning off holographic` +
+      `
+  foil gets unreliable. Give the QR another millimetre.
+`
+    : ''
+}`);

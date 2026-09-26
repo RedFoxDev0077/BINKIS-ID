@@ -107,3 +107,11 @@ tests/e2e/.next-piece
 # A clone of the client's other project, kept here only while reviewing it.
 # It is a separate repository and must never be committed into this one.
 /Binkis/
+
+# Client-supplied character art and animation, in every form. Same rule as
+# assets/ above: it is BINKIS material, not source code, and the repository
+# is not where it belongs. The app references /characters/<CODE>.<ext>; those
+# files are deployed to the server separately. See docs/CHARACTER-MEDIA.md.
+artwork/*.zip
+artwork/*.ai
+public/characters/

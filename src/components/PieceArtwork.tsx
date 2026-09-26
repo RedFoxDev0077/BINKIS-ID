@@ -1,17 +1,21 @@
 import Image from 'next/image';
 import { normaliseRarity, RARITY_TIERS } from '@/lib/passport';
+import { characterMedia } from '@/lib/characters/media';
+import { CharacterAnimation } from './CharacterAnimation';
 
 /**
  * The artwork panel.
  *
- * Uses Product.artworkUrl when the client has supplied art. Until then it
- * renders a generated panel keyed to the character code and rarity, so the
- * passport looks finished rather than showing a broken-image icon or an empty
- * grey rectangle on 134,399 pages.
+ * Three sources, in order. Product.artworkUrl wins, because it is the field an
+ * admin can change without a deploy. Otherwise the character's own art, which
+ * the client supplied in September 2026: the eight Classics animate, the five
+ * Limiteds are stills. Failing both, a generated panel keyed to the character
+ * code and rarity, so a passport for a character we have no art for still
+ * looks finished rather than broken.
  *
- * The fallback is deliberately typographic rather than a stock illustration:
- * the character code is the real identifier, and inventing artwork for
- * somebody else's product would be worse than showing none.
+ * The last fallback is typographic on purpose: the character code is the real
+ * identifier, and inventing artwork for somebody else's product would be
+ * worse than showing none.
  */
 export function PieceArtwork({
   characterCode,
@@ -36,6 +40,23 @@ export function PieceArtwork({
           sizes="(max-width: 640px) 100vw, 320px"
           className="object-cover"
         />
+      </div>
+    );
+  }
+
+  const media = characterMedia(characterCode);
+  if (media) {
+    return (
+      <div className={`relative overflow-hidden rounded-2xl bg-ink-925 ${className}`}>
+        {media.video && media.poster ? (
+          <CharacterAnimation video={media.video} poster={media.poster} alt={character} />
+        ) : (
+          // Plain img, not next/image: these files are served by Caddy off the
+          // host, so the optimiser inside the app container cannot fetch them.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={media.image} alt={character} className="h-full w-full object-cover" />
+        )}
+        <span className="sr-only">{character}</span>
       </div>
     );
   }

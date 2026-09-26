@@ -51,13 +51,10 @@ export function PieceArtwork({
         {media.video && media.poster ? (
           <CharacterAnimation video={media.video} poster={media.poster} alt={character} />
         ) : (
-          <Image
-            src={media.image}
-            alt={character}
-            fill
-            sizes="(max-width: 640px) 100vw, 320px"
-            className="object-cover"
-          />
+          // Plain img, not next/image: these files are served by Caddy off the
+          // host, so the optimiser inside the app container cannot fetch them.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={media.image} alt={character} className="h-full w-full object-cover" />
         )}
         <span className="sr-only">{character}</span>
       </div>

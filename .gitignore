@@ -115,3 +115,6 @@ tests/e2e/.next-piece
 artwork/*.zip
 artwork/*.ai
 public/characters/
+
+# The mascot ships the same way as the character media: on the host.
+public/brand/

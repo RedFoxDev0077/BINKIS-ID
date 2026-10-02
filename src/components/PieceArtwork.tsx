@@ -51,10 +51,17 @@ export function PieceArtwork({
         {media.video && media.poster ? (
           <CharacterAnimation video={media.video} poster={media.poster} alt={character} />
         ) : (
+          // object-contain, not cover: the stills are a figure on nothing, so
+          // cropping cuts its feet off. The padding gives it room to stand in.
+          //
           // Plain img, not next/image: these files are served by Caddy off the
           // host, so the optimiser inside the app container cannot fetch them.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={media.image} alt={character} className="h-full w-full object-cover" />
+          <img
+            src={media.image}
+            alt={character}
+            className="h-full w-full object-contain p-6 sm:p-8"
+          />
         )}
         <span className="sr-only">{character}</span>
       </div>

@@ -37,6 +37,13 @@ id.binkis.com {
 		header Cache-Control "public, max-age=31536000, immutable"
 	}
 
+	# Brand media: the mascot, which belongs to no piece.
+	handle /brand/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
 	reverse_proxy app:3000 {
 		health_uri /
 		health_interval 10s

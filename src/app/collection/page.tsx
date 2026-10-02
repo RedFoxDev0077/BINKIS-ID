@@ -13,6 +13,8 @@ import { CountUp } from '@/components/ui/CountUp';
 import { Progress } from '@/components/ui/Progress';
 import { Card, SectionTitle } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
+import { CharacterAnimation } from '@/components/CharacterAnimation';
+import { BRAND_MASCOT } from '@/lib/characters/media';
 
 /**
  * My Collection.
@@ -146,10 +148,16 @@ export default async function CollectionPage() {
         /* The empty state is an invitation, not a blank page. */
         <Card className="px-6 py-16 text-center">
           <div className="relative">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-dashed border-ink-700 bg-ink-925">
-              <svg viewBox="0 0 24 24" className="size-7 text-ink-600" fill="currentColor">
-                <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 14.4 7.2 16.9l.9-5.4L4.2 7.7l5.4-.8L12 2z" />
-              </svg>
+            {/* Aguila, the brand's character. An empty collection is the one
+                screen with nothing of the collector's own to show, so it is
+                where the brand gets to introduce itself. Silent and looping,
+                and a still for anyone who asked for reduced motion. */}
+            <div className="mx-auto size-40 overflow-hidden rounded-2xl border border-ink-800 bg-ink-925 sm:size-48">
+              <CharacterAnimation
+                video={BRAND_MASCOT.video}
+                poster={BRAND_MASCOT.poster}
+                alt="BINKIS"
+              />
             </div>
             <p className="mt-6 font-display text-2xl tracking-wide text-ink-100">
               {t.passport.unclaimedTitle}

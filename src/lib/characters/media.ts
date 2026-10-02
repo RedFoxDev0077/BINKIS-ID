@@ -37,6 +37,19 @@ export const CHARACTER_MEDIA: Record<string, CharacterMedia> = Object.fromEntrie
   ...STILL_ONLY.map((code) => [code, { image: `/characters/${code}.png` }]),
 ]);
 
+/**
+ * Aguila, the brand's own character.
+ *
+ * Deliberately not in CHARACTER_MEDIA: that map is keyed by the code on a
+ * serial, and Aguila has no pieces. It is the mascot, so it belongs where the
+ * brand speaks for itself rather than where a piece is described. Client's
+ * decision, 2 October 2026: the empty collection is exactly that place.
+ */
+export const BRAND_MASCOT = {
+  video: "/brand/aguila.mp4",
+  poster: "/brand/aguila.jpg",
+} as const;
+
 export function characterMedia(characterCode: string): CharacterMedia | null {
   return CHARACTER_MEDIA[characterCode.toUpperCase()] ?? null;
 }

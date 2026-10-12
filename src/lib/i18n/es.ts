@@ -169,6 +169,18 @@ export const es: typeof en = {
     historyBody:
       'Los dueños cambian. La pieza conserva su identidad y a todos los dueños que ha tenido, agregados y nunca reescritos.',
   },
+  set: {
+    title: 'Serie 1 · Classic',
+    progress: '{owned} de {total}',
+    missing: 'Aún no está en tu colección',
+    completeTitle: 'Serie completa',
+    completeBody: 'Tienes los ocho personajes Classic de la Serie 1.',
+    matchedTitle: 'Colección alineada',
+    matchedBody: 'Los ocho personajes, todos con el número {number}.',
+    matchedExtra: 'y también el número {number}',
+    celebrate: 'Verlo',
+    dismiss: 'Cerrar',
+  },
   common: {
     back: 'Volver',
     loading: 'Cargando',

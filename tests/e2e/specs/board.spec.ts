@@ -1,0 +1,59 @@
+import { test, expect, fixture, takePiece, signIn } from '../fixtures/fixture.ts';
+
+/**
+ * The Classic set board.
+ *
+ * The unit tests already prove the arithmetic. What they cannot prove is that
+ * a collector sees eight slots with the right one filled, which is the whole
+ * product: the board is there so the gaps are visible.
+ *
+ * The e2e seed only mints Superman, so a claimed piece fills exactly one slot
+ * and leaves seven silhouettes. That is the state almost every real collector
+ * is in on the day they start.
+ */
+test.describe('the Classic board', () => {
+  test('shows eight slots and fills only the character you own', async ({ page }) => {
+    const { alice } = fixture();
+    const piece = takePiece();
+
+    await signIn(page, alice);
+    await page.goto(`/p/${piece.qrToken}`);
+    await page.getByRole('button', { name: /drag to reveal/i }).click();
+    await page.getByLabel('Claim Code').fill(piece.claimCode);
+    await page.getByRole('button', { name: /claim it/i }).click();
+    await expect(page.getByText(/it is yours/i).first()).toBeVisible();
+
+    await page.goto('/collection');
+
+    // Eight slots, always, however few are owned.
+    const slots = page.locator('ol > li');
+    await expect(slots).toHaveCount(8);
+
+    // The one owned character is named; the rest read as missing.
+    await expect(page.getByText('Superman').first()).toBeVisible();
+    const body = await page.textContent('body');
+    expect(body).toMatch(/1\s*(of|de)\s*8/);
+
+    await page.screenshot({ path: 'tests/e2e/.artifacts/collection-board.png', fullPage: false });
+  });
+
+  test('does not celebrate a set that is not complete', async ({ page }) => {
+    const { bob } = fixture();
+    const piece = takePiece();
+
+    await signIn(page, bob);
+    await page.goto(`/p/${piece.qrToken}`);
+    await page.getByRole('button', { name: /drag to reveal/i }).click();
+    await page.getByLabel('Claim Code').fill(piece.claimCode);
+    await page.getByRole('button', { name: /claim it/i }).click();
+    await expect(page.getByText(/it is yours/i).first()).toBeVisible();
+
+    await page.goto('/collection');
+
+    // One piece is not a series. Nothing here should congratulate anyone.
+    const body = await page.textContent('body');
+    expect(body).not.toMatch(/series complete|serie completa/i);
+    expect(body).not.toMatch(/matched set|colecci[oó]n alineada/i);
+    await expect(page.getByRole('dialog')).toBeHidden();
+  });
+});

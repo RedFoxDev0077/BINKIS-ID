@@ -54,7 +54,7 @@ export default defineConfig({
       // because that is where it actually has to work.
       name: 'mobile',
       use: { ...devices['Pixel 5'], viewport: { width: 360, height: 780 } },
-      testMatch: /claim\.spec\.ts/,
+      testMatch: /(claim|board)\.spec\.ts/,
     },
   ],
 

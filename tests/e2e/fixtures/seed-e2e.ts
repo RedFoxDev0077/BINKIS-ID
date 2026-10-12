@@ -44,10 +44,13 @@ const PASSWORD = 'e2e-password-4417';
 /**
  * Generous on purpose. Every test that claims needs a piece nobody has
  * touched, index 0 is reserved as a permanently-unclaimed one for the display
- * assertions, and the claim spec runs twice (desktop and mobile). Minting
- * spares costs milliseconds; running out mid-suite costs a confusing failure.
+ * assertions, and the claim and board specs each run twice (desktop and
+ * mobile). The counter also survives between runs, so a few local reruns while
+ * working on a spec eat into the pool. Minting spares costs milliseconds;
+ * running out mid-suite costs a confusing failure that looks like a product
+ * bug, which is exactly what it did when the board spec was added.
  */
-const SEED_QUANTITY = 40;
+const SEED_QUANTITY = 120;
 
 /**
  * Three independent guards. Any one of them firing means stop.

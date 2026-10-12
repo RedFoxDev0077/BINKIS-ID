@@ -14,6 +14,8 @@ import { Progress } from '@/components/ui/Progress';
 import { Card, SectionTitle } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
 import { CharacterAnimation } from '@/components/CharacterAnimation';
+import { CollectionBoard } from '@/components/CollectionBoard';
+import { classicSetProgress } from '@/lib/collection-set';
 import { BRAND_MASCOT } from '@/lib/characters/media';
 
 /**
@@ -85,6 +87,11 @@ export default async function CollectionPage() {
     _sum: { runSize: true },
   });
   const totalFor = new Map(seriesTotals.map((row) => [row.series, row._sum.runSize ?? 0]));
+
+  // The Classic board: eight slots, filled by character rather than by piece.
+  const setProgress = classicSetProgress(
+    pieces.map((p) => ({ serial: p.piece.serial, series: p.piece.product.series })),
+  );
 
   const bySeries = seriesNames
     .map((series) => {
@@ -174,6 +181,10 @@ export default async function CollectionPage() {
         </Card>
       ) : (
         <>
+          <Reveal>
+            <CollectionBoard progress={setProgress} t={t} />
+          </Reveal>
+
           {bySeries.length > 0 ? (
             <Reveal>
               <Card className="mb-9 p-6">

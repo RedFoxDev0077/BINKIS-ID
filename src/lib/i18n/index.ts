@@ -52,6 +52,4 @@ export async function getTranslations(): Promise<{ locale: Locale; t: Dictionary
 }
 
 /** Interpolates {name} placeholders. Kept trivial on purpose. */
-export function fill(template: string, values: Record<string, string | number>): string {
-  return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? `{${key}}`));
-}
+export { fill } from './fill.ts';

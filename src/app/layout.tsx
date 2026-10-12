@@ -58,7 +58,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span className="holo-border flex size-8 items-center justify-center rounded-lg">
                 <span className="holo-text font-display text-sm leading-none">B</span>
               </span>
-              <span className="font-display text-lg tracking-[0.18em] text-ink-50">
+              {/* The mark alone below sm. At 360px the wordmark and the
+                  collection link cannot both fit, and the collection link is
+                  the one people are trying to reach. */}
+              <span className="hidden font-display text-lg tracking-[0.18em] text-ink-50 sm:inline">
                 {t.brand.name}
               </span>
             </Link>
@@ -66,8 +69,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="flex items-center gap-1">
               {user ? (
                 <>
-                  <NavLink href="/collection">{t.nav.collection}</NavLink>
-                  <NavLink href="/transfers" badge={incoming}>
+                  <Link
+                    href="/collection"
+                    className="press rounded-lg border border-ink-700 px-3 py-2 text-sm font-medium text-ink-100 transition hover:border-accent hover:bg-ink-900"
+                  >
+                    {t.nav.collection}
+                  </Link>
+                  {/* Transfers hides on a phone, unless one is waiting: a
+                      pending transfer is somebody holding a piece for you. */}
+                  <NavLink href="/transfers" badge={incoming} showOnMobile={incoming > 0}>
                     {t.admin.transfers}
                   </NavLink>
                   {admin ? (
@@ -78,9 +88,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <form action={signOut}>
                     <button
                       type="submit"
-                      className="press rounded-lg px-3 py-2 text-sm text-ink-500 transition hover:bg-ink-900 hover:text-ink-200"
+                      aria-label={t.nav.signOut}
+                      title={t.nav.signOut}
+                      className="press rounded-lg px-2 py-2 text-sm text-ink-500 transition hover:bg-ink-900 hover:text-ink-200 sm:px-3"
                     >
-                      {t.nav.signOut}
+                      <span className="hidden sm:inline">{t.nav.signOut}</span>
+                      <svg
+                        aria-hidden
+                        viewBox="0 0 24 24"
+                        className="size-5 sm:hidden"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                      >
+                        <path d="M15 17l5-5-5-5M20 12H9M12 20H6a2 2 0 01-2-2V6a2 2 0 012-2h6" />
+                      </svg>
                     </button>
                   </form>
                 </>
@@ -111,16 +134,18 @@ function NavLink({
   children,
   badge,
   tone,
+  showOnMobile = false,
 }: {
   href: string;
   children: React.ReactNode;
   badge?: number;
   tone?: 'warn';
+  showOnMobile?: boolean;
 }) {
   return (
     <Link
       href={href as never}
-      className={`press relative hidden rounded-lg px-3 py-2 text-sm transition hover:bg-ink-900 sm:block ${
+      className={`press relative ${showOnMobile ? 'block' : 'hidden'} rounded-lg px-3 py-2 text-sm transition hover:bg-ink-900 sm:block ${
         tone === 'warn'
           ? 'text-warn/85 hover:text-warn'
           : 'text-ink-400 hover:text-ink-50'

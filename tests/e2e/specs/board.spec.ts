@@ -94,3 +94,21 @@ test.describe('the complete set', () => {
     await expect(page.getByRole('status')).toBeVisible();
   });
 });
+
+test.describe('reaching the collection', () => {
+  test('the collection is one tap away on a phone, from any page', async ({ page }) => {
+    const { carol } = fixture();
+    await signIn(page, carol);
+
+    // The passport is where a scan lands, so that is where someone will look
+    // for their collection. The header link used to disappear below 640px,
+    // which left a phone with no way in at all.
+    await page.goto('/');
+    const link = page.getByRole('link', { name: /my collection|mi colecci[oó]n/i }).first();
+    await expect(link).toBeVisible();
+
+    await link.click();
+    await expect(page).toHaveURL(/collection/);
+    await page.screenshot({ path: 'tests/e2e/.artifacts/header-mobile.png', clip: { x: 0, y: 0, width: 360, height: 120 } });
+  });
+});

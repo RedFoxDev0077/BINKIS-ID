@@ -57,3 +57,40 @@ test.describe('the Classic board', () => {
     await expect(page.getByRole('dialog')).toBeHidden();
   });
 });
+
+test.describe('the complete set', () => {
+  test('eight of eight, all the same number, celebrates once and says the number', async ({
+    page,
+  }) => {
+    const { carol, matchedNumber } = fixture();
+
+    // Signing in lands on the collection, and that first landing IS the
+    // moment. Do not clear storage and reload to force it: the flag is written
+    // by an effect, so clearing it before hydration finishes races with the
+    // page writing it back, and the reload then finds it and shows nothing.
+    await signIn(page, carol);
+    if (!/collection/.test(page.url())) await page.goto('/collection');
+
+    // Every slot filled, nothing left in silhouette.
+    const body = await page.textContent('body');
+    expect(body).toMatch(/8\s*(of|de)\s*8/);
+
+    // The rare completion interrupts, once, and names the number.
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(String(matchedNumber).padStart(6, '0'));
+    await page.screenshot({ path: 'tests/e2e/.artifacts/matched-set-moment.png' });
+
+    await dialog.getByRole('button').click();
+    await expect(dialog).toBeHidden();
+
+    // The banner stays behind it: a standing fact, not a popup.
+    await expect(page.getByRole('status')).toContainText(/matched set|colecci[oó]n alineada/i);
+    await page.screenshot({ path: 'tests/e2e/.artifacts/matched-set-board.png' });
+
+    // Second visit: the moment does not replay.
+    await page.goto('/collection');
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await expect(page.getByRole('status')).toBeVisible();
+  });
+});

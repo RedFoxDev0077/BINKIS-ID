@@ -35,11 +35,36 @@ export interface E2EFixture {
   pieces: E2EPiece[];
   alice: E2EAccount;
   bob: E2EAccount;
+  /**
+   * Owns all eight Classics, every one of them number 000777.
+   *
+   * Seeded as already-owned rather than claimed through the browser: eight
+   * claim flows would add a minute to every run to arrive at a state the
+   * board tests only ever read.
+   */
+  carol: E2EAccount;
+  /** The number carol's matched set carries, for the assertions. */
+  matchedNumber: number;
 }
 
 export const FIXTURE_PATH = resolve(process.cwd(), 'tests/e2e/.fixture.json');
 
 const PASSWORD = 'e2e-password-4417';
+
+/** The eight Classics of Series 1, the set the board is built around. */
+const CLASSIC_CAST = [
+  ['SP', 'Superman'],
+  ['BM', 'Batman'],
+  ['HQ', 'Harley Quinn'],
+  ['FL', 'The Flash'],
+  ['WW', 'Wonder Woman'],
+  ['JK', 'The Joker'],
+  ['SG', 'Supergirl'],
+  ['CY', 'Cyborg'],
+] as const;
+
+/** 777, because that is the number a collector would brag about. */
+const MATCHED_NUMBER = 777;
 
 /**
  * Generous on purpose. Every test that claims needs a piece nobody has
@@ -158,6 +183,7 @@ export async function seedE2E(databaseUrl: string, pepper: string): Promise<E2EF
     const accounts: E2EAccount[] = [
       { email: 'alice@binkis.test', password: PASSWORD, handle: 'alice' },
       { email: 'bob@binkis.test', password: PASSWORD, handle: 'bob' },
+      { email: 'carol@binkis.test', password: PASSWORD, handle: 'carol' },
     ];
 
     for (const account of accounts) {
@@ -173,6 +199,66 @@ export async function seedE2E(databaseUrl: string, pepper: string): Promise<E2EF
       });
     }
 
+    // A complete matched set for carol: one piece per Classic character, all
+    // of them number 000777. startSequence puts each batch at that number, so
+    // these are real minted pieces rather than rows bent into the right shape.
+    const carol = await prisma.user.findUniqueOrThrow({ where: { email: 'carol@binkis.test' } });
+    const carolCollector = await prisma.collectorId.findUniqueOrThrow({
+      where: { userId: carol.id },
+    });
+
+    for (const [code, character] of CLASSIC_CAST) {
+      const existing = await prisma.product.findFirst({
+        where: { characterCode: code, editionType: 'CLASSIC', series: 'Series 1' },
+      });
+      const setProduct =
+        existing ??
+        (await prisma.product.create({
+          data: {
+            character,
+            characterCode: code,
+            editionType: 'CLASSIC',
+            series: 'Series 1',
+            rarity: 'Common',
+            runSize: 130_000,
+          },
+        }));
+
+      const setBatch = await prisma.batch.create({
+        data: {
+          code: `B-E2E-SET-${code}`,
+          productId: setProduct.id,
+          quantity: 1,
+          status: 'GENERATED',
+        },
+      });
+
+      const [piece] = await generatePieces({
+        prisma,
+        batchCode: setBatch.code,
+        quantity: 1,
+        pepper,
+        producedAt: new Date('2026-02-01'),
+        country: 'MX',
+        startSequence: MATCHED_NUMBER,
+      });
+
+      const row = await prisma.piece.findUniqueOrThrow({ where: { serial: piece!.serial } });
+      await prisma.piece.update({
+        where: { id: row.id },
+        data: { status: 'CLAIMED', verified: true },
+      });
+      await prisma.ownershipEvent.create({
+        data: {
+          pieceId: row.id,
+          seq: 1,
+          toCollectorId: carolCollector.id,
+          acquiredVia: 'CLAIM',
+          occurredAt: new Date('2026-03-01'),
+        },
+      });
+    }
+
     const fixture: E2EFixture = {
       pieces: minted.map((piece) => ({
         serial: piece.serial,
@@ -182,6 +268,8 @@ export async function seedE2E(databaseUrl: string, pepper: string): Promise<E2EF
       })),
       alice: accounts[0]!,
       bob: accounts[1]!,
+      carol: accounts[2]!,
+      matchedNumber: MATCHED_NUMBER,
     };
 
     mkdirSync(dirname(FIXTURE_PATH), { recursive: true });

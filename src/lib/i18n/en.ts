@@ -163,6 +163,18 @@ export const en = {
     historyBody:
       'Owners change. The piece keeps its identity and every owner it has ever had, appended and never rewritten.',
   },
+  set: {
+    title: 'Series 1 · Classic',
+    progress: '{owned} of {total}',
+    missing: 'Not yet in your collection',
+    completeTitle: 'Series complete',
+    completeBody: 'You hold all eight Classic characters of Series 1.',
+    matchedTitle: 'Matched set',
+    matchedBody: 'All eight characters, every one of them number {number}.',
+    matchedExtra: 'and also number {number}',
+    celebrate: 'See it',
+    dismiss: 'Close',
+  },
   common: {
     back: 'Back',
     loading: 'Loading',

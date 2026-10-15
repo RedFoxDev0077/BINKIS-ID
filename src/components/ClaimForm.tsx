@@ -84,7 +84,11 @@ export function ClaimForm({
         <p className="mt-1.5 text-sm leading-relaxed text-ink-400">{t.claim.subtitle}</p>
       </div>
 
-      <ScratchPanel hint={t.claim.scratchHint} skipLabel={t.claim.scratchHintShort}>
+      <ScratchPanel
+        title={t.claim.scratchTitle}
+        subtitle={t.claim.scratchSubtitle}
+        skipLabel={t.claim.scratchSkip}
+      >
         <ClaimCodeInput
           value={code}
           onChange={(next) => {
@@ -109,6 +113,11 @@ export function ClaimForm({
       >
         {pending ? `${t.claim.working}...` : t.claim.submit}
       </button>
+
+      {/* Two different scratches happen here: one on the screen to reveal the
+          field, one on the physical hologram to find the code. This line is
+          about the second. */}
+      <p className="text-center text-xs leading-relaxed text-ink-500">{t.claim.helper}</p>
     </form>
   );
 }

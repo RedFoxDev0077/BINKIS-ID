@@ -118,3 +118,6 @@ public/characters/
 
 # The mascot ships the same way as the character media: on the host.
 public/brand/
+
+# Screenshots a test run produces. Output, not source.
+tests/e2e/.artifacts/

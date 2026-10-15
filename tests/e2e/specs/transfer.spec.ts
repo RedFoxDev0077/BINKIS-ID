@@ -14,9 +14,9 @@ async function claimAs(page: Parameters<typeof signIn>[0], account: ReturnType<t
   const piece = takePiece();
   await signIn(page, account);
   await page.goto(`/p/${piece.qrToken}`);
-  await page.getByRole('button', { name: /drag to reveal/i }).click();
-  await page.getByLabel('Claim Code').fill(piece.claimCode);
-  await page.getByRole('button', { name: /claim it/i }).click();
+  await page.getByRole('button', { name: /reveal without scratching/i }).click();
+  await page.getByLabel('Secret code from the hologram').fill(piece.claimCode);
+  await page.getByRole('button', { name: /register my binkis/i }).click();
   await expect(page.getByText(/it is yours/i).first()).toBeVisible();
   return piece;
 }

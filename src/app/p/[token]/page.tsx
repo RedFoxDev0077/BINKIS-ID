@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { provenanceStatement } from '@/lib/passport';
+import { provenanceStatement, normaliseRarity } from '@/lib/passport';
+import type { Dictionary } from '@/lib/i18n';
 import { getCachedPassport, getCachedOwnerCount } from '@/lib/passport-cache';
 import { getTranslations, fill } from '@/lib/i18n';
 import { Serial } from '@/components/Serial';
@@ -84,7 +85,7 @@ export default async function PassportPage({ params }: Params) {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-500">
-                  {passport.series} · {passport.editionLabel}
+                  {seriesLabel(passport.series, locale)} · {passport.editionLabel}
                 </p>
                 <h1 className="mt-2.5 font-display text-5xl leading-[0.9] tracking-wide text-ink-50 sm:text-6xl">
                   {passport.character}
@@ -94,9 +95,15 @@ export default async function PassportPage({ params }: Params) {
               <div className="flex shrink-0 flex-col items-end gap-2">
                 <VerifiedBadge
                   verified={passport.verified}
-                  label={passport.verified ? t.passport.verified : t.passport.unverified}
+                  label={
+                    passport.verified
+                      ? t.passport.verified
+                      : claimable
+                        ? t.passport.pendingRegistration
+                        : t.passport.unverified
+                  }
                 />
-                <RarityChip rarity={passport.rarity} />
+                <RarityChip rarity={passport.rarity} label={rarityLabel(passport.rarity, t)} />
               </div>
             </div>
 
@@ -192,30 +199,38 @@ export default async function PassportPage({ params }: Params) {
           </Reveal>
         ) : null}
 
-        {/* ---- provenance, as a sentence ----------------------------------- */}
-        <Reveal>
-          <Card className="p-6 sm:p-7">
-            <h2 className="relative text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500">
-              {t.passport.provenance}
-            </h2>
-            <p className="relative mt-3 text-[15px] leading-relaxed text-ink-200">
-              {provenanceStatement(passport, ownerCount, locale)}
-            </p>
-          </Card>
-        </Reveal>
+        {/* ---- provenance, as a sentence -----------------------------------
+            Only once there is provenance to tell. Before anyone registers the
+            piece the card would say "no registered owner yet", which the
+            registration box above it has already said, and the same sentence
+            twice on one screen reads like a mistake. */}
+        {claimable ? null : (
+          <Reveal>
+            <Card className="p-6 sm:p-7">
+              <h2 className="relative text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500">
+                {t.passport.provenance}
+              </h2>
+              <p className="relative mt-3 text-[15px] leading-relaxed text-ink-200">
+                {provenanceStatement(passport, ownerCount, locale)}
+              </p>
+            </Card>
+          </Reveal>
+        )}
 
         {/* ---- the facts --------------------------------------------------- */}
         <Reveal>
           <Card className="p-6 sm:p-7">
-            <dl className="relative grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+            <h2 className="relative text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500">
+              {t.passport.certificate}
+            </h2>
+            <dl className="relative mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
               <Field label={t.passport.character} value={passport.character} />
-              <Field label={t.passport.series} value={passport.series} />
+              <Field label={t.passport.universe} value={UNIVERSE} />
+              <Field label={t.passport.series} value={seriesLabel(passport.series, locale)} />
               <Field label={t.passport.edition} value={passport.editionLabel} />
-              <Field label={t.passport.rarity} value={passport.rarity} />
+              <Field label={t.passport.rarity} value={rarityLabel(passport.rarity, t)} />
               <Field label={t.passport.year} value={String(passport.productionYear)} />
-              <Field label={t.passport.country} value={passport.country} />
               <Field label={t.passport.pieceNumber} value={passport.serial} mono />
-              <Field label={t.passport.batch} value={passport.batchCode} mono />
             </dl>
           </Card>
         </Reveal>
@@ -230,6 +245,29 @@ export default async function PassportPage({ params }: Params) {
       </article>
     </Shell>
   );
+}
+
+/**
+ * Series 1 is a DC licence, and every piece in the registry today belongs to
+ * it. When a series ships that is not DC this becomes a column on Product
+ * rather than a constant here.
+ */
+const UNIVERSE = 'DC';
+
+/** "Series 1" is English. In Spanish the piece says Serie 1. */
+function seriesLabel(series: string, locale: string): string {
+  return locale === 'es' ? series.replace(/^Series/, 'Serie') : series;
+}
+
+/**
+ * Common reads as "Original" on the page.
+ *
+ * The tier itself does not change: rarity still drives the chip's colour and
+ * the ordering of a collection. This is what the client wants a Classic piece
+ * to be called, and "Common" undersells the first thing a collector buys.
+ */
+function rarityLabel(rarity: string, t: Dictionary): string {
+  return normaliseRarity(rarity) === 'Common' ? t.passport.original : rarity;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

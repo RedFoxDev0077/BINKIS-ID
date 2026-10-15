@@ -19,12 +19,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const REVEAL_AT = 0.42; // fraction scratched before it opens on its own
 
 export function ScratchPanel({
-  hint,
+  title,
+  subtitle,
   skipLabel,
   onRevealed,
   children,
 }: {
-  hint: string;
+  /** Inside the foil, large: the gesture that reveals the field. */
+  title: string;
+  /** Under it, quieter: how to perform that gesture. */
+  subtitle: string;
   skipLabel: string;
   onRevealed?: () => void;
   children: React.ReactNode;
@@ -157,10 +161,14 @@ export function ScratchPanel({
           }}
         />
 
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="rounded-full bg-ink-950/45 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
-            {hint}
+        {/* Centred on the foil and readable against the silver: this is the
+            only instruction a first-time collector gets, in a shop, one
+            handed, and the old one was a small grey pill. */}
+        <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-4 text-center">
+          <span className="font-display text-xl tracking-[0.12em] text-ink-950 sm:text-2xl">
+            {title}
           </span>
+          <span className="text-xs font-medium text-ink-950/70">{subtitle}</span>
         </span>
       </div>
 

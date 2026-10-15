@@ -20,7 +20,7 @@ test.describe('scanning a piece', () => {
     await expect(page.getByText(piece.serial).first()).toBeVisible();
 
     // And it must be honest about not being claimed yet.
-    await expect(page.getByText(/has not been claimed/i)).toBeVisible();
+    await expect(page.getByText(/no registered owner yet/i)).toBeVisible();
   });
 
   test('the page never exposes the claim code or the internal id', async ({ page }) => {
@@ -50,7 +50,7 @@ test.describe('claiming', () => {
     await page.goto(`/p/${piece.qrToken}`);
 
     await expect(page.getByText(/sign in to claim/i)).toBeVisible();
-    await expect(page.getByLabel('Claim Code')).toBeHidden();
+    await expect(page.getByLabel('Secret code from the hologram')).toBeHidden();
   });
 
   test('scratch, enter the code, and the piece becomes yours', async ({ page }) => {
@@ -63,13 +63,13 @@ test.describe('claiming', () => {
     // The foil starts covering the field. A canvas cannot be dragged
     // reliably in every environment, so the panel also exposes a button -
     // which is the accessible path a real keyboard user takes too.
-    await page.getByRole('button', { name: /drag to reveal/i }).click();
+    await page.getByRole('button', { name: /reveal without scratching/i }).click();
 
-    const input = page.getByLabel('Claim Code');
+    const input = page.getByLabel('Secret code from the hologram');
     await expect(input).toBeVisible();
 
     await input.fill(piece.claimCode);
-    await page.getByRole('button', { name: /claim it/i }).click();
+    await page.getByRole('button', { name: /register my binkis/i }).click();
 
     // The reveal.
     await expect(page.getByText(/it is yours/i).first()).toBeVisible();
@@ -79,7 +79,7 @@ test.describe('claiming', () => {
     // write committed and the page revalidated, not just that the form
     // rendered an optimistic success.
     await page.goto(`/p/${piece.qrToken}`);
-    await expect(page.getByText(/has not been claimed/i)).toBeHidden();
+    await expect(page.getByText(/no registered owner yet/i)).toBeHidden();
     await expect(page.getByText(alice.handle, { exact: false }).first()).toBeVisible();
   });
 
@@ -89,9 +89,9 @@ test.describe('claiming', () => {
 
     await signIn(page, alice);
     await page.goto(`/p/${piece.qrToken}`);
-    await page.getByRole('button', { name: /drag to reveal/i }).click();
-    await page.getByLabel('Claim Code').fill(piece.claimCode);
-    await page.getByRole('button', { name: /claim it/i }).click();
+    await page.getByRole('button', { name: /reveal without scratching/i }).click();
+    await page.getByLabel('Secret code from the hologram').fill(piece.claimCode);
+    await page.getByRole('button', { name: /register my binkis/i }).click();
     await expect(page.getByText(/it is yours/i).first()).toBeVisible();
 
     // Bob now tries the same code. He must be refused, and refused with the
@@ -111,7 +111,7 @@ test.describe('claiming', () => {
 
     await signIn(page, alice);
     await page.goto(`/p/${piece.qrToken}`);
-    await page.getByRole('button', { name: /drag to reveal/i }).click();
+    await page.getByRole('button', { name: /reveal without scratching/i }).click();
 
     // Corrupt one character. The check character must reject it locally.
     const chars = piece.claimCode.replace(/-/g, '').split('');
@@ -123,8 +123,8 @@ test.describe('claiming', () => {
       if (request.method() === 'POST') serverCalled = true;
     });
 
-    await page.getByLabel('Claim Code').fill(typo);
-    await page.getByRole('button', { name: /claim it/i }).click();
+    await page.getByLabel('Secret code from the hologram').fill(typo);
+    await page.getByRole('button', { name: /register my binkis/i }).click();
 
     await expect(page.getByText(/has a typo/i)).toBeVisible();
 
@@ -133,8 +133,8 @@ test.describe('claiming', () => {
     expect(serverCalled).toBe(false);
 
     // And the real code still works afterwards.
-    await page.getByLabel('Claim Code').fill(piece.claimCode);
-    await page.getByRole('button', { name: /claim it/i }).click();
+    await page.getByLabel('Secret code from the hologram').fill(piece.claimCode);
+    await page.getByRole('button', { name: /register my binkis/i }).click();
     await expect(page.getByText(/it is yours/i).first()).toBeVisible();
   });
 
@@ -144,9 +144,9 @@ test.describe('claiming', () => {
 
     await signIn(page, alice);
     await page.goto(`/p/${piece.qrToken}`);
-    await page.getByRole('button', { name: /drag to reveal/i }).click();
+    await page.getByRole('button', { name: /reveal without scratching/i }).click();
 
-    const input = page.getByLabel('Claim Code');
+    const input = page.getByLabel('Secret code from the hologram');
 
     // Typed without hyphens, in lowercase, the way a phone keyboard offers it.
     await input.fill(piece.claimCode.replace(/-/g, '').toLowerCase());

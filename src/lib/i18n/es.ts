@@ -21,12 +21,19 @@ export const es: typeof en = {
   },
 
   passport: {
-    unclaimedTitle: 'Este BINKI aún no ha sido reclamado',
+    unclaimedTitle: 'Este BINKIS aún no tiene propietario registrado',
     unclaimedBody:
-      'Raspa el panel plateado del holograma e ingresa el Código de Reclamo para registrar esta pieza en tu colección.',
-    claimAction: 'RECLAMA TU BINKI',
+      'Raspa tu holograma y usa el código secreto para registrar esta pieza en tu colección.',
+    claimAction: 'REGISTRAR MI BINKIS',
     verified: 'Verificado',
     unverified: 'Sin verificar',
+    /** Antes de registrarse. Distinto de "Sin verificar", que es un problema
+        de verificación de una pieza ya registrada. */
+    pendingRegistration: 'Pendiente de registro',
+    certificate: 'Certificado y detalles',
+    universe: 'Universo',
+    noOwnerYet: 'Esta pieza aún no tiene propietario registrado.',
+    original: 'Original',
     ownedBy: 'Propiedad de',
     edition: 'Edición',
     series: 'Serie',
@@ -39,7 +46,7 @@ export const es: typeof en = {
     editionPosition: '{number} de {total}',
     provenance: 'Procedencia',
     history: 'Historial',
-    historyEmpty: 'A esta pieza todavía no le ha pasado nada.',
+    historyEmpty: 'Su historia contigo está por comenzar.',
     notFoundTitle: 'Aquí no hay ningún BINKI',
     notFoundBody:
       'Este código no corresponde a ninguna pieza del registro. Revisa el QR de tu holograma.',
@@ -58,13 +65,15 @@ export const es: typeof en = {
   },
 
   claim: {
-    title: 'Reclama este BINKI',
-    subtitle: 'Raspa el panel de tu holograma para descubrir el Código de Reclamo.',
-    scratchHint: 'Raspa aquí',
-    scratchHintShort: 'Desliza para revelar',
-    codeLabel: 'Código de Reclamo',
+    title: 'Registra tu Binkis',
+    subtitle: 'Esta pieza aún no tiene propietario registrado.',
+    scratchTitle: 'DESLIZA PARA REVELAR',
+    scratchSubtitle: 'Frota esta área con tu dedo',
+    scratchSkip: 'Revelar sin raspar',
+    codeLabel: 'Código secreto del holograma',
     codePlaceholder: 'XXX-XXX-XXX',
-    submit: 'Reclamar',
+    submit: 'Registrar mi Binkis',
+    helper: 'Raspa tu holograma y usa el código secreto para registrar esta pieza en tu colección.',
     working: 'Verificando',
     invalidFormat: 'Ese código todavía no está completo.',
     checkFailed: 'Ese código tiene un error. Revísalo contra el holograma.',

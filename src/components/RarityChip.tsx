@@ -10,7 +10,8 @@ import { normaliseRarity, RARITY_TIERS, type Rarity } from '@/lib/passport';
  *   3. a glow on the top two tiers only, so "rare" actually feels rare
  */
 const TONE: Record<Rarity, string> = {
-  Common: 'text-rarity-common border-rarity-common/30 bg-rarity-common/8',
+  // Silver rather than the old grey: this is the Original treatment.
+  Common: 'text-[oklch(0.86_0.012_250)] border-white/25 bg-white/10',
   Uncommon: 'text-rarity-uncommon border-rarity-uncommon/38 bg-rarity-uncommon/10',
   Rare: 'text-rarity-rare border-rarity-rare/42 bg-rarity-rare/12',
   Epic: 'text-rarity-epic border-rarity-epic/48 bg-rarity-epic/14',
@@ -18,12 +19,23 @@ const TONE: Record<Rarity, string> = {
   Mythic: 'text-rarity-mythic border-rarity-mythic/60 bg-rarity-mythic/18',
 };
 
+/**
+ * Common is shown as "Original", in silver.
+ *
+ * Only the label and the colour change. The tier is still Common: it keeps
+ * its rank, its pip count and its place in the ordering, because a Classic
+ * piece IS the common tier however it is written. The client's point is that
+ * "Common" undersells the first piece somebody buys, and he is right.
+ */
 export function RarityChip({
   rarity,
+  label,
   size = 'md',
   className = '',
 }: {
   rarity: string;
+  /** Overrides the tier name, for a locale or a client wording. */
+  label?: string;
   size?: 'sm' | 'md';
   className?: string;
 }) {
@@ -49,7 +61,7 @@ export function RarityChip({
           />
         ))}
       </span>
-      {tier}
+      {label ?? tier}
     </span>
   );
 }

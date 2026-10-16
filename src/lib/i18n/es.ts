@@ -31,6 +31,7 @@ export const es: typeof en = {
         de verificación de una pieza ya registrada. */
     pendingRegistration: 'Pendiente de registro',
     certificate: 'Certificado y detalles',
+    certificateSubtitle: 'Identidad y datos de tu pieza.',
     universe: 'Universo',
     noOwnerYet: 'Esta pieza aún no tiene propietario registrado.',
     original: 'Original',

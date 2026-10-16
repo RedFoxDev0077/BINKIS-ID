@@ -12,6 +12,7 @@ import { Timeline } from '@/components/Timeline';
 import { ViewerActions } from '@/components/ViewerActions';
 import { PieceArtwork } from '@/components/PieceArtwork';
 import { HoloCard } from '@/components/ui/HoloCard';
+import { CertificateCard } from '@/components/CertificateCard';
 import { Reveal } from '@/components/ui/Reveal';
 import { Card, SectionTitle, Field } from '@/components/ui/Card';
 
@@ -224,11 +225,8 @@ export default async function PassportPage({ params }: Params) {
 
         {/* ---- the facts --------------------------------------------------- */}
         <Reveal>
-          <Card className="p-6 sm:p-7">
-            <h2 className="relative text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-500">
-              {t.passport.certificate}
-            </h2>
-            <dl className="relative mt-4 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+          <CertificateCard title={t.passport.certificate} subtitle={t.passport.certificateSubtitle}>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
               <Field label={t.passport.character} value={passport.character} />
               <Field label={t.passport.universe} value={UNIVERSE} />
               <Field label={t.passport.series} value={seriesLabel(passport.series, locale)} />
@@ -237,7 +235,7 @@ export default async function PassportPage({ params }: Params) {
               <Field label={t.passport.year} value={String(passport.productionYear)} />
               <Field label={t.passport.pieceNumber} value={printedSerial(passport.serial)} mono />
             </dl>
-          </Card>
+          </CertificateCard>
         </Reveal>
 
         {/* ---- provenance -------------------------------------------------- */}
@@ -261,7 +259,7 @@ const UNIVERSE = 'DC';
 
 /** "Series 1" is English. In Spanish the piece says Serie 1. */
 function seriesLabel(series: string, locale: string): string {
-  return locale === 'es' ? series.replace(/^Series/, 'Serie') : series;
+  return locale === 'es' ? series.replace(/^Series(?=\s|$)/, 'Serie') : series;
 }
 
 /**

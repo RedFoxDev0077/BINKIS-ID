@@ -20,6 +20,7 @@ export const en = {
       'Scratch your hologram and use the secret code to register this piece in your collection.',
     pendingRegistration: 'Pending registration',
     certificate: 'Certificate and details',
+    certificateSubtitle: 'Your piece, and what it is.',
     universe: 'Universe',
     noOwnerYet: 'This piece has no registered owner yet.',
     original: 'Original',

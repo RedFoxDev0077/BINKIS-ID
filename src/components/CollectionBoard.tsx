@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { characterName } from '@/lib/serial';
+import { characterName, printedSerial } from '@/lib/serial';
 import { characterMedia } from '@/lib/characters/media';
 import type { SetProgress } from '@/lib/collection-set';
 import type { Dictionary } from '@/lib/i18n';
@@ -79,7 +79,7 @@ export function CollectionBoard({ progress, t }: { progress: SetProgress; t: Dic
                     <Link
                       href={`/collection#${slot.serial}`}
                       className="block rounded-xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
-                      title={`${name} · ${slot.serial}`}
+                      title={`${name} · ${printedSerial(slot.serial)}`}
                     >
                       {tile}
                     </Link>

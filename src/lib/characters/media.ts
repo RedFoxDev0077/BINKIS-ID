@@ -23,7 +23,7 @@ export interface CharacterMedia {
 }
 
 const WITH_VIDEO = ['SP', 'BM', 'HQ', 'FL', 'WW', 'JK', 'SG', 'CY'] as const;
-const STILL_ONLY = ['RF', 'BZ', 'CH', 'RD', 'GL'] as const;
+const STILL_ONLY = ['RF', 'BIZ', 'CH', 'RD', 'GL'] as const;
 
 export const CHARACTER_MEDIA: Record<string, CharacterMedia> = Object.fromEntries([
   ...WITH_VIDEO.map((code) => [

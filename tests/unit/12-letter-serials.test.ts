@@ -13,11 +13,11 @@ import {
 /**
  * Letter serials, approved by the client on 30 August 2026.
  *
- * BZ-201427 reads as "two hundred and one thousand four hundred and
+ * BIZ-201427 reads as "two hundred and one thousand four hundred and
  * twenty-seven" for an edition of 2,777 pieces, which is nonsense to the
  * person holding it. The leading digit was doing a machine's job in a place
  * only humans look. So the special editions now carry their letter and their
- * real position: BZ-V01427 is Variant piece 1427.
+ * real position: BIZ-V01427 is Variant piece 1427.
  *
  * Classic keeps six digits. That is not an inconsistency, it is the point:
  * 130,000 of the 156,000 pieces are Classic, SP-000001 to SP-000400 are
@@ -65,7 +65,7 @@ describe('Classic is untouched', () => {
 describe('every special edition carries its letter', () => {
   it('writes the letter and the real position', () => {
     expect(formatSerial('RF', 100_045)).toBe('RF-L00045'); // Limited 45 of 777
-    expect(formatSerial('BZ', 201_427)).toBe('BZ-V01427'); // Variant 1427 of 2777
+    expect(formatSerial('BIZ', 201_427)).toBe('BIZ-V01427'); // Variant 1427 of 2777
     expect(formatSerial('BR', 305_321)).toBe('BR-R05321'); // Rare 5321 of 7777
     expect(formatSerial('PI', 400_189)).toBe('PI-S00189'); // Super Rare 189 of 2222
     expect(formatSerial('DS', 500_007)).toBe('DS-00007'); // Legendary 7 of 10
@@ -78,7 +78,7 @@ describe('every special edition carries its letter', () => {
     // must be the same number the passport page shows as "1427 / 2777".
     for (const [serial, expected] of [
       ['RF-L00045', 45],
-      ['BZ-V01427', 1_427],
+      ['BIZ-V01427', 1_427],
       ['BR-R05321', 5_321],
       ['PI-S00189', 189],
       ['DS-00007', 7],
@@ -112,7 +112,7 @@ describe('round trip', () => {
       for (const offset of [0, 1, 44, 776, 2_776, 9_998]) {
         const number = min + offset;
         if (number > EDITION_RANGES[type].max) continue;
-        const serial = formatSerial('BZ', number);
+        const serial = formatSerial('BIZ', number);
         const parsed = parseSerial(serial);
         expect(parsed, `${type} ${serial}`).not.toBeNull();
         expect(parsed!.number, `${type} ${serial}`).toBe(number);
@@ -139,16 +139,16 @@ describe('what must be rejected', () => {
   });
 
   it('refuses position zero, because positions start at one', () => {
-    expect(parseSerial('BZ-V00000')).toBeNull();
+    expect(parseSerial('BIZ-V00000')).toBeNull();
   });
 
   it('refuses the wrong number of digits after a letter', () => {
-    expect(parseSerial('BZ-V001427')).toBeNull();
-    expect(parseSerial('BZ-V0142')).toBeNull();
+    expect(parseSerial('BIZ-V001427')).toBeNull();
+    expect(parseSerial('BIZ-V0142')).toBeNull();
   });
 
   it('refuses a letter on a Classic-length serial', () => {
-    expect(parseSerial('BZ-V000001')).toBeNull();
+    expect(parseSerial('BIZ-V000001')).toBeNull();
   });
 
   it('refuses an unknown character code', () => {
@@ -162,17 +162,17 @@ describe('what must be rejected', () => {
 
 describe('a Classic and a special edition can never collide', () => {
   it('the old numeric form still resolves to the same piece', () => {
-    // BZ-201427 and BZ-V01427 are two ways of writing one piece, and the old
+    // BIZ-201427 and BIZ-V01427 are two ways of writing one piece, and the old
     // way still reads. Nothing printed before this change becomes unreadable,
     // which is what makes the change safe to make at all.
-    const oldForm = parseSerial('BZ-201427')!;
-    const newForm = parseSerial('BZ-V01427')!;
+    const oldForm = parseSerial('BIZ-201427')!;
+    const newForm = parseSerial('BIZ-V01427')!;
     expect(oldForm.number).toBe(newForm.number);
     expect(oldForm.editionType).toBe('VARIANT');
     expect(newForm.editionType).toBe('VARIANT');
 
     // And the canonical way to write it is now the letter form.
-    expect(formatSerial('BZ', oldForm.number)).toBe('BZ-V01427');
+    expect(formatSerial('BIZ', oldForm.number)).toBe('BIZ-V01427');
   });
 
   it('same position, different edition, different serial', () => {
@@ -196,7 +196,7 @@ describe('the second production order, at its real quantities', () => {
   });
 
   it('the top of each new run formats correctly', () => {
-    expect(formatSerial('BZ', 200_000 + 2_777)).toBe('BZ-V02777');
+    expect(formatSerial('BIZ', 200_000 + 2_777)).toBe('BIZ-V02777');
     expect(formatSerial('BR', 300_000 + 7_777)).toBe('BR-R07777');
     expect(formatSerial('PI', 400_000 + 2_222)).toBe('PI-S02222');
   });

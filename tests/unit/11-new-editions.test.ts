@@ -115,11 +115,11 @@ describe('edition numbering past 999', () => {
   });
 
   it('reads the edition position correctly at the top of a 2,777 run', () => {
-    // BZ-202777 is 2777 of 2777. Under the old three-digit rule this read as
+    // BIZ-202777 is 2777 of 2777. Under the old three-digit rule this read as
     // 777, which is a different piece in a different edition.
     expect(editionNumberForNumber(200_001)).toBe(1);
     expect(editionNumberForNumber(202_777)).toBe(2_777);
-    expect(formatSerial('BZ', 202_777)).toBe('BZ-V02777');
+    expect(formatSerial('BIZ', 202_777)).toBe('BIZ-V02777');
   });
 
   it('reads the top of Brainiac 7,777', () => {
@@ -213,9 +213,9 @@ describe('a Variant of one character cannot be confused with another', () => {
     // The four Variant characters share one hologram design; only the
     // abbreviation and the numbering differ. The serial is what keeps them
     // apart, so this is the property that matters.
-    const serials = ['BZ', 'BM', 'HQ', 'JK'].map((c) => formatSerial(c, 200_045));
+    const serials = ['BIZ', 'BM', 'HQ', 'JK'].map((c) => formatSerial(c, 200_045));
     expect(new Set(serials).size).toBe(4);
-    expect(serials).toEqual(['BZ-V00045', 'BM-V00045', 'HQ-V00045', 'JK-V00045']);
+    expect(serials).toEqual(['BIZ-V00045', 'BM-V00045', 'HQ-V00045', 'JK-V00045']);
   });
 
   it('a Variant Batman is not a Classic Batman', () => {

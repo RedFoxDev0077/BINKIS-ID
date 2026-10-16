@@ -138,7 +138,9 @@ export const CHARACTER_CODES = {
   SG: 'Supergirl',
   CY: 'Cyborg',
   RF: 'Reverse Flash',
-  BZ: 'Bizarro',
+  // Three letters, at the client's request on 15 October 2026: BIZ replaces
+  // BZ in every code BINKIS uses, before any Bizarro piece was printed.
+  BIZ: 'Bizarro',
   CH: 'Cheetah',
   RD: 'Riddler',
   GL: 'Green Lantern',
@@ -187,8 +189,21 @@ export interface ParsedSerial {
   editionType: EditionType | null;
 }
 
-const CLASSIC_PATTERN = /^([A-Z]{2})-(\d{6})$/;
-const LETTER_PATTERN = /^([A-Z]{2})-([A-Z]{0,2})(\d{5})$/;
+const CLASSIC_PATTERN = /^([A-Z]{2,3})-(\d{6})$/;
+const LETTER_PATTERN = /^([A-Z]{2,3})-([A-Z]{0,2})(\d{5})$/;
+
+/**
+ * The printed forms, which a collector can type back in.
+ *
+ *   RF-045        Limited
+ *   RF-045-AP     Artist Proof
+ *   DS-07         Legendary
+ *
+ * Deliberately separate from the two patterns above: those describe what the
+ * registry stores, and these describe what is on a sticker. Reading both is
+ * what lets the lookup accept whatever the person is holding.
+ */
+const PRINTED_PATTERN = /^([A-Z]{2,3})-(\d{2,3})(-AP)?$/;
 
 /** Reverse of EDITION_LETTERS, built once. */
 const TYPE_BY_LETTER = new Map<string, EditionType>(
@@ -199,6 +214,30 @@ const TYPE_BY_LETTER = new Map<string, EditionType>(
 );
 
 export function parseSerial(serial: string): ParsedSerial | null {
+  const printed = PRINTED_PATTERN.exec(serial);
+  if (printed) {
+    const [, code, digits, ap] = printed;
+    if (!isCharacterCode(code!)) return null;
+
+    const position = Number.parseInt(digits!, 10);
+    if (position < 1) return null;
+
+    // Two digits is Legendary, three is Limited, and the suffix outranks
+    // both: DS-01-AP is a Legendary Artist Proof, not a Legendary.
+    const type: EditionType = ap ? 'ARTIST_PROOF' : digits!.length === 2 ? 'LEGENDARY' : 'LIMITED';
+
+    // The run sizes are what make these forms unambiguous, so a position
+    // outside the run is not a piece, it is a typo.
+    const runSize = type === 'LIMITED' ? 777 : type === 'LEGENDARY' ? 10 : 100;
+    if (position > runSize) return null;
+
+    return {
+      characterCode: code,
+      number: EDITION_RANGES[type].min + position - 1,
+      editionType: type,
+    };
+  }
+
   const plain = CLASSIC_PATTERN.exec(serial);
   if (plain) {
     const [, code, digits] = plain;
@@ -224,6 +263,41 @@ export function parseSerial(serial: string): ParsedSerial | null {
   if (number > EDITION_RANGES[type].max) return null;
 
   return { characterCode: code, number, editionType: type };
+}
+
+/**
+ * How the piece is written on its hologram and on its page.
+ *
+ * The registry keeps RF-L00045 and all the edition arithmetic works on that.
+ * This is the customer-facing spelling, changed by the client on 15 October
+ * 2026 before any Limited or Legendary was made: the edition letter goes, the
+ * position is printed at its real width, and an Artist Proof says so at the
+ * end rather than in the middle.
+ *
+ * Classic is untouched because it is already at the factory, and Variant,
+ * Rare and Super Rare are untouched because the client asked for them to stay
+ * out of this change. So the two spellings coexist on purpose.
+ */
+export function printedSerial(serial: string): string {
+  const parsed = parseSerial(serial);
+  if (!parsed || parsed.editionType === null) return serial;
+
+  const { characterCode, number, editionType } = parsed;
+  const position = number - EDITION_RANGES[editionType].min + 1;
+
+  if (editionType === 'LIMITED') {
+    return `${characterCode}-${String(position).padStart(3, '0')}`;
+  }
+  if (editionType === 'LEGENDARY') {
+    return `${characterCode}-${String(position).padStart(2, '0')}`;
+  }
+  if (editionType === 'ARTIST_PROOF') {
+    // Deathstroke's four proofs belong to a run of ten, so they are written
+    // at the width of the edition they shadow.
+    const width = characterCode === 'DS' ? 2 : 3;
+    return `${characterCode}-${String(position).padStart(width, '0')}-AP`;
+  }
+  return serial;
 }
 
 export function editionTypeForNumber(serialNumber: number): EditionType | null {

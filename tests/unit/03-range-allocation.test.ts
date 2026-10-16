@@ -115,7 +115,7 @@ describe('serial formatting', () => {
     expect(CHARACTER_CODES.SG).toBe('Supergirl');
     expect(CHARACTER_CODES.CY).toBe('Cyborg');
     expect(CHARACTER_CODES.RF).toBe('Reverse Flash');
-    expect(CHARACTER_CODES.BZ).toBe('Bizarro');
+    expect(CHARACTER_CODES.BIZ).toBe('Bizarro');
     expect(CHARACTER_CODES.CH).toBe('Cheetah');
     expect(CHARACTER_CODES.RD).toBe('Riddler');
     expect(CHARACTER_CODES.GL).toBe('Green Lantern');

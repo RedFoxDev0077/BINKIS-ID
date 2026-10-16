@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { provenanceStatement, normaliseRarity } from '@/lib/passport';
+import { printedSerial } from '@/lib/serial';
 import type { Dictionary } from '@/lib/i18n';
 import { getCachedPassport, getCachedOwnerCount } from '@/lib/passport-cache';
 import { getTranslations, fill } from '@/lib/i18n';
@@ -38,10 +39,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     passport.editionNumber !== null ? ` · ${passport.editionNumber}/${passport.runSize}` : '';
 
   return {
-    title: `${passport.character} ${passport.serial} · BINKIS ID`,
+    title: `${passport.character} ${printedSerial(passport.serial)} · BINKIS ID`,
     description: `${passport.character}, ${passport.series}, ${passport.editionLabel}${position}. Verified identity and complete ownership history.`,
     openGraph: {
-      title: `${passport.character} ${passport.serial}`,
+      title: `${passport.character} ${printedSerial(passport.serial)}`,
       description: `${passport.editionLabel} · ${passport.rarity}${position}`,
     },
   };
@@ -110,7 +111,11 @@ export default async function PassportPage({ params }: Params) {
             {/* The serial is the piece's name, so it is the largest thing here
                 after the character, and always selectable for comparison
                 against the printed hologram. */}
-            <Serial value={passport.serial} className="mt-7 text-4xl sm:text-5xl" />
+            {/* What is printed on the piece, which is not always how the
+                registry stores it: a Limited is RF-L00045 internally and
+                RF-045 on the sticker. The collector compares the two, so the
+                page has to say what the sticker says. */}
+            <Serial value={printedSerial(passport.serial)} className="mt-7 text-4xl sm:text-5xl" />
 
             {passport.editionNumber !== null ? (
               <div className="mt-6 flex items-end gap-3 border-t border-ink-800/70 pt-5">
@@ -192,7 +197,7 @@ export default async function PassportPage({ params }: Params) {
           <Reveal>
             <ViewerActions
               qrToken={passport.qrToken}
-              serial={passport.serial}
+              serial={printedSerial(passport.serial)}
               claimable={claimable}
               t={t}
             />
@@ -230,7 +235,7 @@ export default async function PassportPage({ params }: Params) {
               <Field label={t.passport.edition} value={passport.editionLabel} />
               <Field label={t.passport.rarity} value={rarityLabel(passport.rarity, t)} />
               <Field label={t.passport.year} value={String(passport.productionYear)} />
-              <Field label={t.passport.pieceNumber} value={passport.serial} mono />
+              <Field label={t.passport.pieceNumber} value={printedSerial(passport.serial)} mono />
             </dl>
           </Card>
         </Reveal>

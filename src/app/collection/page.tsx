@@ -15,6 +15,7 @@ import { Card, SectionTitle } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
 import { CharacterAnimation } from '@/components/CharacterAnimation';
 import { CollectionBoard } from '@/components/CollectionBoard';
+import { printedSerial } from '@/lib/serial';
 import { classicSetProgress } from '@/lib/collection-set';
 import { BRAND_MASCOT } from '@/lib/characters/media';
 
@@ -230,7 +231,7 @@ export default async function CollectionPage() {
                         <RarityChip rarity={row.piece.product.rarity} size="sm" />
                       </div>
 
-                      <Serial value={row.piece.serial} className="mt-5 text-xl" />
+                      <Serial value={printedSerial(row.piece.serial)} className="mt-5 text-xl" />
 
                       <div className="mt-4 flex items-center justify-between gap-2">
                         {row.piece.editionNumber !== null ? (

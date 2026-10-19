@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { provenanceStatement, normaliseRarity } from '@/lib/passport';
+import { provenanceStatement, normaliseRarity, seriesLabel } from '@/lib/passport';
 import { printedSerial } from '@/lib/serial';
 import type { Dictionary } from '@/lib/i18n';
 import { getCachedPassport, getCachedOwnerCount } from '@/lib/passport-cache';
@@ -256,11 +256,6 @@ export default async function PassportPage({ params }: Params) {
  * rather than a constant here.
  */
 const UNIVERSE = 'DC';
-
-/** "Series 1" is English. In Spanish the piece says Serie 1. */
-function seriesLabel(series: string, locale: string): string {
-  return locale === 'es' ? series.replace(/^Series(?=\s|$)/, 'Serie') : series;
-}
 
 /**
  * Common reads as "Original" on the page.

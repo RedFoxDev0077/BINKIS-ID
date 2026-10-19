@@ -158,6 +158,22 @@ export async function getPassportByToken(
  * Unknown values fall back to Common rather than throwing, because a product
  * row is admin-entered and must never be able to break a public page.
  */
+/**
+ * "Series 1" is the name in the registry, and the registry is in English.
+ * In Spanish the piece says Serie 1.
+ *
+ * Shared rather than private to the passport, because the collection page
+ * prints the same string a few lines under a heading that is already
+ * translated, and a page that says "SERIE 1" and "Series 1" at once looks
+ * like two different series. The client caught exactly that once already.
+ *
+ * Anchored to the start so a series whose name merely contains the word is
+ * left alone, and bounded so "Seriesland" is not mangled into "Serieland".
+ */
+export function seriesLabel(series: string, locale: string): string {
+  return locale === 'es' ? series.replace(/^Series(?=\s|$)/, 'Serie') : series;
+}
+
 export const RARITY_TIERS = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic'] as const;
 export type Rarity = (typeof RARITY_TIERS)[number];
 

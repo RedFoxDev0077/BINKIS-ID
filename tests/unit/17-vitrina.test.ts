@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { NICHES, STAGE, nicheFor } from '../../src/lib/characters/vitrina.ts';
 import { SERIES_1_CLASSIC } from '../../src/lib/collection-set.ts';
 import { CHARACTER_CODES } from '../../src/lib/serial.ts';
+import { seriesLabel } from '../../src/lib/passport.ts';
 
 /**
  * The display case, delivered by the client's animator on 18 October 2026.
@@ -115,5 +116,19 @@ describe('the geometry', () => {
     for (const niche of NICHES) {
       expect(niche.color, niche.key).toMatch(/^#[0-9a-f]{6}$/i);
     }
+  });
+});
+
+describe('the series name is written in the page language', () => {
+  it('says Serie in Spanish and Series in English', () => {
+    expect(seriesLabel('Series 1', 'es')).toBe('Serie 1');
+    expect(seriesLabel('Series 1', 'en')).toBe('Series 1');
+  });
+
+  it('only touches the word when it starts the name', () => {
+    // The client saw "SERIE 1 · CLASSIC" and "Series 1" on the same screen,
+    // a few lines apart, which reads as two different series.
+    expect(seriesLabel('Seriesland', 'es')).toBe('Seriesland');
+    expect(seriesLabel('The Series 1', 'es')).toBe('The Series 1');
   });
 });

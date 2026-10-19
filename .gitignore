@@ -119,5 +119,11 @@ public/characters/
 # The mascot ships the same way as the character media: on the host.
 public/brand/
 
+# The display case and the matched-set film, delivered by the client's
+# animator on 18 October 2026. Same rule again: BINKIS material, large, and
+# replaced wholesale rather than edited. See docs/VITRINA.md.
+public/vitrina/
+public/celebracion/
+
 # Screenshots a test run produces. Output, not source.
 tests/e2e/.artifacts/

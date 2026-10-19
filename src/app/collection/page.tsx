@@ -14,7 +14,7 @@ import { Progress } from '@/components/ui/Progress';
 import { Card, SectionTitle } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
 import { CharacterAnimation } from '@/components/CharacterAnimation';
-import { CollectionBoard } from '@/components/CollectionBoard';
+import { Vitrina } from '@/components/Vitrina';
 import { printedSerial } from '@/lib/serial';
 import { classicSetProgress } from '@/lib/collection-set';
 import { BRAND_MASCOT } from '@/lib/characters/media';
@@ -183,7 +183,7 @@ export default async function CollectionPage() {
       ) : (
         <>
           <Reveal>
-            <CollectionBoard progress={setProgress} t={t} />
+            <Vitrina progress={setProgress} t={t} />
           </Reveal>
 
           {bySeries.length > 0 ? (

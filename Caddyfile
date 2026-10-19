@@ -44,6 +44,22 @@ id.binkis.com {
 		header Cache-Control "public, max-age=31536000, immutable"
 	}
 
+	# The display case layers and the matched-set film. Same arrangement as
+	# the character art: large, static, and no reason to occupy a Node
+	# process. The film is the one file here a collector waits on, so it is
+	# served with range requests, which file_server does by default.
+	handle /vitrina/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
+	handle /celebracion/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
 	reverse_proxy app:3000 {
 		health_uri /
 		health_interval 10s

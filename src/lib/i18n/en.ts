@@ -180,7 +180,7 @@ export const en = {
     matchedTitle: 'Matched set',
     matchedBody: 'All eight characters, every one of them number {number}.',
     matchedExtra: 'and also number {number}',
-    celebrate: 'See it',
+    celebrate: 'Play the film',
     dismiss: 'Close',
   },
   common: {

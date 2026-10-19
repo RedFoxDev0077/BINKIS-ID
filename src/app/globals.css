@@ -439,3 +439,200 @@
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   The display case.
+
+   Every layer is positioned in per cent of the render it was cut from, so the
+   whole case scales with whatever width its container gives it and nothing
+   drifts out of its niche. Sizes inside the case are in `cqw` for the same
+   reason: a spark has to be the same size relative to the figure on a 360px
+   phone as on a desktop.
+
+   Adapted from the animator's `repisa.css` (18 October 2026). The structural
+   rules are theirs; the palette and the reduced-motion handling are ours.
+   --------------------------------------------------------------------------- */
+.vitrina {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1170 / 2080;
+  overflow: hidden;
+  container-type: inline-size;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  background-color: oklch(0.14 0.01 265);
+}
+.vitrina img,
+.vitrina .vt-fx {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+.vitrina .vt-fondo {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* A niche is dark until it is owned. The figure, its lit niche and its lit
+   plate are all hidden together, so a half-loaded layer can never show. */
+.vitrina .vt-espacio,
+.vitrina .vt-placa,
+.vitrina .vt-pieza {
+  opacity: 0;
+}
+.vitrina .vt-slot[data-owned='1'] .vt-espacio,
+.vitrina .vt-slot[data-owned='1'] .vt-placa,
+.vitrina .vt-slot[data-owned='1'] .vt-pieza {
+  opacity: 1;
+}
+.vitrina .vt-slot[data-owned='1'] .vt-silueta {
+  opacity: 0;
+}
+.vitrina .vt-pieza {
+  transform-origin: 50% 92%;
+}
+
+/* The showcase spot switching on: a cone of warm light down the niche. */
+.vitrina .vt-beam {
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(255 236 205 / 0.95) 0%,
+    rgb(255 222 176 / 0.42) 55%,
+    rgb(255 214 160 / 0) 100%
+  );
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+  mask-image: linear-gradient(to right, transparent, #000 35%, #000 65%, transparent);
+  mix-blend-mode: screen;
+  transform-origin: 50% 0;
+}
+/* A halo in the character's own colour, behind the figure as it arrives. */
+.vitrina .vt-halo {
+  opacity: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 244 226 / 0.9) 0%,
+    color-mix(in srgb, var(--vt-color) 70%, transparent) 40%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+}
+.vitrina .vt-spark {
+  width: 2.2cqw;
+  height: 2.2cqw;
+  margin: -1.1cqw 0 0 -1.1cqw;
+  opacity: 0;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+  mix-blend-mode: screen;
+}
+
+/* A sheen crossing the glass, so a case that is still being filled never
+   looks like a dead screenshot. */
+.vitrina::after {
+  content: '';
+  position: absolute;
+  inset: -10% -60%;
+  background: linear-gradient(
+    105deg,
+    transparent 44%,
+    rgb(255 255 255 / 0.07) 49%,
+    rgb(255 255 255 / 0.13) 50%,
+    rgb(255 255 255 / 0.07) 51%,
+    transparent 56%
+  );
+  transform: translateX(-70%);
+  animation: vt-sheen 9s cubic-bezier(0.5, 0, 0.3, 1) 2s infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes vt-sheen {
+  0% {
+    transform: translateX(-70%);
+  }
+  22%,
+  100% {
+    transform: translateX(70%);
+  }
+}
+
+/* The number over the celebration video. Position, size and colour are the
+   animator's, measured against the video itself rather than the box, which is
+   why they are in cqw and per cent of a container that is exactly 9:16. */
+.celebracion {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  container-type: inline-size;
+}
+.celebracion video {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.celebracion .cl-numero {
+  position: absolute;
+  left: 50%;
+  top: 58.9%;
+  transform: translate(-50%, -50%);
+  font-family: 'Outfit', var(--font-sans);
+  font-weight: 400;
+  font-size: 4.2cqw;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: linear-gradient(
+    180deg,
+    #fff4d6 0%,
+    #f2d28c 34%,
+    #c99a4e 62%,
+    #e9c47c 82%,
+    #fff0c8 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.3cqw 1.1cqw rgb(255 190 90 / 0.28));
+  opacity: 0;
+  pointer-events: none;
+}
+.celebracion .cl-numero[data-visible='1'] {
+  animation: cl-numero-entra 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+@keyframes cl-numero-entra {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 1.4cqw));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vitrina::after {
+    animation: none;
+    opacity: 0;
+  }
+  /* The global rule above collapses the duration to nothing, which would
+     leave the number mid-fade. Land it instead. */
+  .celebracion .cl-numero[data-visible='1'] {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* The way into a niche: an invisible box over it, so the brass plates the
+   render painted on become names a screen reader can read and a figure you
+   own becomes a link to its passport. */
+.vitrina .vt-hit {
+  position: absolute;
+  display: block;
+  border-radius: 0.5rem;
+  outline: none;
+}
+.vitrina a.vt-hit:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

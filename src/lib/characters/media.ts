@@ -50,6 +50,15 @@ export const BRAND_MASCOT = {
   poster: "/brand/aguila.jpg",
 } as const;
 
+/**
+ * The matched-set film: the case filling with all eight figures, ending on
+ * the BINKIS ID signature with the collection's number under it.
+ *
+ * Delivered 18 October 2026 without the number, deliberately. See
+ * src/components/MatchedSetVideo.tsx for why it is drawn rather than rendered.
+ */
+export const MATCHED_SET_FILM = "/celebracion/mismo-numero.mp4";
+
 export function characterMedia(characterCode: string): CharacterMedia | null {
   return CHARACTER_MEDIA[characterCode.toUpperCase()] ?? null;
 }

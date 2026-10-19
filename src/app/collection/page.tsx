@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db/client';
 import { getCurrentUser } from '@/lib/auth/current';
 import { getTranslations, fill } from '@/lib/i18n';
-import { normaliseRarity } from '@/lib/passport';
+import { normaliseRarity, seriesLabel } from '@/lib/passport';
 import { RarityChip } from '@/components/RarityChip';
 import { Serial } from '@/components/Serial';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
@@ -14,7 +14,7 @@ import { Progress } from '@/components/ui/Progress';
 import { Card, SectionTitle } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
 import { CharacterAnimation } from '@/components/CharacterAnimation';
-import { CollectionBoard } from '@/components/CollectionBoard';
+import { Vitrina } from '@/components/Vitrina';
 import { printedSerial } from '@/lib/serial';
 import { classicSetProgress } from '@/lib/collection-set';
 import { BRAND_MASCOT } from '@/lib/characters/media';
@@ -33,7 +33,7 @@ export default async function CollectionPage() {
   const user = await getCurrentUser();
   if (!user?.collectorId) redirect('/login?next=/collection');
 
-  const { t } = await getTranslations();
+  const { locale, t } = await getTranslations();
 
   const owned = await prisma.ownershipEvent.findMany({
     where: { toCollectorId: user.collectorId },
@@ -183,7 +183,7 @@ export default async function CollectionPage() {
       ) : (
         <>
           <Reveal>
-            <CollectionBoard progress={setProgress} t={t} />
+            <Vitrina progress={setProgress} t={t} />
           </Reveal>
 
           {bySeries.length > 0 ? (
@@ -193,7 +193,7 @@ export default async function CollectionPage() {
                   {bySeries.map((row) => (
                     <Progress
                       key={row.series}
-                      label={row.series}
+                      label={seriesLabel(row.series, locale)}
                       value={row.owned}
                       total={row.total}
                       tone={row.tone}

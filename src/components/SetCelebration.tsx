@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { fill } from '@/lib/i18n/fill';
+import { MATCHED_SET_FILM } from '@/lib/characters/media';
+import { MatchedSetVideo } from '@/components/MatchedSetVideo';
 
 /**
  * What happens when the board fills.
@@ -40,12 +43,15 @@ export function SetCelebration({
   const headline = matched ? matchingNumbers[0]! : null;
   const [showing, setShowing] = useState(false);
   const [reduced, setReduced] = useState(false);
+  // The portal below needs a document, which the server does not have.
+  const [mounted, setMounted] = useState(false);
 
   // The key carries the number, so a collector who later completes a second
   // matched set gets that moment too.
   const seenKey = matched ? `binkis:set:matched:${headline}` : 'binkis:set:complete';
 
   useEffect(() => {
+    setMounted(true);
     setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     // Only the rare one interrupts. The ordinary completion gets its banner
     // and nothing more.
@@ -93,38 +99,60 @@ export function SetCelebration({
         </div>
       </div>
 
-      {showing ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/90 px-6 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setShowing(false)}
-        >
-          <div
-            className={`holo-border w-full max-w-sm rounded-3xl p-[1px] ${
-              reduced ? '' : 'animate-[pop-in_.5s_cubic-bezier(.2,.8,.2,1)]'
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="rounded-3xl bg-ink-925 px-7 py-9 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-400">
-                {t.matchedTitle}
-              </p>
-              <p className="mono mt-4 text-6xl leading-none text-white">{pad(headline ?? 0)}</p>
-              <p className="mt-5 text-sm leading-relaxed text-ink-300">
-                {fill(t.matchedBody, { number: pad(headline ?? 0) })}
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowing(false)}
-                className="mt-7 w-full rounded-xl border border-ink-700 py-3 text-sm font-medium text-ink-200 hover:bg-ink-900"
+      {/* Through a portal onto the body, because `position: fixed` is only
+          relative to the viewport while no ancestor has a transform or a
+          filter. Card has a backdrop-blur, which is enough to capture it, and
+          a full-screen moment pinned inside a card is not a moment. */}
+      {showing && mounted
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/90 px-6 backdrop-blur-sm"
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setShowing(false)}
+            >
+              <div
+                className={`holo-border w-full max-w-sm rounded-3xl p-[1px] ${
+                  reduced ? '' : 'animate-[pop-in_.5s_cubic-bezier(.2,.8,.2,1)]'
+                }`}
+                onClick={(e) => e.stopPropagation()}
               >
-                {t.dismiss}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div className="rounded-3xl bg-ink-925 px-5 py-6 text-center sm:px-7 sm:py-7">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-400">
+                    {t.matchedTitle}
+                  </p>
+
+                  {/* The film is 9:16, which is taller than a phone once the
+                      text and the button are counted. Capping the WIDTH caps
+                      the height through the aspect ratio, so the whole dialog
+                      fits without the film being cropped or letterboxed. */}
+                  <div
+                    className="mx-auto mt-4 w-full"
+                    style={{ maxWidth: 'min(100%, calc(52vh * 9 / 16))' }}
+                  >
+                    <MatchedSetVideo
+                      src={MATCHED_SET_FILM}
+                      number={pad(headline ?? 0)}
+                      label={fill(t.matchedBody, { number: pad(headline ?? 0) })}
+                    />
+                  </div>
+
+                  <p className="mt-5 text-sm leading-relaxed text-ink-300">
+                    {fill(t.matchedBody, { number: pad(headline ?? 0) })}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowing(false)}
+                    className="mt-5 w-full rounded-xl border border-ink-700 py-3 text-sm font-medium text-ink-200 hover:bg-ink-900"
+                  >
+                    {t.dismiss}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

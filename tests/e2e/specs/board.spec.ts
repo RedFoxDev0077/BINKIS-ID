@@ -1,18 +1,19 @@
 import { test, expect, fixture, takePiece, signIn } from '../fixtures/fixture.ts';
 
 /**
- * The Classic set board.
+ * The Classic set board, which since 18 October 2026 is the display case.
  *
- * The unit tests already prove the arithmetic. What they cannot prove is that
- * a collector sees eight slots with the right one filled, which is the whole
- * product: the board is there so the gaps are visible.
+ * The unit tests already prove the arithmetic and the mapping from a serial's
+ * character code to a niche. What they cannot prove is that a collector sees
+ * eight niches with the right one lit, which is the whole product: the case
+ * is there so the gaps are visible.
  *
- * The e2e seed only mints Superman, so a claimed piece fills exactly one slot
- * and leaves seven silhouettes. That is the state almost every real collector
- * is in on the day they start.
+ * The e2e seed only mints Superman, so a claimed piece lights exactly one
+ * niche and leaves seven silhouettes. That is the state almost every real
+ * collector is in on the day they start.
  */
 test.describe('the Classic board', () => {
-  test('shows eight slots and fills only the character you own', async ({ page }) => {
+  test('shows eight niches and lights only the character you own', async ({ page }) => {
     const { alice } = fixture();
     const piece = takePiece();
 
@@ -25,12 +26,25 @@ test.describe('the Classic board', () => {
 
     await page.goto('/collection');
 
-    // Eight slots, always, however few are owned.
-    const slots = page.locator('ol > li');
-    await expect(slots).toHaveCount(8);
+    // Eight niches, always, however few are owned.
+    const niches = page.locator('.vitrina .vt-slot');
+    await expect(niches).toHaveCount(8);
 
-    // The one owned character is named; the rest read as missing.
-    await expect(page.getByText('Superman').first()).toBeVisible();
+    // Exactly one of them is lit, and it is the one they actually hold.
+    await expect(page.locator('.vitrina .vt-slot[data-owned="1"]')).toHaveCount(1);
+    await expect(page.locator('.vitrina .vt-slot[data-key="superman"]')).toHaveAttribute(
+      'data-owned',
+      '1',
+    );
+
+    // The brass plates are painted into the render, so the names are pixels.
+    // The text that carries them is there for a screen reader, and that is
+    // what is checked: a niche nobody can name is a niche nobody can buy.
+    await expect(page.locator('.vitrina .vt-slot[data-key="superman"]')).toContainText(
+      'Superman',
+    );
+    await expect(page.locator('.vitrina .vt-slot[data-key="joker"]')).toContainText('Joker');
+
     const body = await page.textContent('body');
     expect(body).toMatch(/1\s*(of|de)\s*8/);
 

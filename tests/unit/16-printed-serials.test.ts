@@ -148,3 +148,63 @@ describe('round trip', () => {
     }
   });
 });
+
+/**
+ * Katana, ordered 22 October 2026: a second Legendary, ten pieces and four
+ * proofs, the same shape as Deathstroke.
+ *
+ * The reason this needs its own block is that adding her broke a rule that
+ * had been written as a test for one character code. A proof is printed at
+ * the width of the edition it shadows, and "the edition it shadows" was
+ * spelled `characterCode === 'DS'`, which was true only while Deathstroke
+ * was the only Legendary. Katana's proofs would have gone to the factory as
+ * KTN-001-AP instead of KTN-01-AP.
+ */
+describe('Katana, the second Legendary', () => {
+  it('is in the registry under a three-letter code', () => {
+    expect(CHARACTER_CODES).toHaveProperty('KTN', 'Katana');
+  });
+
+  it('prints as two digits, like every Legendary', () => {
+    expect(printedSerial('KTN-00001')).toBe('KTN-01');
+    expect(printedSerial('KTN-00010')).toBe('KTN-10');
+  });
+
+  it('prints its proofs at the width of the run they shadow', () => {
+    expect(printedSerial('KTN-AP00001')).toBe('KTN-01-AP');
+    expect(printedSerial('KTN-AP00004')).toBe('KTN-04-AP');
+  });
+
+  it('leaves the hundred proofs of a Limited character at three digits', () => {
+    // The rule is the edition shadowed, not the number of characters.
+    expect(printedSerial('RF-AP00001')).toBe('RF-001-AP');
+    expect(printedSerial('GL-AP00100')).toBe('GL-100-AP');
+  });
+
+  it('reads its printed forms back to the same piece', () => {
+    expect(parseSerial('KTN-07')!.number).toBe(parseSerial('KTN-00007')!.number);
+    expect(parseSerial('KTN-04-AP')!.number).toBe(parseSerial('KTN-AP00004')!.number);
+  });
+
+  it('refuses a position outside the run it shadows', () => {
+    // Ten pieces and four proofs. An eleventh and a fifth do not exist.
+    expect(parseSerial('KTN-11')).toBeNull();
+    expect(parseSerial('KTN-05-AP')).toBeNull();
+    expect(parseSerial('DS-05-AP')).toBeNull();
+  });
+
+  it('round trips every piece of the run, and every proof', () => {
+    for (let i = 1; i <= 10; i++) {
+      const serial = formatSerial('KTN', 500_000 + i);
+      const back = parseSerial(printedSerial(serial));
+      expect(back?.number, serial).toBe(500_000 + i);
+      expect(back?.characterCode, serial).toBe('KTN');
+    }
+    for (let i = 1; i <= 4; i++) {
+      const serial = formatSerial('KTN', 900_000 + i);
+      const back = parseSerial(printedSerial(serial));
+      expect(back?.number, serial).toBe(900_000 + i);
+      expect(back?.editionType, serial).toBe('ARTIST_PROOF');
+    }
+  });
+});

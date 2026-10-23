@@ -89,7 +89,7 @@ three numbered editions are read as 3 digits and must stay that way because
 RF-100045 is already specified to the factory as 45 of 777, while Variant, Rare
 and Super Rare are read as 4 because their runs pass 999.
 
-Character codes: SP Superman, BM Batman, HQ Harley Quinn, FL The Flash, WW Wonder Woman, JK The Joker, SG Supergirl, CY Cyborg, RF Reverse Flash, BZ Bizarro, CH Cheetah, RD Riddler, GL Green Lantern, DS Deathstroke, BR Brainiac, PI Poison Ivy.
+Character codes: SP Superman, BM Batman, HQ Harley Quinn, FL The Flash, WW Wonder Woman, JK The Joker, SG Supergirl, CY Cyborg, RF Reverse Flash, BZ Bizarro, CH Cheetah, RD Riddler, GL Green Lantern, DS Deathstroke, BR Brainiac, PI Poison Ivy, KTN Katana.
 
 Production run, per `assets/BINKIS_Initial_Production_Breakdown_Updated (1).xlsx` (from the client, 18 August 2026). The Classic split is NOT even, so it cannot be inferred:
 
@@ -107,6 +107,8 @@ Production run, per `assets/BINKIS_Initial_Production_Breakdown_Updated (1).xlsx
 | RF, BZ, CH, RD, GL | Artist Proof | 100 each, 500 |
 | DS Deathstroke | Legendary | 10 |
 | DS Deathstroke | Artist Proof | 4 |
+| KTN Katana | Legendary | 10 |
+| KTN Katana | Artist Proof | 4 |
 
 Total 134,399, plus 3,000 spares. Superman's 30,000 includes the 200 of B-2026-01 already generated, so its remaining run is 29,800 continuing from SP-000201.
 

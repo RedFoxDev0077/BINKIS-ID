@@ -147,9 +147,32 @@ export const CHARACTER_CODES = {
   DS: 'Deathstroke',
   BR: 'Brainiac',
   PI: 'Poison Ivy',
+  // Second Legendary, ordered by the client on 22 October 2026: ten pieces
+  // and four Artist Proofs, the same shape as Deathstroke.
+  KTN: 'Katana',
 } as const;
 
 export type CharacterCode = keyof typeof CHARACTER_CODES;
+
+/**
+ * Characters whose numbered run is Legendary: a run of ten, with four proofs.
+ *
+ * This exists because an Artist Proof's serial does not say which run it
+ * shadows. Every proof lives in the one shared 9xxxxx range, so the character
+ * code is the only thing that distinguishes Deathstroke's four proofs from
+ * Reverse Flash's hundred, and a proof is written at the width of the edition
+ * it shadows: DS-01-AP against RF-001-AP.
+ *
+ * It was previously a `characterCode === 'DS'` test inside printedSerial,
+ * which was correct only for as long as Deathstroke was the only Legendary.
+ * Katana made that false on 22 October 2026, and would have been printed as
+ * KTN-001-AP.
+ */
+const LEGENDARY_CHARACTERS: ReadonlySet<string> = new Set(['DS', 'KTN']);
+
+/** Proofs shadowing a run of ten, against proofs shadowing a run of 777. */
+const PROOFS_OF_A_LEGENDARY = 4;
+const PROOFS_OF_A_LIMITED = 100;
 
 export class SerialRangeError extends Error {
   override name = 'SerialRangeError';
@@ -227,8 +250,17 @@ export function parseSerial(serial: string): ParsedSerial | null {
     const type: EditionType = ap ? 'ARTIST_PROOF' : digits!.length === 2 ? 'LEGENDARY' : 'LIMITED';
 
     // The run sizes are what make these forms unambiguous, so a position
-    // outside the run is not a piece, it is a typo.
-    const runSize = type === 'LIMITED' ? 777 : type === 'LEGENDARY' ? 10 : 100;
+    // outside the run is not a piece, it is a typo. A proof is bounded by the
+    // run it shadows, not by the shared Artist Proof range: there is no
+    // fifth Deathstroke proof and there is no fifth Katana one.
+    const runSize =
+      type === 'LIMITED'
+        ? 777
+        : type === 'LEGENDARY'
+          ? 10
+          : LEGENDARY_CHARACTERS.has(code)
+            ? PROOFS_OF_A_LEGENDARY
+            : PROOFS_OF_A_LIMITED;
     if (position > runSize) return null;
 
     return {
@@ -292,9 +324,9 @@ export function printedSerial(serial: string): string {
     return `${characterCode}-${String(position).padStart(2, '0')}`;
   }
   if (editionType === 'ARTIST_PROOF') {
-    // Deathstroke's four proofs belong to a run of ten, so they are written
-    // at the width of the edition they shadow.
-    const width = characterCode === 'DS' ? 2 : 3;
+    // A proof is written at the width of the edition it shadows, so the
+    // proofs of a run of ten are two digits and the rest are three.
+    const width = LEGENDARY_CHARACTERS.has(characterCode) ? 2 : 3;
     return `${characterCode}-${String(position).padStart(width, '0')}-AP`;
   }
   return serial;

@@ -102,8 +102,15 @@ describe('serial formatting', () => {
 
   it('only accepts the character codes in CLAUDE.md', () => {
     // Sixteen since 29 August 2026: Brainiac (BR) for the Rare edition and
-    // Poison Ivy (PI) for the Super Rare.
-    expect(Object.keys(CHARACTER_CODES)).toHaveLength(16);
+    // Poison Ivy (PI) for the Super Rare. Seventeen since 22 October 2026,
+    // when Katana (KTN) was ordered as a second Legendary.
+    //
+    // The count is asserted on purpose. A character code is printed onto
+    // holograms and is the key the case, the media map and the factory files
+    // are all addressed by, so one appearing here without appearing in
+    // CLAUDE.md is a drift worth failing a build over.
+    expect(Object.keys(CHARACTER_CODES)).toHaveLength(17);
+    expect(CHARACTER_CODES.KTN).toBe('Katana');
     expect(CHARACTER_CODES.BR).toBe('Brainiac');
     expect(CHARACTER_CODES.PI).toBe('Poison Ivy');
     expect(CHARACTER_CODES.SP).toBe('Superman');

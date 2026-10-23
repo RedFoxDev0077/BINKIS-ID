@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { NICHES, STAGE, type Box, type Niche } from '@/lib/characters/vitrina';
+import { NicheDetail, type NicheView } from '@/components/NicheDetail';
 
 /**
  * The case, and the one thing about it that needs a browser: a niche
@@ -30,12 +31,15 @@ const REVEAL_MS = 1700;
 export function VitrinaStage({
   owned,
   label,
+  t,
   children,
 }: {
   owned: string[];
   label: string;
+  t: { missing: string; viewPassport: string; dismiss: string };
   children: ReactNode;
 }) {
+  const [open, setOpen] = useState<NicheView | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   // Null until the comparison has been made. Deciding once matters: this
   // effect runs twice in development, and a second pass would read back the
@@ -112,10 +116,49 @@ export function VitrinaStage({
     };
   }, []);
 
+  // One listener on the case rather than a handler per niche: the hit areas
+  // are server-rendered, so there is nothing to attach them to on the way out.
+  //
+  // It runs in the CAPTURE phase, which matters. A niche you own is a real
+  // <Link>, and Link has its own click handler that navigates unless the
+  // event is already defaultPrevented. Bubbling would put this handler after
+  // Link's, so the page would leave for the passport before the overlay ever
+  // opened. Capture runs outside-in, so this gets there first.
+  const onClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const hit = (event.target as HTMLElement).closest<HTMLElement>('.vt-hit');
+    if (!hit) return;
+
+    const code = hit.dataset.niche;
+    const niche = NICHES.find((n) => n.characterCode === code);
+    if (!niche) return;
+
+    // Let a modified click through: someone opening the passport in a new
+    // tab asked for the passport, not for the overlay.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    event.preventDefault();
+    setOpen({
+      characterCode: niche.characterCode,
+      name: niche.name,
+      serial: hit.dataset.printed ?? null,
+      qrToken: hit.dataset.token ?? null,
+      owned: hit.dataset.held === '1',
+    });
+  }, []);
+
   return (
-    <div ref={ref} className="vitrina" role="group" aria-label={label}>
-      {children}
-    </div>
+    <>
+      <div
+        ref={ref}
+        className="vitrina"
+        role="group"
+        aria-label={label}
+        onClickCapture={onClick}
+      >
+        {children}
+      </div>
+      <NicheDetail view={open} t={t} onClose={() => setOpen(null)} />
+    </>
   );
 }
 

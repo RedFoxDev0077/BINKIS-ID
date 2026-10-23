@@ -149,3 +149,32 @@ describe('what does not belong to this board', () => {
     expect([...SERIES_1_CLASSIC]).toEqual(['SP', 'BM', 'HQ', 'FL', 'WW', 'JK', 'SG', 'CY']);
   });
 });
+
+describe('a slot carries the way into its piece', () => {
+  it('hands back the token of the piece it is showing', () => {
+    const progress = classicSetProgress([
+      { serial: 'SP-000012', series: 'Series 1', qrToken: 'ABC123DEF456' },
+    ]);
+    const slot = progress.slots.find((s) => s.characterCode === 'SP')!;
+    expect(slot.qrToken).toBe('ABC123DEF456');
+  });
+
+  it('carries the token of the LOWEST piece, the one the slot shows', () => {
+    // Two Supermen. The case shows the lower number, so tapping it has to
+    // open that one and not whichever row the database returned first.
+    const progress = classicSetProgress([
+      { serial: 'SP-000900', series: 'Series 1', qrToken: 'HIGHHIGHHIGH' },
+      { serial: 'SP-000007', series: 'Series 1', qrToken: 'LOWLOWLOWLOW' },
+    ]);
+    const slot = progress.slots.find((s) => s.characterCode === 'SP')!;
+    expect(slot.serial).toBe('SP-000007');
+    expect(slot.qrToken).toBe('LOWLOWLOWLOW');
+  });
+
+  it('leaves the token null for a character nobody owns', () => {
+    const progress = classicSetProgress([
+      { serial: 'SP-000012', series: 'Series 1', qrToken: 'ABC123DEF456' },
+    ]);
+    expect(progress.slots.find((s) => s.characterCode === 'JK')!.qrToken).toBeNull();
+  });
+});

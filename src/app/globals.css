@@ -636,3 +636,17 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+
+/* The hit area is a link for a figure you own and a button for one you do
+   not, so the button needs the browser's own styling taken off it. */
+.vitrina button.vt-hit {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.vitrina .vt-hit:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

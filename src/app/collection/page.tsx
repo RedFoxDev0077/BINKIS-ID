@@ -91,7 +91,11 @@ export default async function CollectionPage() {
 
   // The Classic board: eight slots, filled by character rather than by piece.
   const setProgress = classicSetProgress(
-    pieces.map((p) => ({ serial: p.piece.serial, series: p.piece.product.series })),
+    pieces.map((p) => ({
+      serial: p.piece.serial,
+      series: p.piece.product.series,
+      qrToken: p.piece.qrToken,
+    })),
   );
 
   const bySeries = seriesNames

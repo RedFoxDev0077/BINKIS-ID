@@ -72,6 +72,67 @@ test.describe('the Classic board', () => {
   });
 });
 
+test.describe('tapping a figure', () => {
+  test('opens the character in place, and offers its passport', async ({ page }) => {
+    const { alice } = fixture();
+    const piece = takePiece();
+
+    await signIn(page, alice);
+    await page.goto(`/p/${piece.qrToken}`);
+    await page.getByRole('button', { name: /reveal without scratching/i }).click();
+    await page.getByLabel('Secret code from the hologram').fill(piece.claimCode);
+    await page.getByRole('button', { name: /register my binkis/i }).click();
+    await expect(page.getByText(/it is yours/i).first()).toBeVisible();
+
+    await page.goto('/collection');
+
+    // The client asked for this on 22 October: tapping the figure should
+    // open the figure, not scroll the page.
+    await page.locator('.vitrina .vt-hit[data-niche="SP"]').click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Superman');
+
+    // The way on to the full record, which is where the serial, the
+    // certificate and the timeline live.
+    //
+    // Deliberately NOT asserted against the piece claimed a moment ago. A
+    // niche shows the LOWEST-numbered piece held for that character, and
+    // this collector may hold several Supermen by now, so the token here is
+    // whichever of them the case is actually showing. What matters is that
+    // the link goes to a Superman passport.
+    const passport = dialog.getByRole('link', { name: /view passport|ver pasaporte/i });
+    await expect(passport).toHaveAttribute('href', /^\/p\/[A-Z0-9]{12}$/);
+    await page.screenshot({ path: 'tests/e2e/.artifacts/niche-detail.png' });
+
+    await passport.click();
+    await expect(page).toHaveURL(/\/p\/[A-Z0-9]{12}$/);
+    await expect(page.getByRole('heading', { name: 'Superman' })).toBeVisible();
+    await page.goBack();
+
+    // Escape gets out, because a tap target that size is easy to hit by
+    // accident on a phone.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+  });
+
+  test('a character you do not own says so instead of pretending', async ({ page }) => {
+    const { alice } = fixture();
+    await signIn(page, alice);
+    await page.goto('/collection');
+
+    // The seed only mints Superman, so the Joker niche is empty for everyone.
+    await page.locator('.vitrina .vt-hit[data-niche="JK"]').click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(/The Joker/i);
+    await expect(dialog).toContainText(/not yet in your collection|a[uú]n no est[aá]/i);
+
+    // Nothing to open: there is no piece behind it.
+    await expect(dialog.getByRole('link', { name: /view passport|ver pasaporte/i })).toHaveCount(0);
+  });
+});
+
 test.describe('the complete set', () => {
   test('eight of eight, all the same number, celebrates once and says the number', async ({
     page,

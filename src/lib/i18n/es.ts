@@ -188,6 +188,7 @@ export const es: typeof en = {
     matchedTitle: 'Colección alineada',
     matchedBody: 'Los ocho personajes, todos con el número {number}.',
     matchedExtra: 'y también el número {number}',
+    viewPassport: 'Ver pasaporte',
     celebrate: 'Ver la animación',
     dismiss: 'Cerrar',
   },

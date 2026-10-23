@@ -22,6 +22,8 @@ export const SERIES_1 = 'Series 1';
 export interface OwnedPiece {
   serial: string;
   series: string;
+  /** The piece's public lookup key, so a slot can link to its passport. */
+  qrToken?: string;
 }
 
 export interface SetSlot {
@@ -29,6 +31,8 @@ export interface SetSlot {
   owned: boolean;
   /** The lowest-numbered piece held for this character, for the link to it. */
   serial: string | null;
+  /** That same piece's token. Null when the character is not owned. */
+  qrToken: string | null;
 }
 
 export interface SetProgress {
@@ -46,7 +50,7 @@ export function classicSetProgress(
   series: string = SERIES_1,
 ): SetProgress {
   // Lowest number per character, and the set of numbers held per character.
-  const best = new Map<string, { serial: string; number: number }>();
+  const best = new Map<string, { serial: string; number: number; qrToken: string | null }>();
   const numbers = new Map<string, Set<number>>();
 
   for (const piece of pieces) {
@@ -66,7 +70,11 @@ export function classicSetProgress(
 
     const current = best.get(code);
     if (!current || parsed.number < current.number) {
-      best.set(code, { serial: piece.serial, number: parsed.number });
+      best.set(code, {
+        serial: piece.serial,
+        number: parsed.number,
+        qrToken: piece.qrToken ?? null,
+      });
     }
   }
 
@@ -74,6 +82,7 @@ export function classicSetProgress(
     characterCode: code,
     owned: best.has(code),
     serial: best.get(code)?.serial ?? null,
+    qrToken: best.get(code)?.qrToken ?? null,
   }));
 
   const owned = slots.filter((slot) => slot.owned).length;

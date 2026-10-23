@@ -25,9 +25,7 @@ import { VitrinaStage } from '@/components/VitrinaStage';
  * weight of a case that is mostly empty, and every case starts out empty.
  */
 export function Vitrina({ progress, t }: { progress: SetProgress; t: Dictionary }) {
-  const owned = new Map(
-    progress.slots.filter((s) => s.owned).map((s) => [s.characterCode, s.serial]),
-  );
+  const owned = new Map(progress.slots.filter((s) => s.owned).map((s) => [s.characterCode, s]));
 
   return (
     <section className="mb-9">
@@ -44,13 +42,19 @@ export function Vitrina({ progress, t }: { progress: SetProgress; t: Dictionary 
             <VitrinaStage
               owned={[...owned.keys()]}
               label={caseLabel(progress, t)}
+              t={{
+                missing: t.set.missing,
+                viewPassport: t.set.viewPassport,
+                dismiss: t.set.dismiss,
+              }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- served by the proxy */}
               <img className="vt-fondo" src={`${VITRINA_BASE}/fondo.webp`} alt="" />
 
               {NICHES.map((niche) => {
-                const serial = owned.get(niche.characterCode) ?? null;
-                const isOwned = owned.has(niche.characterCode);
+                const held = owned.get(niche.characterCode) ?? null;
+                const serial = held?.serial ?? null;
+                const isOwned = held !== null;
 
                 return (
                   <div
@@ -79,27 +83,37 @@ export function Vitrina({ progress, t }: { progress: SetProgress; t: Dictionary 
                         names are pixels. This is where the names actually
                         exist for a screen reader, and where a niche you own
                         becomes a way into the piece. */}
-                    {isOwned && serial ? (
+                    {isOwned && serial && held?.qrToken ? (
+                      // A real link, not a button: without JavaScript this
+                      // still reaches the passport. The case intercepts the
+                      // click and opens the figure in place instead.
                       <Link
-                        href={`/collection#${serial}`}
+                        href={`/p/${held.qrToken}` as never}
                         className="vt-hit"
                         style={boxStyle(niche.espacio)}
                         title={`${niche.name} · ${printedSerial(serial)}`}
+                        data-niche={niche.characterCode}
+                        data-printed={printedSerial(serial)}
+                        data-token={held.qrToken}
+                        data-held="1"
                       >
                         <span className="sr-only">
                           {niche.name} · {printedSerial(serial)}
                         </span>
                       </Link>
                     ) : (
-                      <span
+                      <button
+                        type="button"
                         className="vt-hit"
                         style={boxStyle(niche.espacio)}
                         title={`${niche.name} — ${t.set.missing}`}
+                        data-niche={niche.characterCode}
+                        data-held="0"
                       >
                         <span className="sr-only">
                           {niche.name} — {t.set.missing}
                         </span>
-                      </span>
+                      </button>
                     )}
                   </div>
                 );

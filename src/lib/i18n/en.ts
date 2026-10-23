@@ -180,6 +180,7 @@ export const en = {
     matchedTitle: 'Matched set',
     matchedBody: 'All eight characters, every one of them number {number}.',
     matchedExtra: 'and also number {number}',
+    viewPassport: 'View passport',
     celebrate: 'Play the film',
     dismiss: 'Close',
   },

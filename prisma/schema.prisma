@@ -132,7 +132,11 @@ model CollectorId {
 model Product {
   id            String      @id @default(uuid()) @db.Uuid
   character     String
-  characterCode String      @map("character_code") @db.Char(2)
+  // VarChar, not Char(2). A fixed width of two silently blocked the BZ to BIZ
+  // rename for weeks and stopped Katana's product row from being created at
+  // all. What a character code may look like is enforced by CHARACTER_CODES
+  // and the serial parser, which are tested; this column only has to store it.
+  characterCode String      @map("character_code") @db.VarChar(8)
   editionType   EditionType @map("edition_type")
   series        String
   rarity        String

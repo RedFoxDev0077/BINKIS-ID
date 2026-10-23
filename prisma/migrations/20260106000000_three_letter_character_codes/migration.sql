@@ -1,0 +1,24 @@
+-- Character codes of more than two letters.
+--
+-- The registry has accepted three-letter codes since 15 October 2026, when
+-- the client renamed Bizarro from BZ to BIZ. The parser was widened to
+-- [A-Z]{2,3} and the tests were updated, but this column was not: it has been
+-- CHAR(2) since the first migration, a FIXED width of exactly two characters.
+--
+-- So that rename was never actually possible. `UPDATE products SET
+-- character_code = 'BIZ'` fails on the column type, which is why production
+-- still reads BZ while every file the client holds reads BIZ. It surfaced on
+-- 23 October 2026, when Katana (KTN) was ordered and the generator could not
+-- create her product row at all.
+--
+-- VARCHAR(8) rather than VARCHAR(3). The width here was never the right place
+-- to enforce what a character code looks like: CHARACTER_CODES and the serial
+-- parser do that, they are tested, and they are where a change gets noticed.
+-- All this column did was block a change the rest of the system had already
+-- made, silently, and months later. Eight leaves room for whatever comes next
+-- without inviting junk.
+--
+-- CHAR is blank-padded and VARCHAR is not. Every existing value is exactly
+-- two characters, so nothing is trimmed and no comparison changes meaning.
+
+ALTER TABLE "products" ALTER COLUMN "character_code" TYPE VARCHAR(8);

@@ -179,13 +179,13 @@ export const es: typeof en = {
   home: {
     identityTitle: 'Una pieza, una identidad',
     identityBody:
-      'Cada BINKI físico lleva su propio número, QR y Código de Reclamo oculto. No hay dos iguales, y ninguno se puede deducir de otro.',
-    proofTitle: 'La prueba de que lo tienes',
+      'Cada Binki tiene su propio número de serie y una identidad digital. Puede haber otros del mismo personaje, pero el tuyo tiene una historia propia. Y tú formas parte de ella.',
+    proofTitle: 'Regístralo como tuyo',
     proofBody:
-      'Un QR fotografiado abre la misma página pública que ve cualquiera. Para reclamar hace falta el código bajo el panel raspable, que solo tiene quien la posee.',
-    historyTitle: 'Un historial que permanece',
+      'El QR te permite conocer la ficha pública de tu Binki. Para registrarlo en tu colección, descubre el código secreto bajo la zona para raspar. No lo compartas: es la clave para su primer registro.',
+    historyTitle: 'Su historia continúa',
     historyBody:
-      'Los dueños cambian. La pieza conserva su identidad y a todos los dueños que ha tenido, agregados y nunca reescritos.',
+      'Tu Binki conserva su identidad aunque cambie de dueño. Cada transferencia registrada suma un nuevo capítulo a su historia. Un regalo, un intercambio, un nuevo coleccionista… la aventura continúa.',
   },
   set: {
     title: 'Serie 1 · Classic',

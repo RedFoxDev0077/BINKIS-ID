@@ -171,13 +171,13 @@ export const en = {
   home: {
     identityTitle: 'One piece, one identity',
     identityBody:
-      'Every physical BINKI carries its own number, QR and hidden Claim Code. No two are alike, and none of them can be derived from another.',
-    proofTitle: 'Proof you hold it',
+      'Every Binki has its own serial number and a digital identity. There may be others of the same character, but yours has a story of its own. And you are part of it.',
+    proofTitle: 'Register it as yours',
     proofBody:
-      'A photographed QR opens the same public page anyone can see. Claiming needs the code under the scratch panel, which only the holder has.',
-    historyTitle: 'A history that keeps',
+      "The QR opens your Binki's public record. To register it in your collection, reveal the secret code under the scratch panel. Do not share it: it is the key to its first registration.",
+    historyTitle: 'Its story continues',
     historyBody:
-      'Owners change. The piece keeps its identity and every owner it has ever had, appended and never rewritten.',
+      'Your Binki keeps its identity even when it changes hands. Every recorded transfer adds a new chapter to its story. A gift, a trade, a new collector… the adventure continues.',
   },
   set: {
     title: 'Series 1 · Classic',

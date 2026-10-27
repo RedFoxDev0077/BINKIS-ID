@@ -75,10 +75,8 @@ export function MatchedSetVideo({
     return () => cancelAnimationFrame(frame);
   }, [number]);
 
-  // No film on the server, or a file that will not load: the number alone,
-  // which is the thing being celebrated.
-  // No film, or a file that will not load. The number alone is still worth
-  // showing; without one there is nothing here and the banner says it all.
+  // A file that will not load. The number alone is still worth showing;
+  // without one there is nothing here and the banner already says it.
   if (failed) {
     if (number === null) return null;
     return (

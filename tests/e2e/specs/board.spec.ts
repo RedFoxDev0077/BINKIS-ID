@@ -170,6 +170,55 @@ test.describe('the complete set', () => {
   });
 });
 
+test.describe('the other complete set', () => {
+  test('eight of eight at different numbers gets its own film, and no number', async ({
+    page,
+  }) => {
+    const { dave } = fixture();
+
+    await signIn(page, dave);
+    if (!/collection/.test(page.url())) await page.goto('/collection');
+
+    // Complete, and deliberately not aligned.
+    //
+    // Asserted against elements rather than against the body's text. Next
+    // serialises the whole dictionary into the RSC payload, so "Matched set"
+    // is present in the page source of every page whatever is on screen, and
+    // a negative match on body text can never fail.
+    const body = await page.textContent('body');
+    expect(body).toMatch(/8\s*(of|de)\s*8/);
+
+    // The client's correction of 26 October: this completion has a film of
+    // its own, by the same animator, and it is a different film.
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(/series complete|serie completa/i);
+    await expect(dialog).not.toContainText(/matched set|colecci[oó]n alineada/i);
+
+    const video = dialog.locator('video');
+    await expect(video).toHaveAttribute('src', '/celebracion/coleccion-completa.mp4');
+
+    // No number over it. There is no single number for eight unrelated
+    // pieces, which is the whole reason this is a different film, and a zero
+    // would be worse than nothing.
+    await expect(dialog.locator('.cl-numero')).toHaveCount(0);
+    await expect(dialog).not.toContainText(/N° 000000/);
+    await page.screenshot({ path: 'tests/e2e/.artifacts/complete-set-moment.png' });
+
+    await dialog.getByRole('button').click();
+    await expect(dialog).toBeHidden();
+
+    // The banner stays, and still does not claim an alignment that is not there.
+    const banner = page.getByRole('status');
+    await expect(banner).toContainText(/series complete|serie completa/i);
+    await expect(banner).not.toContainText(/matched set|colecci[oó]n alineada/i);
+
+    // Second visit: the moment does not replay.
+    await page.goto('/collection');
+    await expect(page.getByRole('dialog')).toBeHidden();
+  });
+});
+
 test.describe('reaching the collection', () => {
   test('the collection is one tap away on a phone, from any page', async ({ page }) => {
     const { carol } = fixture();

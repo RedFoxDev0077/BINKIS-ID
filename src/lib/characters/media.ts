@@ -67,15 +67,16 @@ export const MATCHED_SET_FILM = "/celebracion/mismo-numero.mp4";
  * separate video we have for when someone collects eight different numbers.
  * That video is different and was made by Mauricio."
  *
- * Null until that file arrives. Null is not a placeholder to be tidied away:
- * it is the honest state of the thing, and the celebration falls back to the
- * banner it has always shown rather than reaching for a file that is not
- * there. Point this at the clip and the full-screen moment turns itself on.
+ * Arrived 27 October 2026 in the animator's own archive, at 1080 x 1920 and
+ * 60 fps. What ships is the web cut, the same treatment the matched-number
+ * film gets and for the same reason: this plays on a phone, on mobile data,
+ * in the one moment of the product that should not stall.
  *
  * It carries NO number. There is no single number to show for a set of eight
- * unrelated pieces, which is the whole difference between the two films.
+ * unrelated pieces, which is the whole difference between the two films, and
+ * the player skips the overlay rather than drawing a zero.
  */
-export const COMPLETE_SET_FILM: string | null = null;
+export const COMPLETE_SET_FILM: string | null = '/celebracion/coleccion-completa.mp4';
 
 export function characterMedia(characterCode: string): CharacterMedia | null {
   return CHARACTER_MEDIA[characterCode.toUpperCase()] ?? null;

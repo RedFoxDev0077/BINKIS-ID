@@ -45,6 +45,14 @@ export interface E2EFixture {
   carol: E2EAccount;
   /** The number carol's matched set carries, for the assertions. */
   matchedNumber: number;
+  /**
+   * Owns all eight Classics too, but every one a different number.
+   *
+   * The other completion, and the one most collectors actually reach. It
+   * earns its own film rather than the matched-number one, so it needs a
+   * collector who is complete without being aligned.
+   */
+  dave: E2EAccount;
 }
 
 export const FIXTURE_PATH = resolve(process.cwd(), 'tests/e2e/.fixture.json');
@@ -65,6 +73,9 @@ const CLASSIC_CAST = [
 
 /** 777, because that is the number a collector would brag about. */
 const MATCHED_NUMBER = 777;
+
+/** Well clear of MATCHED_NUMBER, so dave's set cannot align by accident. */
+const MIXED_START = 2_000;
 
 /**
  * Generous on purpose. Every test that claims needs a piece nobody has
@@ -184,6 +195,7 @@ export async function seedE2E(databaseUrl: string, pepper: string): Promise<E2EF
       { email: 'alice@binkis.test', password: PASSWORD, handle: 'alice' },
       { email: 'bob@binkis.test', password: PASSWORD, handle: 'bob' },
       { email: 'carol@binkis.test', password: PASSWORD, handle: 'carol' },
+      { email: 'dave@binkis.test', password: PASSWORD, handle: 'dave' },
     ];
 
     for (const account of accounts) {
@@ -259,6 +271,56 @@ export async function seedE2E(databaseUrl: string, pepper: string): Promise<E2EF
       });
     }
 
+    // The same eight characters for dave, every one a different number, so
+    // the set is complete and nothing lines up. MIXED_START is spaced wide
+    // enough that no two characters can collide on a number by accident.
+    const dave = await prisma.user.findUniqueOrThrow({ where: { email: 'dave@binkis.test' } });
+    const daveCollector = await prisma.collectorId.findUniqueOrThrow({
+      where: { userId: dave.id },
+    });
+
+    let offset = 0;
+    for (const [code] of CLASSIC_CAST) {
+      offset += 1;
+      const setProduct = await prisma.product.findFirstOrThrow({
+        where: { characterCode: code, editionType: 'CLASSIC', series: 'Series 1' },
+      });
+
+      const mixedBatch = await prisma.batch.create({
+        data: {
+          code: `B-E2E-MIX-${code}`,
+          productId: setProduct.id,
+          quantity: 1,
+          status: 'GENERATED',
+        },
+      });
+
+      const [piece] = await generatePieces({
+        prisma,
+        batchCode: mixedBatch.code,
+        quantity: 1,
+        pepper,
+        producedAt: new Date('2026-02-01'),
+        country: 'MX',
+        startSequence: MIXED_START + offset * 13,
+      });
+
+      const row = await prisma.piece.findUniqueOrThrow({ where: { serial: piece!.serial } });
+      await prisma.piece.update({
+        where: { id: row.id },
+        data: { status: 'CLAIMED', verified: true },
+      });
+      await prisma.ownershipEvent.create({
+        data: {
+          pieceId: row.id,
+          seq: 1,
+          toCollectorId: daveCollector.id,
+          acquiredVia: 'CLAIM',
+          occurredAt: new Date('2026-03-01'),
+        },
+      });
+    }
+
     const fixture: E2EFixture = {
       pieces: minted.map((piece) => ({
         serial: piece.serial,
@@ -270,6 +332,7 @@ export async function seedE2E(databaseUrl: string, pepper: string): Promise<E2EF
       bob: accounts[1]!,
       carol: accounts[2]!,
       matchedNumber: MATCHED_NUMBER,
+      dave: accounts[3]!,
     };
 
     mkdirSync(dirname(FIXTURE_PATH), { recursive: true });

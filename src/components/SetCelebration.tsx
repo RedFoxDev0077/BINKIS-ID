@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { fill } from '@/lib/i18n/fill';
-import { MATCHED_SET_FILM } from '@/lib/characters/media';
+import { COMPLETE_SET_FILM, MATCHED_SET_FILM } from '@/lib/characters/media';
 import { MatchedSetVideo } from '@/components/MatchedSetVideo';
 
 /**
@@ -41,6 +41,11 @@ export function SetCelebration({
 }) {
   const matched = matchingNumbers.length > 0;
   const headline = matched ? matchingNumbers[0]! : null;
+
+  // Which film this completion earns, if any. The matched set has always had
+  // one; the ordinary completion gets one the moment its file exists, and
+  // until then it keeps the banner it has always had.
+  const film = matched ? MATCHED_SET_FILM : COMPLETE_SET_FILM;
   const [showing, setShowing] = useState(false);
   const [reduced, setReduced] = useState(false);
   // The portal below needs a document, which the server does not have.
@@ -53,9 +58,10 @@ export function SetCelebration({
   useEffect(() => {
     setMounted(true);
     setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    // Only the rare one interrupts. The ordinary completion gets its banner
-    // and nothing more.
-    if (!matched) return;
+    // A completion only interrupts if there is something to interrupt with.
+    // Without a film the banner says it, and a modal holding a line of text
+    // the page is already showing is just something to dismiss.
+    if (!film) return;
     try {
       if (window.localStorage.getItem(seenKey)) return;
       window.localStorage.setItem(seenKey, String(Date.now()));
@@ -63,7 +69,7 @@ export function SetCelebration({
       // Private window, blocked storage: show it. Twice is better than never.
     }
     setShowing(true);
-  }, [matched, seenKey]);
+  }, [film, seenKey]);
 
   return (
     <>
@@ -87,7 +93,7 @@ export function SetCelebration({
                 .join(', ')}
             </p>
           ) : null}
-          {matched && !showing ? (
+          {film && !showing ? (
             <button
               type="button"
               onClick={() => setShowing(true)}
@@ -119,7 +125,7 @@ export function SetCelebration({
               >
                 <div className="rounded-3xl bg-ink-925 px-5 py-6 text-center sm:px-7 sm:py-7">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-400">
-                    {t.matchedTitle}
+                    {matched ? t.matchedTitle : t.completeTitle}
                   </p>
 
                   {/* The film is 9:16, which is taller than a phone once the
@@ -131,14 +137,14 @@ export function SetCelebration({
                     style={{ maxWidth: 'min(100%, calc(52vh * 9 / 16))' }}
                   >
                     <MatchedSetVideo
-                      src={MATCHED_SET_FILM}
-                      number={pad(headline ?? 0)}
-                      label={fill(t.matchedBody, { number: pad(headline ?? 0) })}
+                      src={film!}
+                      number={matched ? pad(headline!) : null}
+                      label={matched ? fill(t.matchedBody, { number: pad(headline!) }) : t.completeBody}
                     />
                   </div>
 
                   <p className="mt-5 text-sm leading-relaxed text-ink-300">
-                    {fill(t.matchedBody, { number: pad(headline ?? 0) })}
+                    {matched ? fill(t.matchedBody, { number: pad(headline!) }) : t.completeBody}
                   </p>
                   <button
                     type="button"

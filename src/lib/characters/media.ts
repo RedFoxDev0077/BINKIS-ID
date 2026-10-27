@@ -59,6 +59,24 @@ export const BRAND_MASCOT = {
  */
 export const MATCHED_SET_FILM = "/celebracion/mismo-numero.mp4";
 
+/**
+ * The OTHER completion: eight different characters, numbers unrelated.
+ *
+ * A separate film by the same animator, and the client's correction of
+ * 26 October 2026 after he tested the first one: "What doesn't display is the
+ * separate video we have for when someone collects eight different numbers.
+ * That video is different and was made by Mauricio."
+ *
+ * Null until that file arrives. Null is not a placeholder to be tidied away:
+ * it is the honest state of the thing, and the celebration falls back to the
+ * banner it has always shown rather than reaching for a file that is not
+ * there. Point this at the clip and the full-screen moment turns itself on.
+ *
+ * It carries NO number. There is no single number to show for a set of eight
+ * unrelated pieces, which is the whole difference between the two films.
+ */
+export const COMPLETE_SET_FILM: string | null = null;
+
 export function characterMedia(characterCode: string): CharacterMedia | null {
   return CHARACTER_MEDIA[characterCode.toUpperCase()] ?? null;
 }

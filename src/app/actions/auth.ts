@@ -4,7 +4,7 @@ import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/client';
-import { hashPassword, verifyPassword } from '@/lib/auth/password';
+import { MIN_PASSWORD_LENGTH, hashPassword, verifyPassword } from '@/lib/auth/password';
 import {
   SESSION_COOKIE,
   createSession,
@@ -15,11 +15,51 @@ import {
 import { getCurrentSession } from '@/lib/auth/current';
 import { signInSchema, signUpSchema } from '@/lib/validation/auth';
 import { claimPendingTransfersForEmail } from '@/lib/db/transfer';
-import { getTranslations } from '@/lib/i18n';
+import { getTranslations, fill, type Dictionary } from '@/lib/i18n';
+import { HANDLE_MAX, HANDLE_MIN } from '@/lib/validation/auth';
 
 export interface AuthState {
   error?: string;
   fieldErrors?: Record<string, string>;
+}
+
+/**
+ * A validation failure, in the language the page is being read in.
+ *
+ * Zod carries one message per rule and it is written in English at the point
+ * the schema is declared, where no locale exists yet. Those messages were
+ * going straight to the screen, so a collector on the Spanish signup page was
+ * told "Password must be at least 10 characters" in English. The client
+ * photographed exactly that on 26 October 2026.
+ *
+ * Mapped by field and issue code rather than by matching the English text,
+ * which would break silently the first time a message is reworded. Anything
+ * unmapped falls back to Zod's own wording: still English, but only for rules
+ * a form cannot actually reach.
+ */
+function fieldMessage(
+  issue: { code: string; path: PropertyKey[]; message: string },
+  t: Dictionary,
+): string {
+  const field = String(issue.path[0] ?? '');
+
+  if (field === 'password') {
+    if (issue.code === 'too_small') {
+      return fill(t.auth.passwordTooShort, { min: MIN_PASSWORD_LENGTH });
+    }
+    if (issue.code === 'too_big') return t.auth.passwordTooLong;
+  }
+
+  if (field === 'email') return t.auth.emailInvalid;
+
+  if (field === 'handle') {
+    if (issue.code === 'too_small') return fill(t.auth.handleTooShort, { min: HANDLE_MIN });
+    if (issue.code === 'too_big') return fill(t.auth.handleTooLong, { max: HANDLE_MAX });
+    if (issue.code === 'custom') return t.auth.handleReserved;
+    return t.auth.handleInvalid;
+  }
+
+  return issue.message;
 }
 
 async function requestContext() {
@@ -56,7 +96,7 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues) {
       const key = String(issue.path[0] ?? 'form');
-      fieldErrors[key] ??= issue.message;
+      fieldErrors[key] ??= fieldMessage(issue, t);
     }
     return { fieldErrors };
   }

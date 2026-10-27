@@ -12,12 +12,16 @@ const RESERVED_HANDLES = new Set([
   'me', 'you', 'anonymous', 'deleted', 'p', 'claim', 'passport',
 ]);
 
+/** Shared with the translated messages, so the rule and the text agree. */
+export const HANDLE_MIN = 3;
+export const HANDLE_MAX = 24;
+
 export const handleSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .min(3, 'Handle must be at least 3 characters')
-  .max(24, 'Handle must be 24 characters or fewer')
+  .min(HANDLE_MIN, `Handle must be at least ${HANDLE_MIN} characters`)
+  .max(HANDLE_MAX, `Handle must be ${HANDLE_MAX} characters or fewer`)
   .regex(/^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/, 'Use letters, numbers, hyphen and underscore only')
   .refine((value) => !RESERVED_HANDLES.has(value), 'That handle is reserved');
 

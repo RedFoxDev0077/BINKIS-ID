@@ -1,0 +1,1105 @@
+/* ==========================================================================
+ * BINKIS ID — "How to register your Binki" tutorial.
+ *
+ * A bottom sheet (a centered dialog from 640 px up) that walks a first-time
+ * collector through the claim, one illustrated step at a time, with Águila
+ * as the guide. Everything is prefixed `bkt-` so it cannot collide with the
+ * site's Tailwind classes, and every color and font is a custom property
+ * that defaults to the site's own tokens (read off id.binkis.com on
+ * 28-oct-2026) — override them on `.bkt-root` if the site changes.
+ *
+ * Motion rule: the BASE style of every animated element is its final,
+ * readable state; the keyframes only add the way in. Under
+ * prefers-reduced-motion the animations are dropped and each scene simply
+ * shows its end state.
+ * ========================================================================== */
+
+.bkt-root {
+  --bkt-bg: oklch(0.145 0.008 265);
+  --bkt-sheet: oklch(0.185 0.01 265);
+  --bkt-surface: oklch(0.235 0.012 265);
+  --bkt-line: oklch(1 0 0 / 0.09);
+  --bkt-text: oklch(0.965 0.006 265);
+  --bkt-muted: oklch(0.72 0.016 265);
+  --bkt-accent: oklch(0.76 0.17 195);
+  --bkt-accent-ink: oklch(0.145 0.008 265);
+  --bkt-warn: oklch(0.83 0.14 80);
+  --bkt-ok: oklch(0.78 0.17 150);
+  --bkt-display: "Bebas Neue", Oswald, ui-sans-serif, system-ui, sans-serif;
+  --bkt-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --bkt-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  /* every scene is drawn at 252 px tall and scaled by --bkt-k on short
+   * screens, so the illustrations shrink as a whole instead of clipping */
+  --bkt-k: 1;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: none;
+  font-family: var(--bkt-sans);
+  color: var(--bkt-text);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.bkt-root[data-mounted] {
+  display: block;
+}
+.bkt-root *,
+.bkt-root *::before,
+.bkt-root *::after {
+  box-sizing: border-box;
+}
+.bkt-root button {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+.bkt-root img {
+  display: block;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.bkt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------- the shell ------------------------------- */
+
+.bkt-backdrop {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.08 0.01 265 / 0.72);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.bkt-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  /* a fixed height, so the sheet does not jump as the copy changes length;
+   * a step that does not fit scrolls inside .bkt-body */
+  height: min(92vh, 650px);
+  background: var(--bkt-sheet);
+  border: 1px solid var(--bkt-line);
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -18px 50px oklch(0 0 0 / 0.45);
+  transform: translateY(104%);
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  outline: none;
+}
+@supports (height: 1dvh) {
+  .bkt-sheet {
+    height: min(92dvh, 650px);
+  }
+}
+.bkt-root.is-open .bkt-backdrop {
+  opacity: 1;
+}
+.bkt-root.is-open .bkt-sheet {
+  transform: translateY(0);
+}
+.bkt-root.is-dragging .bkt-sheet {
+  transition: none;
+}
+
+.bkt-head {
+  position: relative;
+  flex: none;
+  padding: 10px 56px 4px 20px;
+  touch-action: none;
+  cursor: grab;
+}
+.bkt-grab {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 2px;
+  background: oklch(1 0 0 / 0.22);
+}
+.bkt-kicker {
+  margin: 0;
+  min-height: 16px;
+  font: 500 11px/16px var(--bkt-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bkt-accent);
+}
+.bkt-x {
+  position: absolute;
+  top: 14px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bkt-muted);
+  cursor: pointer;
+}
+.bkt-x:hover {
+  color: var(--bkt-text);
+  background: oklch(1 0 0 / 0.06);
+}
+
+.bkt-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 20px 4px;
+  touch-action: pan-y;
+}
+.bkt-title {
+  margin: 16px 0 6px;
+  font: 400 32px/1 var(--bkt-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  outline: none;
+}
+.bkt-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--bkt-muted);
+}
+.bkt-text b {
+  color: var(--bkt-text);
+  font-weight: 600;
+}
+.bkt-note {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bkt-surface);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--bkt-muted);
+}
+.bkt-note[hidden] {
+  display: none;
+}
+.bkt-note svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--bkt-accent);
+}
+.bkt-note b {
+  color: var(--bkt-text);
+  font-weight: 600;
+}
+.bkt-note--warn {
+  background: oklch(0.83 0.14 80 / 0.1);
+  box-shadow: inset 3px 0 0 var(--bkt-warn);
+}
+.bkt-note--warn svg {
+  color: var(--bkt-warn);
+}
+
+.bkt-foot {
+  position: relative;
+  flex: none;
+  padding: 10px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--bkt-line);
+  transition: box-shadow 0.2s ease;
+}
+/* there is more copy below the fold: say so */
+.bkt-root.has-more .bkt-foot {
+  box-shadow: 0 -16px 18px -6px oklch(0 0 0 / 0.6);
+}
+.bkt-dots {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.bkt-dots[hidden] {
+  display: none;
+}
+.bkt-dot {
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.bkt-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: oklch(1 0 0 / 0.2);
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+.bkt-dot.is-done::before {
+  background: oklch(0.76 0.17 195 / 0.5);
+}
+.bkt-dot[aria-current="step"]::before {
+  width: 20px;
+  background: var(--bkt-accent);
+}
+.bkt-nav {
+  display: flex;
+  gap: 10px;
+}
+.bkt-btn {
+  flex: 1;
+  min-height: 50px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.2s ease;
+}
+.bkt-btn:active {
+  transform: scale(0.97);
+}
+.bkt-btn--primary {
+  flex: 1.6;
+  background: var(--bkt-accent);
+  color: var(--bkt-accent-ink) !important;
+}
+.bkt-btn--ghost {
+  background: transparent;
+  border-color: var(--bkt-line);
+  color: var(--bkt-muted) !important;
+}
+.bkt-root :focus-visible {
+  outline: 2px solid var(--bkt-accent);
+  outline-offset: 2px;
+}
+/* the dialog itself takes focus on open only so screen readers start there */
+.bkt-root .bkt-sheet:focus,
+.bkt-root .bkt-title:focus {
+  outline: none;
+}
+
+/* -------------------------------- the stage ------------------------------ */
+
+.bkt-stage {
+  position: relative;
+  height: calc(252px * var(--bkt-k));
+  border-radius: 18px;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 70% 0%, oklch(0.3 0.06 280 / 0.55), transparent 60%), radial-gradient(90% 80% at 10% 100%, oklch(0.35 0.08 195 / 0.35), transparent 65%), var(--bkt-bg);
+  isolation: isolate;
+}
+.bkt-scene {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100% / var(--bkt-k));
+  height: 252px;
+  transform: scale(var(--bkt-k));
+  transform-origin: 0 0;
+}
+/* the slide-in uses `translate`, not `transform`, so it composes with the
+ * scale above instead of replacing it */
+.bkt-scene.is-in-next {
+  animation: bkt-in-next 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bkt-scene.is-in-prev {
+  animation: bkt-in-prev 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes bkt-in-next {
+  from {
+    opacity: 0;
+    translate: 28px 0;
+  }
+}
+@keyframes bkt-in-prev {
+  from {
+    opacity: 0;
+    translate: -28px 0;
+  }
+}
+
+/* Águila, the guide: bottom-left of every scene, a new pose per step */
+.bkt-guide {
+  position: absolute;
+  left: 2px;
+  bottom: -6px;
+  z-index: 3;
+  height: 136px;
+  width: auto;
+  filter: drop-shadow(0 10px 14px oklch(0 0 0 / 0.45));
+  transform-origin: 50% 100%;
+  animation: bkt-guide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+@keyframes bkt-guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.86);
+  }
+}
+
+/* the hologram — 1000 x 1200 design units; every overlay is a % of it */
+.bkt-holo {
+  position: absolute;
+  aspect-ratio: 1000 / 1200;
+  border-radius: 6% / 5%;
+}
+.bkt-holo > img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+.bkt-holo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 40%, oklch(1 0 0 / 0.38) 50%, transparent 60%) 0 0 / 300% 100% no-repeat;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: bkt-sheen 4.2s ease-in-out infinite;
+}
+@keyframes bkt-sheen {
+  0%,
+  35% {
+    background-position: 110% 0;
+  }
+  75%,
+  100% {
+    background-position: -10% 0;
+  }
+}
+
+/* --- scene 0: hello ------------------------------------------------------ */
+
+.bkt-s0 .bkt-guide {
+  left: 5%;
+  height: 162px;
+}
+.bkt-s0 .bkt-holo {
+  right: 8%;
+  top: 34px;
+  width: 128px;
+  box-shadow: 0 18px 40px oklch(0 0 0 / 0.5);
+  animation: bkt-float 4s ease-in-out infinite;
+}
+@keyframes bkt-float {
+  0%,
+  100% {
+    transform: rotate(7deg) translateY(0);
+  }
+  50% {
+    transform: rotate(4deg) translateY(-8px);
+  }
+}
+.bkt-bubble {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 4;
+  max-width: 150px;
+  padding: 9px 12px;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--bkt-text);
+  color: var(--bkt-bg);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  animation: bkt-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s both;
+}
+@keyframes bkt-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(8px);
+  }
+}
+
+/* --- scene 1: find the hologram ------------------------------------------ */
+
+.bkt-s1 .bkt-holo {
+  left: calc(50% - 46px);
+  top: 16px;
+  height: 222px;
+  box-shadow: 0 16px 36px oklch(0 0 0 / 0.5);
+}
+.bkt-ring {
+  position: absolute;
+  border: 2.5px solid var(--bkt-accent);
+  border-radius: 10px;
+  box-shadow: 0 0 0 4px oklch(0.76 0.17 195 / 0.25), 0 0 22px oklch(0.76 0.17 195 / 0.7);
+  animation: bkt-ring 6.6s ease-in-out infinite both;
+}
+.bkt-ring > span {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bkt-accent);
+  color: var(--bkt-accent-ink);
+  font: 700 11px/1 var(--bkt-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.bkt-ring--id {
+  left: 5%;
+  top: 50.5%;
+  width: 90%;
+  height: 14.3%;
+}
+.bkt-ring--qr {
+  left: 4.6%;
+  top: 64%;
+  width: 32%;
+  height: 26.6%;
+  animation-delay: 2.2s;
+}
+.bkt-ring--code {
+  left: 40.6%;
+  top: 70.2%;
+  width: 37.6%;
+  height: 15.2%;
+  animation-delay: 4.4s;
+}
+@keyframes bkt-ring {
+  0% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+  5%,
+  29% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  34%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* --- scene 2: scan the QR ------------------------------------------------ */
+
+.bkt-phone {
+  position: absolute;
+  left: calc(50% - 30px);
+  top: 6px;
+  width: 152px;
+  height: 244px;
+  border-radius: 28px;
+  background: #0a0b0f;
+  border: 3px solid oklch(0.38 0.012 265);
+  box-shadow: 0 18px 40px oklch(0 0 0 / 0.55), inset 0 0 0 1px oklch(1 0 0 / 0.06);
+  animation: bkt-hand 3.2s ease-in-out infinite;
+}
+@keyframes bkt-hand {
+  0%,
+  100% {
+    transform: rotate(-3deg) translate(0, 0);
+  }
+  50% {
+    transform: rotate(-1.5deg) translate(2px, -4px);
+  }
+}
+.bkt-screen {
+  position: absolute;
+  inset: 6px;
+  border-radius: 21px;
+  overflow: hidden;
+  background: #000;
+}
+/* the hologram behind the camera, scaled so its QR (28 % wide, centred at
+ * 20.6 % / 77.17 %) sits in the middle of the viewfinder of a 134 x 226
+ * screen: centre (67, 113) */
+.bkt-screen .bkt-holo {
+  width: 350px;
+  left: -5.1px;
+  top: -211.1px;
+  border-radius: 0;
+  animation: bkt-drift 3.2s ease-in-out infinite;
+}
+.bkt-screen .bkt-holo::after {
+  display: none;
+}
+@keyframes bkt-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-3px, 3px);
+  }
+}
+.bkt-finder {
+  position: absolute;
+  left: 9px;
+  top: 55px;
+  width: 116px;
+  height: 116px;
+  overflow: hidden;
+}
+.bkt-finder svg {
+  position: absolute;
+  inset: 0;
+}
+.bkt-finder::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 2px;
+  background: var(--bkt-accent);
+  box-shadow: 0 0 10px 2px oklch(0.76 0.17 195 / 0.8);
+  animation: bkt-scan 1.6s ease-in-out infinite alternate;
+}
+@keyframes bkt-scan {
+  from {
+    top: 10px;
+  }
+  to {
+    top: calc(100% - 12px);
+  }
+}
+.bkt-notif {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 8px;
+  border-radius: 12px;
+  background: oklch(0.26 0.012 265 / 0.95);
+  font-size: 9.5px;
+  white-space: nowrap;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--bkt-text);
+  box-shadow: 0 6px 16px oklch(0 0 0 / 0.5);
+  animation: bkt-notif 6s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
+}
+.bkt-notif svg {
+  flex: none;
+  color: var(--bkt-accent);
+}
+.bkt-notif em {
+  margin-left: auto;
+  font-style: normal;
+  color: var(--bkt-accent);
+}
+@keyframes bkt-notif {
+  0%,
+  40% {
+    opacity: 0;
+    transform: translateY(-140%);
+  }
+  48%,
+  88% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  96%,
+  100% {
+    opacity: 0;
+    transform: translateY(-140%);
+  }
+}
+.bkt-tap {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  background: oklch(1 0 0 / 0.55);
+  opacity: 0;
+  pointer-events: none;
+  animation: bkt-tap 6s ease-out infinite;
+}
+.bkt-s2 .bkt-tap {
+  right: 14px;
+  top: 25px;
+}
+@keyframes bkt-tap {
+  0%,
+  64% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  66% {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  78%,
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+/* --- scenes 3 and 6: a card that mirrors the site's own ------------------ */
+
+.bkt-card {
+  position: absolute;
+  right: 12px;
+  top: 22px;
+  width: min(214px, 64%);
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bkt-surface);
+  border: 1px solid var(--bkt-line);
+  box-shadow: 0 16px 34px oklch(0 0 0 / 0.45);
+  animation: bkt-card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+@keyframes bkt-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+}
+.bkt-card > svg {
+  display: block;
+  color: var(--bkt-muted);
+}
+.bkt-card h4 {
+  margin: 8px 0 4px;
+  font: 400 19px/1.05 var(--bkt-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--bkt-text);
+}
+.bkt-card p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--bkt-muted);
+}
+.bkt-card-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.bkt-card-btns span {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--bkt-line);
+  color: var(--bkt-text);
+  white-space: nowrap;
+}
+.bkt-card-btns span:first-child {
+  background: var(--bkt-accent);
+  border-color: transparent;
+  color: var(--bkt-accent-ink);
+}
+.bkt-s3 .bkt-tap {
+  left: 50%;
+  top: 50%;
+  animation: bkt-tap-card 3.6s ease-out 1s infinite;
+}
+@keyframes bkt-tap-card {
+  0%,
+  10% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  14% {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  30%,
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.bkt-card--win {
+  top: 24px;
+  text-align: center;
+  border-color: oklch(0.78 0.17 150 / 0.35);
+  background: radial-gradient(90% 70% at 50% 0%, oklch(0.78 0.17 150 / 0.18), transparent 70%), var(--bkt-surface);
+}
+.bkt-card--win > svg {
+  margin: 2px auto 0;
+  color: var(--bkt-ok);
+  filter: drop-shadow(0 0 10px oklch(0.78 0.17 150 / 0.6));
+  animation: bkt-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+}
+.bkt-card--win h4 {
+  font-size: 24px;
+}
+.bkt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid oklch(0.78 0.17 150 / 0.5);
+  font: 500 10px/1 var(--bkt-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bkt-ok);
+}
+.bkt-spark {
+  position: absolute;
+  z-index: 2;
+  width: 14px;
+  height: 14px;
+  color: var(--bkt-text);
+  animation: bkt-twinkle 2.4s ease-in-out infinite;
+}
+@keyframes bkt-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+.bkt-s6 .bkt-guide {
+  animation: bkt-guide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both, bkt-hop 1.3s ease-in-out 0.7s infinite;
+}
+@keyframes bkt-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-12px);
+  }
+}
+
+/* --- scene 4: scratch the hologram --------------------------------------- */
+
+/* the bottom row of the hologram, close up: the scratch panel (33.8 % wide,
+ * centred at 59.4 % / 77.75 %) is ~200 px wide on a 592 px hologram */
+.bkt-s4 .bkt-holo {
+  width: 592px;
+  left: calc(50% + 30px - 351.6px);
+  top: calc(126px - 552px);
+}
+.bkt-s4 .bkt-holo::after {
+  display: none;
+}
+.bkt-rasca,
+.bkt-coin {
+  position: absolute;
+  left: 42.5%;
+  top: 71.667%;
+  width: 33.8%;
+  height: 12.1667%;
+}
+/* before step 4 the code is still covered: the same patch, unmasked, still */
+.bkt-rasca--tapada {
+  -webkit-mask: none !important;
+  mask: none !important;
+  animation: none !important;
+}
+/* the image itself is set from the JS: a url() here would make a bundler
+ * (webpack, in the Next.js package) try to resolve it at build time */
+.bkt-rasca {
+  border-radius: 4.1% / 9.6%;
+  background: center / 100% 100%;
+  -webkit-mask: linear-gradient(90deg, transparent 44%, #000 56%) 0 0 / 230% 100% no-repeat;
+  mask: linear-gradient(90deg, transparent 44%, #000 56%) 0 0 / 230% 100% no-repeat;
+  animation: bkt-scratch 5.4s linear infinite;
+}
+@keyframes bkt-scratch {
+  0%,
+  14% {
+    opacity: 1;
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  60% {
+    opacity: 1;
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  88% {
+    opacity: 1;
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  89% {
+    opacity: 0;
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  90% {
+    opacity: 0;
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  100% {
+    opacity: 1;
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+}
+.bkt-coin {
+  pointer-events: none;
+  animation: bkt-coin-x 5.4s linear infinite;
+  opacity: 0;
+}
+.bkt-coin > i {
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #c9ccd6 45%, #8a8f9c 100%);
+  box-shadow: 0 6px 12px oklch(0 0 0 / 0.5), inset 0 0 0 3px oklch(1 0 0 / 0.5), inset 0 0 0 5px oklch(0 0 0 / 0.12);
+  animation: bkt-coin-y 0.3s ease-in-out infinite alternate;
+}
+@keyframes bkt-coin-x {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  14% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(200px);
+  }
+  68%,
+  100% {
+    opacity: 0;
+    transform: translateX(230px);
+  }
+}
+@keyframes bkt-coin-y {
+  from {
+    transform: translateY(-14px) rotate(-12deg);
+  }
+  to {
+    transform: translateY(14px) rotate(12deg);
+  }
+}
+
+/* --- scene 5: type the code ---------------------------------------------- */
+
+.bkt-form {
+  position: absolute;
+  right: 12px;
+  top: calc(50% - 66px);
+  width: min(236px, 66%);
+}
+.bkt-form label {
+  display: block;
+  margin-bottom: 6px;
+  font: 500 9.5px/1.2 var(--bkt-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bkt-muted);
+}
+.bkt-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid var(--bkt-accent);
+  background: var(--bkt-bg);
+  box-shadow: 0 0 0 3px oklch(0.76 0.17 195 / 0.15);
+  font: 500 17px/1 var(--bkt-mono);
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  color: var(--bkt-text);
+}
+.bkt-field .bkt-auto {
+  color: var(--bkt-accent);
+}
+.bkt-field .bkt-ph {
+  color: oklch(1 0 0 / 0.25);
+}
+.bkt-caret {
+  display: inline-block;
+  width: 2px;
+  height: 20px;
+  margin-left: 1px;
+  background: var(--bkt-accent);
+  animation: bkt-blink 1s steps(1) infinite;
+}
+@keyframes bkt-blink {
+  50% {
+    opacity: 0;
+  }
+}
+.bkt-submit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 42px;
+  margin-top: 12px;
+  border-radius: 10px;
+  background: var(--bkt-accent);
+  color: var(--bkt-accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.12s ease, filter 0.2s ease;
+}
+.bkt-submit > span {
+  grid-area: 1 / 1;
+  transition: opacity 0.2s ease;
+}
+.bkt-submit > span + span {
+  opacity: 0;
+}
+.bkt-submit.is-pressed {
+  transform: scale(0.95);
+  filter: brightness(0.85);
+}
+.bkt-submit.is-working > span {
+  opacity: 0;
+}
+.bkt-submit.is-working > span + span {
+  opacity: 1;
+}
+.bkt-s5 .bkt-tap {
+  left: 50%;
+  top: 50%;
+  animation: none;
+}
+.bkt-submit.is-pressed .bkt-tap,
+.bkt-submit.is-working .bkt-tap {
+  animation: bkt-tap-once 0.6s ease-out both;
+}
+@keyframes bkt-tap-once {
+  from {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* -------------------------- the "how?" launcher -------------------------- */
+
+.bkt-launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: 600 15px/1.2 var(--bkt-sans, Inter, system-ui, sans-serif);
+  color: var(--bkt-accent, oklch(0.76 0.17 195));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.bkt-launch img {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  object-position: 50% 8%;
+  border-radius: 50%;
+  background: oklch(1 0 0 / 0.08);
+}
+
+/* ------------------------------ bigger screens --------------------------- */
+
+@media (min-width: 640px) {
+  .bkt-sheet {
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    width: 440px;
+    border-bottom: 1px solid var(--bkt-line);
+    border-radius: 22px;
+    transform: translate(-50%, -46%) scale(0.96);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+  }
+  .bkt-root.is-open .bkt-sheet {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+  .bkt-head {
+    cursor: default;
+  }
+  .bkt-grab {
+    visibility: hidden;
+  }
+  .bkt-foot {
+    padding-bottom: 18px;
+  }
+}
+@media (max-height: 700px) {
+  .bkt-root {
+    --bkt-k: 0.84;
+  }
+  .bkt-title {
+    margin-top: 12px;
+    font-size: 28px;
+  }
+}
+@media (max-height: 600px) {
+  .bkt-root {
+    --bkt-k: 0.7;
+  }
+  .bkt-text {
+    font-size: 15px;
+  }
+}
+
+/* ------------------------------ reduced motion --------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .bkt-root *,
+  .bkt-root *::before,
+  .bkt-root *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* all three rings show at once: the lower two label from below so the
+   * chips do not pile up on the ID bar */
+  .bkt-ring--qr > span,
+  .bkt-ring--code > span {
+    bottom: auto;
+    top: calc(100% + 6px);
+  }
+  .bkt-coin,
+  .bkt-tap {
+    display: none;
+  }
+}

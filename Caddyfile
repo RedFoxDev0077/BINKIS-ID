@@ -60,6 +60,13 @@ id.binkis.com {
 		header Cache-Control "public, max-age=31536000, immutable"
 	}
 
+	# Aguila's illustrations for the claim tutorial.
+	handle /binkis-tutorial/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
 	reverse_proxy app:3000 {
 		health_uri /
 		health_interval 10s

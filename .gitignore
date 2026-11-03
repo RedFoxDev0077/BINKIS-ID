@@ -125,5 +125,11 @@ public/brand/
 public/vitrina/
 public/celebracion/
 
+# Aguila's illustrations for the claim tutorial, from the same animator,
+# 2 November 2026. Small, but the rule is about what the files ARE, not what
+# they weigh: they are BINKIS artwork, and the repository is not where BINKIS
+# artwork lives. The component that uses them IS source and is committed.
+public/binkis-tutorial/
+
 # Screenshots a test run produces. Output, not source.
 tests/e2e/.artifacts/

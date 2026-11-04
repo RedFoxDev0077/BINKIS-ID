@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ClaimForm } from './ClaimForm';
-import BinkisTutorial from './binkis-tutorial/BinkisTutorial';
+import { ClaimGuideButton } from './ClaimGuideButton';
 import { TransferPanel } from './TransferPanel';
 import { Card } from './ui/Card';
 import type { Dictionary } from '@/lib/i18n';
@@ -83,28 +83,26 @@ export function ViewerActions({
     // Reserve the height the claim box will take, so the page does not jump
     // under someone's thumb as it arrives.
     if (!viewer) return <ClaimSkeleton />;
+
+    /*
+     * The guide is gated on the live `claimable`, NOT on arrivedUnclaimed.
+     *
+     * ClaimForm has to survive the post-claim refresh to show its reveal;
+     * the tutorial is the opposite case. The moment the piece is registered
+     * there is nothing left to teach, so it should go, and the prop that
+     * goes false is the right one to read.
+     *
+     * It is passed into the form rather than rendered beside it, because the
+     * client asked on 4 November 2026 for it to sit directly above the
+     * register button, and that button is inside the form.
+     */
     return (
-      <>
-        <ClaimForm qrToken={qrToken} signedIn={viewer.signedIn} t={t} />
-        {/* Gated on the live `claimable`, NOT on arrivedUnclaimed.
-            ClaimForm has to survive the post-claim refresh to show its
-            reveal; the tutorial is the opposite case. The moment the piece
-            is registered there is nothing left to teach, so it should go,
-            and the prop that goes false is the right one to read.
-
-            autoOpen is off, which is a change from how the package ships.
-            It opened by itself on the first unclaimed piece a browser saw,
-            and that puts a modal between a collector and the single thing
-            they came to do. Someone standing in a shop has already scratched
-            the panel and is holding the code; they do not need a six-step
-            guide first, they need the field. It also made the register
-            button unclickable while the dialog animated in, which the claim
-            e2e caught as "element is not stable" on four runs.
-
-            The button it renders stays, right under the form, so nothing is
-            hidden from anyone who does want the guide. */}
-        {claimable ? <BinkisTutorial locale={t.locale} autoOpen={false} /> : null}
-      </>
+      <ClaimForm
+        qrToken={qrToken}
+        signedIn={viewer.signedIn}
+        t={t}
+        guide={claimable ? <ClaimGuideButton t={t} /> : null}
+      />
     );
   }
 

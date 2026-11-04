@@ -67,6 +67,8 @@ export const en = {
     codeLabel: 'Secret code from the hologram',
     codePlaceholder: 'XXX-XXX-XXX',
     submit: 'Register my Binkis',
+    guideTitle: 'Águila shows you how to register your Binki',
+    guideCta: 'Watch the step-by-step guide',
     working: 'Checking',
     invalidFormat: 'That code is not complete yet.',
     checkFailed: 'That code has a typo. Check it against the hologram.',

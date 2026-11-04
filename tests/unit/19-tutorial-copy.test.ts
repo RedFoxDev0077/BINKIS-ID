@@ -105,3 +105,33 @@ describe('what the tutorial must never do', () => {
     expect(source).not.toMatch(/document\.cookie/);
   });
 });
+
+describe('the launcher card', () => {
+  /**
+   * The package ships a small underlined link. The client asked on
+   * 4 November 2026 for a full-width card above the register button, so the
+   * launcher is now ours: src/components/ClaimGuideButton.tsx, with its own
+   * two lines of copy in the dictionary.
+   *
+   * These cases exist because that card sits immediately above the one
+   * button this screen is for. If its wording ever drifts into sounding like
+   * the primary action, a collector taps help when they meant to register.
+   */
+  for (const locale of ['es', 'en'] as const) {
+    const t = getDictionary(locale);
+
+    it(`has both lines in ${locale}`, () => {
+      expect(t.claim.guideTitle.length).toBeGreaterThan(10);
+      expect(t.claim.guideCta.length).toBeGreaterThan(5);
+    });
+
+    it(`does not read like the register button in ${locale}`, () => {
+      expect(t.claim.guideTitle).not.toBe(t.claim.submit);
+      expect(t.claim.guideCta).not.toBe(t.claim.submit);
+    });
+
+    it(`names Aguila in ${locale}, because the character is the invitation`, () => {
+      expect(t.claim.guideTitle.normalize('NFD').replace(/\p{M}/gu, '')).toMatch(/Aguila/i);
+    });
+  }
+});

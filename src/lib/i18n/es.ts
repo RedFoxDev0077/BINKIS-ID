@@ -75,6 +75,8 @@ export const es: typeof en = {
     codePlaceholder: 'XXX-XXX-XXX',
     submit: 'Registrar mi Binkis',
     helper: 'Raspa tu holograma y usa el código secreto para registrar esta pieza en tu colección.',
+    guideTitle: 'Águila te enseña a registrar tu Binkis',
+    guideCta: 'Ver tutorial paso a paso',
     working: 'Verificando',
     invalidFormat: 'Ese código todavía no está completo.',
     checkFailed: 'Ese código tiene un error. Revísalo contra el holograma.',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ScratchPanel } from './ScratchPanel';
 import { ClaimCodeInput } from './ClaimCodeInput';
@@ -13,10 +13,22 @@ const INITIAL: ClaimState = { status: 'idle' };
 export function ClaimForm({
   qrToken,
   signedIn,
+  guide,
   t,
 }: {
   qrToken: string;
   signedIn: boolean;
+  /**
+   * The tutorial launcher, passed in rather than imported.
+   *
+   * It used to be a sibling of this form. The client asked for it to sit
+   * directly above the register button instead, which is inside the form,
+   * and a slot keeps the vendored package out of this file: the claim path
+   * is the one place in the codebase where a stray import matters most.
+   *
+   * Null once there is nothing left to teach.
+   */
+  guide?: ReactNode;
   t: Dictionary;
 }) {
   const [state, formAction, pending] = useActionState(submitClaim, INITIAL);
@@ -56,6 +68,9 @@ export function ClaimForm({
             {t.nav.signIn}
           </Link>
         </div>
+        {/* Someone who has not signed in is the likeliest person in the whole
+            flow to need the guide, so it stays on this branch too. */}
+        {guide ? <div className="mt-5 text-left">{guide}</div> : null}
       </div>
     );
   }
@@ -105,6 +120,11 @@ export function ClaimForm({
       <p id="claim-error" aria-live="polite" className="min-h-5 text-center text-sm text-danger">
         {localError ?? (state.status === 'error' ? state.message : '')}
       </p>
+
+      {/* Above the button, below the error. The error belongs next to the
+          field it is about; the guide belongs next to the action it
+          explains. */}
+      {guide}
 
       <button
         type="submit"

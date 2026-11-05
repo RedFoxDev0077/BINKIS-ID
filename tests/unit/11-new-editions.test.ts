@@ -17,11 +17,17 @@ import {
  * Variant, Rare and Super Rare, added at the client's request on 29 August
  * 2026, before any of these three have been printed.
  *
- *   Variant     4 characters x 2,777   BZ, BM, HQ, JK   11,108
+ *   Variant     4 characters x 4,777   BIZ, BM, HQ, JK  19,108
  *   Rare        Brainiac (BR)                            7,777
  *   Super Rare  Poison Ivy (PI)                          2,222
  *                                                       -------
- *                                                        21,107
+ *                                                        29,107
+ *
+ * Variant was 2,777 each when this order was placed, and went to 4,777 at
+ * the client's request on 4 November 2026, still before any Variant was
+ * printed. The first 2,777 of each character were already minted and were
+ * not touched: the extra 2,000 are their own batches, positions 2778..4777.
+ * The figures below are the run as it stands, not as it was first ordered.
  *
  * The interesting part is not the new ranges, it is that all three runs are
  * larger than 999. The original three numbered editions - Limited 777,
@@ -187,15 +193,15 @@ describe('production planning for the new editions', () => {
     expect(planProduction('SUPER_RARE', 2_222, 0).total).toBe(2_222);
   });
 
-  it('adds up to the 21,662 the client asked for', () => {
-    const variant = 4 * planProduction('VARIANT', 2_777, 0).total; // BZ, BM, HQ, JK
+  it('adds up to the 29,107 the client asked for', () => {
+    const variant = 4 * planProduction('VARIANT', 4_777, 0).total; // BIZ, BM, HQ, JK
     const rare = planProduction('RARE', 7_777, 0).total; // Brainiac
     const superRare = planProduction('SUPER_RARE', 2_222, 0).total; // Poison Ivy
 
-    expect(variant).toBe(11_108);
+    expect(variant).toBe(19_108);
     expect(rare).toBe(7_777);
     expect(superRare).toBe(2_222);
-    expect(variant + rare + superRare).toBe(21_107);
+    expect(variant + rare + superRare).toBe(29_107);
   });
 
   it('does not change the Serie 1 total', () => {

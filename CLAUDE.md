@@ -116,11 +116,24 @@ Second order, added by the client on 29 August 2026. Additive: it does not chang
 
 | Character | Edition | Quantity |
 |---|---|---|
-| BZ, BM, HQ, JK | Variant | 2,777 each, 11,108 |
+| BIZ, BM, HQ, JK | Variant | 4,777 each, 19,108 |
 | BR Brainiac | Rare | 7,777 |
 | PI Poison Ivy | Super Rare | 2,222 |
 
-Total 21,107. The four Variant characters share one hologram design; only the character code and the numbering differ, which is a print concern rather than a data one, since the serial already keeps them apart.
+Total 29,107. The four Variant characters share one hologram design; only the character code and the numbering differ, which is a print concern rather than a data one, since the serial already keeps them apart.
+
+> Variant raised from 2,777 to 4,777 each at the client's request on 4 November 2026, before any Variant was printed. The first 2,777 of each character were already minted and are untouched; the extra 2,000 are their own batches, `B-2026-<C>-VARIANT-B2`, positions 2778..4777. `run_size` moved with them, because the passport prints the position over the run and the new pieces would otherwise read "2778 / 2777".
+
+**Backup rolls.** A replacement sticker is a DUPLICATE of the piece it replaces: same serial, same QR token, same claim code. It has to be, because the identity lives in the token and a fresh token would be a different piece with a different history. A backup roll is therefore always printed and shipped SEPARATELY. A duplicate mixed into the production roll is indistinguishable from its original — two stickers, one identity — and the second collector to register is told the piece already has an owner. As its own roll it is insurance; inside the production roll it is a defect waiting to ship.
+
+| Roll | Covers | Stickers |
+|---|---|---|
+| `RESPALDO-1-777` | Classic 000001–000777, 8 characters | 6,216 |
+| `RESPALDO-CLASSIC-1-100` | Classic 000001–000100, 8 characters | 800 |
+| `RESPALDO-LIMITED-1-120` | Limited 001–120, 5 characters | 600 |
+| `RESPALDO-VARIANT-1-717` | Variant 1–717, 4 characters, 15% of the run | 2,868 |
+
+These are copies, never regenerations. `scripts/extract-range.ts` pulls a range out of a delivered master and verifies it three ways before writing.
 
 **QR token** — 12 random chars, alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ`. Payload is `https://id.binkis.com/p/{token}` and nothing else. No tracking params. Short payload keeps QR module size large, which is what makes it scan off reflective holographic foil.
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { getDictionary } from '../../src/lib/i18n/index.ts';
+import { parseClaimCode } from '../../src/lib/codes/claim-code.ts';
 
 /**
  * The claim tutorial names buttons that have to still exist.
@@ -134,4 +135,35 @@ describe('the launcher card', () => {
       expect(t.claim.guideTitle.normalize('NFD').replace(/\p{M}/gu, '')).toMatch(/Aguila/i);
     });
   }
+});
+
+describe('the example code printed on the illustration', () => {
+  /**
+   * The package shipped with EXAMPLE_CODE = "PZPGCXZAP", drawn onto the
+   * hologram picture and typed out by the animation beside it.
+   *
+   * It passed our check character. That is the whole problem. A code that
+   * fails the check is caught in the browser and costs nothing; a code that
+   * passes is sent to the server, found to belong to no piece, and counted
+   * against the handful of attempts a person gets before the lockout. So the
+   * one code every collector could read without scratching anything was also
+   * the one code that could lock them out of the piece in their hand.
+   *
+   * Fixed on 4 November 2026 by the animator, to XXXXXXXXX, which is what the
+   * empty field on the page already shows. This case is here so the next
+   * version of the package cannot quietly put a plausible code back.
+   */
+  it('is never a code this site would accept', () => {
+    const found = source.match(/EXAMPLE_CODE\s*=\s*["']([^"']+)["']/);
+    expect(found, 'EXAMPLE_CODE is gone from the tutorial').not.toBeNull();
+
+    const example = found![1]!;
+    expect(
+      parseClaimCode(example),
+      `The tutorial's example code, ${example}, passes the check character, ` +
+        `so a collector who copies it off the picture spends one of their ` +
+        `rate-limited attempts and is told nothing useful. Pick something the ` +
+        `browser rejects on sight, such as XXXXXXXXX.`,
+    ).toBeNull();
+  });
 });

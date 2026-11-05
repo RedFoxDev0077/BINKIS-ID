@@ -21,7 +21,10 @@
   const DEFAULT_ASSETS = SCRIPT_SRC ? new URL("img/", SCRIPT_SRC).href : "img/";
   const STORE_KEY = "binkis-tutorial-visto";
   const STEPS = 6; // numbered steps; scene 0 is the hello
-  const EXAMPLE_CODE = "PZPGCXZAP"; // the code printed on the illustration
+  // the example on the illustration, the same as the site's empty field. Never
+  // a plausible code: PZP-GCX-ZAP passed the site's local check, so anyone who
+  // copied it from the picture spent one of their attempts on the server
+  const EXAMPLE_CODE = "XXXXXXXXX";
   const POSES = ["saludo", "senalar", "alcanzar", "pensar", "alerta", "mirar-arriba", "celebrar"];
 
   const ICON = {

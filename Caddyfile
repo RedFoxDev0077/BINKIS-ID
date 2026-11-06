@@ -67,6 +67,17 @@ id.binkis.com {
 		header Cache-Control "public, max-age=31536000, immutable"
 	}
 
+	# UNIVERSALS comic pages. The largest files the site serves by a wide
+	# margin, and the only ones a reader looks at for minutes rather than
+	# seconds, so they have even less business occupying a Node process than
+	# the character art does. Immutable for the same reason: a re-lettered
+	# page ships under a new file name.
+	handle /comics/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
 	reverse_proxy app:3000 {
 		health_uri /
 		health_interval 10s

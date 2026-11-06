@@ -194,6 +194,21 @@ export const en = {
     celebrate: 'Play the film',
     dismiss: 'Close',
   },
+  comic: {
+    // UNIVERSALS is the imprint and stays untranslated: it is a name.
+    tagline: 'The original heroes of Binkis.',
+    blurb:
+      'Águila, KROX and EVA have a story to tell. Discover their origins and the secrets of their universe.',
+    cta: 'Read the comic',
+    // Both facts a reader weighs before tapping, in three words.
+    free: 'Free · No sign-up',
+    chapter: 'Chapter {number}',
+    back: 'Back to BINKIS ID',
+    chapters: 'Chapters',
+    page: 'Page {numbers}',
+    spreadHint: 'Pinch or double tap to enlarge a page.',
+  },
+
   common: {
     back: 'Back',
     loading: 'Loading',

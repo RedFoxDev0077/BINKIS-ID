@@ -131,5 +131,11 @@ public/celebracion/
 # artwork lives. The component that uses them IS source and is committed.
 public/binkis-tutorial/
 
+# UNIVERSALS comic pages, drawn by Jon Malin and coloured for the client.
+# Print masters at 6050x9094, so by far the heaviest material in the project,
+# and somebody else's artwork besides. The catalogue in src/lib/comics IS
+# source and is committed; the pages are not.
+public/comics/
+
 # Screenshots a test run produces. Output, not source.
 tests/e2e/.artifacts/

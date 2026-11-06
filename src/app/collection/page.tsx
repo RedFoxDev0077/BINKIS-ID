@@ -15,6 +15,7 @@ import { Card, SectionTitle } from '@/components/ui/Card';
 import { ButtonLink } from '@/components/ui/Button';
 import { CharacterAnimation } from '@/components/CharacterAnimation';
 import { Vitrina } from '@/components/Vitrina';
+import { ComicPromo } from '@/components/ComicPromo';
 import { printedSerial } from '@/lib/serial';
 import { classicSetProgress } from '@/lib/collection-set';
 import { BRAND_MASCOT } from '@/lib/characters/media';
@@ -264,6 +265,15 @@ export default async function CollectionPage() {
           </ul>
         </>
       )}
+
+      {/* The second placement the client asked for, 6 November 2026.
+
+          After the grid in both states, including the empty one. Someone with
+          nothing registered yet is the likeliest person on the site to want
+          something to read, and the reader costs them no account. */}
+      <Reveal>
+        <ComicPromo locale={locale} t={t} className="mt-10" />
+      </Reveal>
     </main>
   );
 }

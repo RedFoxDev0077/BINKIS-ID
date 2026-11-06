@@ -10,6 +10,7 @@ import { RarityChip } from '@/components/RarityChip';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { Timeline } from '@/components/Timeline';
 import { ViewerActions } from '@/components/ViewerActions';
+import { ComicPromo } from '@/components/ComicPromo';
 import { PieceArtwork } from '@/components/PieceArtwork';
 import { HoloCard } from '@/components/ui/HoloCard';
 import { CertificateCard } from '@/components/CertificateCard';
@@ -204,6 +205,23 @@ export default async function PassportPage({ params }: Params) {
             />
           </Reveal>
         ) : null}
+
+        {/* UNIVERSALS sits BELOW the register action, not in place of the
+            tutorial above it.
+
+            The client asked on 6 November 2026 for it to replace Aguila's
+            guide, which is directly above the register button. Two days
+            earlier he had asked for that same guide to be made bigger. Both
+            requests are right and they only conflict over one slot: someone
+            holding an unregistered piece needs the guide at the moment they
+            are registering, and the comic is what to do once that is done.
+            So the guide keeps the slot before the action and the comic takes
+            the one after it. Told him; his call if he still wants the swap.
+
+            It renders on claimed pieces too. The reader is free and needs no
+            account, so there is no reason to show it only to people who are
+            mid-claim. */}
+        <ComicPromo locale={locale} t={t} />
 
         {/* ---- provenance, as a sentence -----------------------------------
             Only once there is provenance to tell. Before anyone registers the

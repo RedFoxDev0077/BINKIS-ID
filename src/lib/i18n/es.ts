@@ -202,6 +202,20 @@ export const es: typeof en = {
     celebrate: 'Ver la animación',
     dismiss: 'Cerrar',
   },
+  comic: {
+    // Wording from the client, 6 November 2026, kept as he wrote it.
+    tagline: 'Los héroes originales de Binkis.',
+    blurb:
+      'Águila, KROX y EVA tienen una historia que contar. Descubre sus orígenes y los secretos de su universo.',
+    cta: 'Leer el cómic',
+    free: 'Gratis · Sin registro',
+    chapter: 'Capítulo {number}',
+    back: 'Volver a BINKIS ID',
+    chapters: 'Capítulos',
+    page: 'Página {numbers}',
+    spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
+  },
+
   common: {
     back: 'Volver',
     loading: 'Cargando',

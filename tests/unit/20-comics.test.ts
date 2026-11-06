@@ -79,11 +79,13 @@ describe('the catalogue as it stands today', () => {
     expect(findComic('../../etc/passwd')).toBeNull();
   });
 
-  it('has nothing readable yet, in either language', () => {
-    // The lettered pages had not arrived on 6 November 2026. When they do,
-    // this test is the one that should fail and be updated, deliberately.
-    expect(hasReadableComic('es')).toBe(false);
-    expect(hasReadableComic('en')).toBe(false);
+  it('has something readable in either language', () => {
+    // Published 6 November 2026 with the art unlettered, at the client's
+    // request. This is the assertion that makes the promo block appear at
+    // all, so if it ever goes false again the entry point has vanished from
+    // the passport and from My Collection with no other test noticing.
+    expect(hasReadableComic('es')).toBe(true);
+    expect(hasReadableComic('en')).toBe(true);
   });
 
   it('every declared chapter carries a title in both languages', () => {
@@ -110,9 +112,31 @@ describe('the catalogue as it stands today', () => {
 });
 
 describe('where the button goes', () => {
-  it('points at nothing while nothing is readable', () => {
-    expect(firstReadable('es')).toBeNull();
-    expect(findChapter('krox', 1, 'es')).toBeNull();
+  it('opens KROX chapter 1 in both languages', () => {
+    for (const locale of ['es', 'en'] as const) {
+      const opening = firstReadable(locale);
+      expect(opening?.comic.slug, locale).toBe('krox');
+      expect(opening?.chapter.number, locale).toBe(1);
+      expect(findChapter('krox', 1, locale), locale).not.toBeNull();
+    }
+  });
+
+  /*
+   * The delivered chapter, asserted as delivered. Page numbers are printed on
+   * the artwork, so a gap or a repeat here is a mistake a reader can see and
+   * we cannot: it would mean a spread was dropped or declared twice.
+   */
+  it('covers pages 1 to 28 once each, in order', () => {
+    const pages = findChapter('krox', 1, 'es')!.chapter.pages!.es;
+    expect(pages).toHaveLength(15);
+    expect(pages.flatMap((p) => [...p.numbers])).toEqual(
+      Array.from({ length: 28 }, (_, i) => i + 1),
+    );
+  });
+
+  it('serves one unlettered set to both languages, not two copies', () => {
+    const found = findChapter('krox', 1, 'es')!.chapter;
+    expect(found.pages!.en).toBe(found.pages!.es);
   });
 
   it('builds the href from the comic and the chapter number', () => {

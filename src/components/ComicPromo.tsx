@@ -1,4 +1,4 @@
-import { ButtonLink } from './ui/Button';
+import Link from 'next/link';
 import { chapterHref, firstReadable, type ComicLocale } from '@/lib/comics/catalog';
 import type { Dictionary } from '@/lib/i18n';
 
@@ -7,11 +7,9 @@ import type { Dictionary } from '@/lib/i18n';
  *
  * Specified by the client on 6 November 2026, and built to his copy and his
  * measurements: wordmark, one line of explanation, a solid button, and the
- * two facts a reader weighs before tapping ("free, no sign-up"). His own
- * summary was the brief worth keeping: the mystery belongs in the story, not
- * in guessing what the button does.
+ * two facts a reader weighs before tapping ("free, no sign-up").
  *
- * Three decisions behind the layout:
+ * Four decisions behind the layout:
  *
  * ART ABOVE, WORDS BELOW. The client asked not to set text over a scene full
  * of faces and explosions, which is the right call and also the accessible
@@ -24,10 +22,17 @@ import type { Dictionary } from '@/lib/i18n';
  * what this site needed anyway: the previous comic entry point was a text
  * link that he could barely read on his own phone.
  *
+ * IT IS MEANT TO BE UNMISSABLE. He came back on 6 November asking for an
+ * entry "notorio ... que invite a picarlo", so the block now carries the
+ * holographic edge, a badge over the art, and a gradient on the button. The
+ * iridescence is not ornament borrowed from somewhere: the physical product
+ * is a hologram sticker, so it is this brand's own way of saying that a thing
+ * is worth looking at. All of it is static. A looping shimmer would have read
+ * as louder still and would have been the one kind of motion this project
+ * does not allow.
+ *
  * IT HIDES ITSELF. Rendering nothing when no chapter is readable is what
- * stops the button from ever being a promise the site cannot keep. The day
- * the lettered pages are declared in the catalogue, this appears on its own,
- * in both places, with no deploy and no edit here.
+ * stops the button from ever being a promise the site cannot keep.
  */
 export function ComicPromo({
   locale,
@@ -45,7 +50,7 @@ export function ComicPromo({
 
   return (
     <section
-      className={`grain relative overflow-hidden rounded-2xl border border-ink-800 bg-ink-900/70 ${className}`}
+      className={`grain holo-border relative overflow-hidden rounded-2xl ${className}`}
       aria-labelledby="universals-heading"
     >
       {/*
@@ -58,13 +63,16 @@ export function ComicPromo({
       */}
       <div
         aria-hidden
-        className="relative h-36 bg-gradient-to-br from-ink-850 via-ink-900 to-ink-925 bg-cover bg-[50%_32%] sm:h-44"
+        className="relative h-44 bg-gradient-to-br from-ink-850 via-ink-900 to-ink-925 bg-cover bg-[50%_32%] sm:h-56"
         style={{ backgroundImage: `url('${comic.hero}')` }}
       >
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-ink-900/95 to-transparent" />
+        <span className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ink-950 shadow-[0_4px_16px_-2px_oklch(0.76_0.17_195/0.65)]">
+          {t.comic.badge}
+        </span>
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-ink-900 via-ink-900/80 to-transparent" />
       </div>
 
-      <div className="relative p-5 pt-4 sm:p-6 sm:pt-5">
+      <div className="relative bg-ink-900 p-5 pt-4 sm:p-6 sm:pt-5">
         <p
           id="universals-heading"
           className="font-display text-sm tracking-[0.3em] text-accent-bright"
@@ -76,12 +84,19 @@ export function ComicPromo({
         </p>
         <p className="mt-2 text-sm leading-relaxed text-ink-300">{t.comic.blurb}</p>
 
-        {/* min-h-14 is 56px and text-lg is 18px: the client's own figures. */}
-        <ButtonLink
-          href={chapterHref(comic, chapter)}
-          size="lg"
-          full
-          className="mt-5 min-h-14 text-lg"
+        {/* How much there is to read. A reason to tap, and an honest one. */}
+        <p className="mt-3 font-mono text-xs tracking-wide text-ink-400 tabular-nums">
+          {t.comic.count}
+        </p>
+
+        {/* Not ButtonLink: the gradient and the glow would collide with the
+            primary variant's own background utility, and which of two
+            conflicting Tailwind classes wins is not something to leave to
+            build order on the client's headline call to action.
+            min-h-14 is 56px and text-lg is 18px, both his figures. */}
+        <Link
+          href={chapterHref(comic, chapter) as never}
+          className="press mt-4 inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-accent via-accent-bright to-accent px-7 text-lg font-semibold text-ink-950 shadow-[0_10px_34px_-8px_oklch(0.76_0.17_195/0.75)] ring-1 ring-accent-bright/60 transition hover:brightness-110"
         >
           {t.comic.cta}
           <svg
@@ -96,7 +111,7 @@ export function ComicPromo({
           >
             <path d="M5 12h13M12 5l7 7-7 7" />
           </svg>
-        </ButtonLink>
+        </Link>
 
         {/* ink-300 rather than the ink-500 this size of caption usually gets:
             it is a reason to tap, so it has to clear 4.5:1 like body copy. */}

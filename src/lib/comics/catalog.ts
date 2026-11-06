@@ -68,10 +68,42 @@ export interface Comic {
  * KROX: The Last Warrior of Athos.
  *
  * 28 pages drawn by Jon Malin, hand-coloured, delivered 5 November 2026. The
- * script in both languages arrived 6 November 2026. What is still missing is
- * the lettering, and the Athos/StarDoom sequence the client says needs its
- * own art, so chapter 1 is declared and unpublished.
+ * script in both languages arrived 6 November 2026. The lettering and the Athos/StarDoom
+ * sequence are still outstanding; see KROX_PAGES below.
  */
+
+/**
+ * Chapter 1, all 28 pages, as delivered: hand-coloured and WITHOUT LETTERING.
+ *
+ * Publishing art with no dialogue was the client's explicit decision on
+ * 6 November 2026 ("puedes subirlo aun que no tenga aun dialogos"). He wanted
+ * the entry point live and tappable now; the words follow. It is not rework:
+ * when the lettered sets arrive they replace these files, and only the two
+ * locale arrays below split apart. Every path, size and page number stays.
+ *
+ * ONE SET SERVES BOTH LANGUAGES. Unlettered art has no language, so es and en
+ * deliberately point at the same files rather than at two identical copies.
+ * The moment lettering exists this is where the two sets diverge, and the
+ * readability rule below already handles a half-finished translation.
+ */
+const KROX_PAGES: readonly ComicPage[] = [
+  { image: '/comics/krox/1/pages/1.jpg', width: 1600, height: 2473, numbers: [1] },
+  { image: '/comics/krox/1/pages/2-3.jpg', width: 1600, height: 1203, numbers: [2, 3] },
+  { image: '/comics/krox/1/pages/4-5.jpg', width: 1600, height: 1203, numbers: [4, 5] },
+  { image: '/comics/krox/1/pages/6-7.jpg', width: 1600, height: 1203, numbers: [6, 7] },
+  { image: '/comics/krox/1/pages/8-9.jpg', width: 1600, height: 1236, numbers: [8, 9] },
+  { image: '/comics/krox/1/pages/10-11.jpg', width: 1600, height: 1203, numbers: [10, 11] },
+  { image: '/comics/krox/1/pages/12-13.jpg', width: 1600, height: 1203, numbers: [12, 13] },
+  { image: '/comics/krox/1/pages/14-15.jpg', width: 1600, height: 1203, numbers: [14, 15] },
+  { image: '/comics/krox/1/pages/16-17.jpg', width: 1600, height: 1203, numbers: [16, 17] },
+  { image: '/comics/krox/1/pages/18-19.jpg', width: 1600, height: 1236, numbers: [18, 19] },
+  { image: '/comics/krox/1/pages/20-21.jpg', width: 1600, height: 1203, numbers: [20, 21] },
+  { image: '/comics/krox/1/pages/22-23.jpg', width: 1600, height: 1203, numbers: [22, 23] },
+  { image: '/comics/krox/1/pages/24-25.jpg', width: 1600, height: 1203, numbers: [24, 25] },
+  { image: '/comics/krox/1/pages/26-27.jpg', width: 1600, height: 1203, numbers: [26, 27] },
+  { image: '/comics/krox/1/pages/28.jpg', width: 1600, height: 2405, numbers: [28] },
+];
+
 const KROX: Comic = {
   slug: 'krox',
   title: 'KROX',
@@ -83,8 +115,8 @@ const KROX: Comic = {
         es: 'El último guerrero de Athos',
         en: 'The Last Warrior of Athos',
       },
-      pages: null,
-      publishedAt: null,
+      pages: { es: KROX_PAGES, en: KROX_PAGES },
+      publishedAt: '2026-11-06',
     },
   ],
 };

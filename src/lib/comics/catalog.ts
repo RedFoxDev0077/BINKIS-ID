@@ -68,25 +68,23 @@ export interface Comic {
  * KROX: The Last Warrior of Athos.
  *
  * 28 pages drawn by Jon Malin, hand-coloured, delivered 5 November 2026. The
- * script in both languages arrived 6 November 2026. The lettering and the Athos/StarDoom
- * sequence are still outstanding; see KROX_PAGES below.
+ * script in both languages arrived 6 November 2026, and Spanish lettering
+ * started arriving page by page on 7 November. English lettering has not
+ * started.
  */
 
 /**
- * Chapter 1, all 28 pages, as delivered: hand-coloured and WITHOUT LETTERING.
+ * Chapter 1 as delivered: 15 files, 28 pages, hand-coloured.
  *
- * Publishing art with no dialogue was the client's explicit decision on
- * 6 November 2026 ("puedes subirlo aun que no tenga aun dialogos"). He wanted
- * the entry point live and tappable now; the words follow. It is not rework:
- * when the lettered sets arrive they replace these files, and only the two
- * locale arrays below split apart. Every path, size and page number stays.
+ * This is the art with NO LETTERING. Publishing it that way was the client's
+ * explicit decision on 6 November 2026 ("puedes subirlo aun que no tenga aun
+ * dialogos"): he wanted the entry point live and tappable while the words were
+ * still being written.
  *
- * ONE SET SERVES BOTH LANGUAGES. Unlettered art has no language, so es and en
- * deliberately point at the same files rather than at two identical copies.
- * The moment lettering exists this is where the two sets diverge, and the
- * readability rule below already handles a half-finished translation.
+ * It is still the English set, and it is still the tail of the Spanish one, so
+ * it stays declared in one place rather than being copied per locale.
  */
-const KROX_PAGES: readonly ComicPage[] = [
+const KROX_RAW: readonly ComicPage[] = [
   { image: '/comics/krox/1/pages/1.jpg', width: 1600, height: 2473, numbers: [1] },
   { image: '/comics/krox/1/pages/2-3.jpg', width: 1600, height: 1203, numbers: [2, 3] },
   { image: '/comics/krox/1/pages/4-5.jpg', width: 1600, height: 1203, numbers: [4, 5] },
@@ -104,6 +102,46 @@ const KROX_PAGES: readonly ComicPage[] = [
   { image: '/comics/krox/1/pages/28.jpg', width: 1600, height: 2405, numbers: [28] },
 ];
 
+/**
+ * Spanish, lettered, as far as the letterer has reached.
+ *
+ * The client is delivering these page by page rather than as a finished
+ * chapter ("te ire pasando las paginas con forme las avanzo con texto",
+ * 6 November 2026), so this list grows and the unlettered tail shrinks. Nine
+ * files arrived first, covering pages 1 to 17.
+ *
+ * SIZES VARY ON PURPOSE. Pages 2-3 came as a 12100x9094 master and were
+ * reduced to the usual 1600. The rest arrived over WhatsApp, which had already
+ * resampled them to about 1447 wide, and upscaling to match would have added
+ * bytes without adding a single pixel of detail. The reader fits every page to
+ * the width of the screen, so a reader never sees the difference; someone
+ * pinching all the way in on an older page will.
+ */
+const KROX_ES_LETTERED: readonly ComicPage[] = [
+  { image: '/comics/krox/1/es/1.jpg', width: 1009, height: 1558, numbers: [1] },
+  { image: '/comics/krox/1/es/2-3.jpg', width: 1600, height: 1203, numbers: [2, 3] },
+  { image: '/comics/krox/1/es/4-5.jpg', width: 1447, height: 1087, numbers: [4, 5] },
+  { image: '/comics/krox/1/es/6-7.jpg', width: 1447, height: 1087, numbers: [6, 7] },
+  { image: '/comics/krox/1/es/8-9.jpg', width: 1427, height: 1102, numbers: [8, 9] },
+  { image: '/comics/krox/1/es/10-11.jpg', width: 1447, height: 1087, numbers: [10, 11] },
+  { image: '/comics/krox/1/es/12-13.jpg', width: 1446, height: 1088, numbers: [12, 13] },
+  { image: '/comics/krox/1/es/14-15.jpg', width: 1447, height: 1087, numbers: [14, 15] },
+  { image: '/comics/krox/1/es/16-17.jpg', width: 1446, height: 1087, numbers: [16, 17] },
+];
+
+/**
+ * One chapter, assembled: every lettered page, then the silent remainder.
+ *
+ * Selected by page number rather than by position so that adding the next
+ * lettered spread to the list above is the only edit required. Taking a slice
+ * at a fixed index would have worked today and quietly dropped or duplicated a
+ * page the first time either list changed.
+ */
+function withLettered(lettered: readonly ComicPage[]): readonly ComicPage[] {
+  const done = new Set(lettered.flatMap((page) => page.numbers));
+  return [...lettered, ...KROX_RAW.filter((page) => !page.numbers.some((n) => done.has(n)))];
+}
+
 const KROX: Comic = {
   slug: 'krox',
   title: 'KROX',
@@ -115,7 +153,7 @@ const KROX: Comic = {
         es: 'El último guerrero de Athos',
         en: 'The Last Warrior of Athos',
       },
-      pages: { es: KROX_PAGES, en: KROX_PAGES },
+      pages: { es: withLettered(KROX_ES_LETTERED), en: KROX_RAW },
       publishedAt: '2026-11-06',
     },
   ],

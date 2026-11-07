@@ -126,17 +126,60 @@ describe('where the button goes', () => {
    * the artwork, so a gap or a repeat here is a mistake a reader can see and
    * we cannot: it would mean a spread was dropped or declared twice.
    */
-  it('covers pages 1 to 28 once each, in order', () => {
-    const pages = findChapter('krox', 1, 'es')!.chapter.pages!.es;
-    expect(pages).toHaveLength(15);
-    expect(pages.flatMap((p) => [...p.numbers])).toEqual(
-      Array.from({ length: 28 }, (_, i) => i + 1),
-    );
+  it('covers pages 1 to 28 once each, in order, in both languages', () => {
+    for (const locale of ['es', 'en'] as const) {
+      const pages = findChapter('krox', 1, locale)!.chapter.pages![locale];
+      expect(pages).toHaveLength(15);
+      expect(pages.flatMap((p) => [...p.numbers])).toEqual(
+        Array.from({ length: 28 }, (_, i) => i + 1),
+      );
+    }
   });
 
-  it('serves one unlettered set to both languages, not two copies', () => {
-    const found = findChapter('krox', 1, 'es')!.chapter;
-    expect(found.pages!.en).toBe(found.pages!.es);
+  /*
+   * The Spanish set is assembled: lettered pages first, then whatever is still
+   * silent. That join is the one place a page can go missing or appear twice,
+   * and the test above would catch it. This one pins the seam itself, so that
+   * when the next lettered spread arrives it is obvious whether it landed.
+   */
+  it('prefers the lettered Spanish page wherever one exists', () => {
+    const es = findChapter('krox', 1, 'es')!.chapter.pages!.es;
+    const en = findChapter('krox', 1, 'en')!.chapter.pages!.en;
+
+    const lettered = es.filter((p) => p.image.includes('/1/es/'));
+    expect(lettered.flatMap((p) => [...p.numbers])).toEqual(
+      Array.from({ length: 17 }, (_, i) => i + 1),
+    );
+
+    // Every page Spanish has not reached yet falls back to the delivered art,
+    // which is the same file English is reading.
+    for (const page of es.filter((p) => !p.image.includes('/1/es/'))) {
+      expect(en).toContain(page);
+    }
+
+    // English has no lettering at all yet, so it is still the raw set whole.
+    expect(en.every((p) => p.image.includes('/1/pages/'))).toBe(true);
+  });
+
+  /*
+   * Every declared file has to exist. The catalog is hand-written and the art
+   * lives outside the repo, so a typo here is a broken image on a phone rather
+   * than a build error. Checking the local copy catches the typo; it cannot
+   * catch art that was never deployed, which is a separate step.
+   */
+  it('points at files that are actually there', async () => {
+    const { access } = await import('node:fs/promises');
+    const paths = new Set<string>(COMICS.map((c) => c.hero));
+    for (const c of COMICS) {
+      for (const ch of c.chapters) {
+        for (const locale of ['es', 'en'] as const) {
+          for (const page of ch.pages?.[locale] ?? []) paths.add(page.image);
+        }
+      }
+    }
+    for (const path of paths) {
+      await expect(access(`public${path}`), path).resolves.toBeUndefined();
+    }
   });
 
   it('builds the href from the comic and the chapter number', () => {
@@ -162,12 +205,24 @@ describe('copy', () => {
   it('carries the client wording in Spanish, exactly as he wrote it', () => {
     expect(es.comic.tagline).toBe('Los héroes originales de Binkis.');
     expect(es.comic.cta).toBe('Leer el cómic');
-    expect(es.comic.free).toBe('Gratis · Sin registro');
+    expect(es.comic.teaser).toBe('La aventura apenas comienza.');
+    expect(es.comic.teaserNext).toBe('Nuevas aventuras y héroes, próximamente.');
+  });
+
+  // He asked for Aguila and EVA to come out on 7 November 2026, because only
+  // KROX has pages drawn. Naming a character the reader cannot reach is the
+  // one failure this block exists to avoid, so it is worth a test.
+  it('promises only the character that has pages', () => {
+    for (const d of [es, en]) {
+      expect(d.comic.blurb).toContain('KROX');
+      expect(d.comic.blurb).not.toMatch(/(EVA|Águila|Aguila|Eagle)/i);
+    }
   });
 
   it('says the same things in English', () => {
     expect(en.comic.cta.length).toBeGreaterThan(0);
-    expect(en.comic.free).toContain('Free');
+    expect(en.comic.teaser.length).toBeGreaterThan(0);
+    expect(en.comic.teaserNext.length).toBeGreaterThan(0);
   });
 
   it('keeps the two dictionaries the same shape', () => {

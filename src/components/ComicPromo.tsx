@@ -113,9 +113,18 @@ export function ComicPromo({
           </svg>
         </Link>
 
-        {/* ink-300 rather than the ink-500 this size of caption usually gets:
-            it is a reason to tap, so it has to clear 4.5:1 like body copy. */}
-        <p className="mt-2.5 text-center text-[13px] text-ink-300">{t.comic.free}</p>
+        {/* The client's closing line, 7 November 2026, in place of the old
+            "Gratis / Sin registro". That one answered a question about this
+            chapter; this one is about the series, so it is set as a short
+            two-line sign-off rather than as a caption. The first line carries
+            the promise and gets the brighter ink; the second dates it and
+            steps back. Both clear 4.5:1. */}
+        <p className="mt-4 text-center text-sm font-medium leading-snug text-ink-100">
+          {t.comic.teaser}
+        </p>
+        <p className="mt-1 text-center text-[13px] leading-snug text-ink-400">
+          {t.comic.teaserNext}
+        </p>
       </div>
     </section>
   );

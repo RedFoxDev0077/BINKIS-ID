@@ -198,7 +198,7 @@ export const en = {
     // UNIVERSALS is the imprint and stays untranslated: it is a name.
     tagline: 'The original heroes of Binkis.',
     blurb:
-      'Águila, KROX and EVA have a story to tell. Discover their origins and the secrets of their universe.',
+      'KROX has a story to tell. Discover his origin and the secrets of his universe.',
     // Shown over the artwork. The client asked on 6 Nov 2026 for an entry
     // that is unmissable and obviously tappable; a badge does that without
     // motion, which the reduced-motion rule would otherwise have to carry.
@@ -206,7 +206,8 @@ export const en = {
     count: 'Chapter 1 · 28 pages',
     cta: 'Read the comic',
     // Both facts a reader weighs before tapping, in three words.
-    free: 'Free · No sign-up',
+    teaser: 'The adventure is only just beginning.',
+    teaserNext: 'New adventures and heroes, coming soon.',
     chapter: 'Chapter {number}',
     back: 'Back to BINKIS ID',
     chapters: 'Chapters',

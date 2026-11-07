@@ -205,15 +205,23 @@ export const es: typeof en = {
   comic: {
     // Wording from the client, 6 November 2026, kept as he wrote it.
     tagline: 'Los héroes originales de Binkis.',
+    // Aguila and EVA were named here until 7 November 2026, when the client
+    // asked to drop them "por lo pronto". Only KROX has pages drawn, and
+    // promising two characters the reader cannot reach is the one thing this
+    // block was built not to do.
     blurb:
-      'Águila, KROX y EVA tienen una historia que contar. Descubre sus orígenes y los secretos de su universo.',
+      'KROX tiene una historia que contar. Descubre su origen y los secretos de su universo.',
     // Shown over the artwork. The client asked on 6 Nov 2026 for an entry
     // that is unmissable and obviously tappable; a badge does that without
     // motion, which the reduced-motion rule would otherwise have to carry.
     badge: 'NUEVO',
     count: 'Capítulo 1 · 28 páginas',
     cta: 'Leer el cómic',
-    free: 'Gratis · Sin registro',
+    // Replaced 'Gratis / Sin registro' on 7 November 2026, his words exactly.
+    // He wanted the line under the button to open the series rather than
+    // price it: UNIVERSALS is meant to read as a story that keeps growing.
+    teaser: 'La aventura apenas comienza.',
+    teaserNext: 'Nuevas aventuras y héroes, próximamente.',
     chapter: 'Capítulo {number}',
     back: 'Volver a BINKIS ID',
     chapters: 'Capítulos',

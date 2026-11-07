@@ -161,23 +161,43 @@ describe('where the button goes', () => {
     expect(en.every((p) => p.image.includes('/1/pages/'))).toBe(true);
   });
 
-  /*
-   * Every declared file has to exist. The catalog is hand-written and the art
-   * lives outside the repo, so a typo here is a broken image on a phone rather
-   * than a build error. Checking the local copy catches the typo; it cannot
-   * catch art that was never deployed, which is a separate step.
-   */
-  it('points at files that are actually there', async () => {
-    const { access } = await import('node:fs/promises');
+  /** Every image path the catalog declares, hero included. */
+  function declaredPaths(): string[] {
     const paths = new Set<string>(COMICS.map((c) => c.hero));
-    for (const c of COMICS) {
-      for (const ch of c.chapters) {
+    for (const comic of COMICS) {
+      for (const ch of comic.chapters) {
         for (const locale of ['es', 'en'] as const) {
           for (const page of ch.pages?.[locale] ?? []) paths.add(page.image);
         }
       }
     }
-    for (const path of paths) {
+    return [...paths];
+  }
+
+  it('declares every path in the one shape Caddy serves', () => {
+    for (const path of declaredPaths()) {
+      expect(path, path).toMatch(/^\/comics\/[a-z0-9-]+\/[^?#\s]+\.jpg$/);
+    }
+  });
+
+  /*
+   * The catalog is hand-written, so a typo in a path is a broken image on
+   * someone's phone rather than a build error, and worth catching.
+   *
+   * It can only be caught where the art is. Client artwork never enters the
+   * repo - public/comics/ is gitignored and the files are served by Caddy off
+   * the host - so on CI there is nothing to compare against and this check
+   * reports what it did instead of failing. On a machine that has the art it
+   * is a real assertion. Neither case says anything about whether the art was
+   * deployed; that is a separate step with its own verification.
+   */
+  it('points at files that are actually there, where the art is present', async () => {
+    const { access } = await import('node:fs/promises');
+    if (!(await access('public/comics').then(() => true, () => false))) {
+      console.info('comics: no local artwork, path existence not checked');
+      return;
+    }
+    for (const path of declaredPaths()) {
       await expect(access(`public${path}`), path).resolves.toBeUndefined();
     }
   });
@@ -215,7 +235,7 @@ describe('copy', () => {
   it('promises only the character that has pages', () => {
     for (const d of [es, en]) {
       expect(d.comic.blurb).toContain('KROX');
-      expect(d.comic.blurb).not.toMatch(/(EVA|Águila|Aguila|Eagle)/i);
+      expect(d.comic.blurb).not.toMatch(/\b(EVA|Águila|Aguila|Eagle)\b/iu);
     }
   });
 

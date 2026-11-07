@@ -191,6 +191,16 @@ export default async function CollectionPage() {
             <Vitrina progress={setProgress} t={t} />
           </Reveal>
 
+          {/* Directly under the vitrine, which is where the client drew a
+              circle on 7 November 2026 asking for the comic button "justo
+              aqui". It was already on this page, but it sat under the whole
+              grid, so an owner had to scroll past every piece they own to
+              find it and he never saw it. High on the page it is the second
+              thing a collector meets; at the bottom it was furniture. */}
+          <Reveal>
+            <ComicPromo locale={locale} t={t} className="mb-9" />
+          </Reveal>
+
           {bySeries.length > 0 ? (
             <Reveal>
               <Card className="mb-9 p-6">
@@ -266,14 +276,15 @@ export default async function CollectionPage() {
         </>
       )}
 
-      {/* The second placement the client asked for, 6 November 2026.
-
-          After the grid in both states, including the empty one. Someone with
-          nothing registered yet is the likeliest person on the site to want
-          something to read, and the reader costs them no account. */}
-      <Reveal>
-        <ComicPromo locale={locale} t={t} className="mt-10" />
-      </Reveal>
+      {/* Kept for the empty state only, which has no vitrine to sit under.
+          Someone with nothing registered yet is the likeliest person on the
+          site to want something to read, and the reader costs them no
+          account. */}
+      {pieces.length === 0 ? (
+        <Reveal>
+          <ComicPromo locale={locale} t={t} className="mt-10" />
+        </Reveal>
+      ) : null}
     </main>
   );
 }

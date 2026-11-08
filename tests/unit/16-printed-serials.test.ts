@@ -56,14 +56,101 @@ describe('what did not change', () => {
     expect(printedSerial('HQ-017998')).toBe('HQ-017998');
   });
 
-  it('leaves Variant, Rare and Super Rare alone, by the client instruction', () => {
-    expect(printedSerial('BIZ-V01427')).toBe('BIZ-V01427');
-    expect(printedSerial('BR-R05321')).toBe('BR-R05321');
-    expect(printedSerial('PI-S00189')).toBe('PI-S00189');
+  it('leaves Classic alone a second time, because it has no letter to separate', () => {
+    expect(printedSerial('SP-014278')).toBe('SP-014278');
+  });
+});
+
+/**
+ * The separated letter, asked for by the client on 8 November 2026 and agreed
+ * before Krystal printed any Variant, Rare or Super Rare:
+ *
+ *   was   BIZ-V01427      letter and position run together, five digits
+ *   now   BIZ-V-1427      letter, hyphen, position at four
+ *
+ * His reason, and it is the right one: the letter and the number are two
+ * different facts, and jammed together they read as one. BIZ-V01427 looks like
+ * a part code. BIZ-V-1427 says Variant, piece 1427.
+ *
+ * Four digits rather than five because every run that uses this form fits:
+ * Variant 4,777, Rare 7,777, Super Rare 2,777, Spare 3,000. The padding is not
+ * a cap - a run past 9,999 would simply print five - but nothing on order
+ * reaches it, so what goes to the factory is four.
+ *
+ * This is the same KIND of change as 15 October: the registry still stores
+ * BIZ-V01427 and every piece of edition arithmetic still works on that. Only
+ * the spelling on the sticker and the page moves, which is why it can be made
+ * at all. The pieces already minted keep their identity, their QR token and
+ * their claim code; nothing is regenerated.
+ */
+describe('the separated edition letter', () => {
+  it('writes Variant as letter, hyphen, four digits', () => {
+    expect(printedSerial('BIZ-V00001')).toBe('BIZ-V-0001');
+    expect(printedSerial('BIZ-V01427')).toBe('BIZ-V-1427');
+    expect(printedSerial('BIZ-V04777')).toBe('BIZ-V-4777');
   });
 
-  it('leaves spares alone: they never reach a customer as themselves', () => {
-    expect(printedSerial('SP-X00001')).toBe('SP-X00001');
+  it('writes Rare and Super Rare the same way', () => {
+    expect(printedSerial('BR-R05321')).toBe('BR-R-5321');
+    expect(printedSerial('BR-R07777')).toBe('BR-R-7777');
+    expect(printedSerial('PI-S00189')).toBe('PI-S-0189');
+    expect(printedSerial('PI-S02222')).toBe('PI-S-2222');
+  });
+
+  it('writes spares the same way, so the letter form has one rule', () => {
+    expect(printedSerial('SP-X00001')).toBe('SP-X-0001');
+    expect(printedSerial('SP-X03000')).toBe('SP-X-3000');
+  });
+
+  it('does not touch the editions that print with no letter at all', () => {
+    // 15 October took the letter off these. Separating a letter that is not
+    // there would put it back, which is the opposite of what he asked for.
+    expect(printedSerial('RF-L00045')).toBe('RF-045');
+    expect(printedSerial('DS-00007')).toBe('DS-07');
+    expect(printedSerial('RF-AP00100')).toBe('RF-100-AP');
+  });
+
+  it('reads the separated form back to the very same piece', () => {
+    for (const [printed, stored] of [
+      ['BIZ-V-1427', 'BIZ-V01427'],
+      ['BR-R-5321', 'BR-R05321'],
+      ['PI-S-0189', 'PI-S00189'],
+      ['SP-X-0001', 'SP-X00001'],
+    ] as const) {
+      const back = parseSerial(printed);
+      expect(back, printed).not.toBeNull();
+      expect(back!.number, printed).toBe(parseSerial(stored)!.number);
+      expect(back!.editionType, printed).toBe(parseSerial(stored)!.editionType);
+    }
+  });
+
+  it('still reads the run-together form, which is what the registry stores', () => {
+    expect(parseSerial('BIZ-V01427')!.number).toBe(parseSerial('BIZ-V-1427')!.number);
+  });
+
+  it('refuses a separated position that is not a piece', () => {
+    expect(parseSerial('BIZ-V-0000')).toBeNull();
+    expect(parseSerial('ZZ-V-1427')).toBeNull();
+    expect(parseSerial('BIZ-Q-1427')).toBeNull();
+  });
+
+  it('round trips every letter edition through the printed form', () => {
+    const cases = [
+      ['BIZ', 200_001],
+      ['BIZ', 204_777],
+      ['BR', 307_777],
+      ['PI', 402_222],
+      ['SP', 803_000],
+    ] as const;
+
+    for (const [code, number] of cases) {
+      const serial = formatSerial(code, number);
+      const printed = printedSerial(serial);
+      const back = parseSerial(printed);
+      expect(back, `${serial} printed as ${printed}`).not.toBeNull();
+      expect(back!.number, `${serial} printed as ${printed}`).toBe(number);
+      expect(back!.characterCode, printed).toBe(code);
+    }
   });
 });
 

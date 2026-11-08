@@ -101,8 +101,23 @@ export const EDITION_LETTERS: Record<EditionType, string | null> = {
   ARTIST_PROOF: 'AP',
 };
 
-/** Digits after the edition letter. Five covers a full range (1..99,999). */
+/** Digits after the edition letter, as the REGISTRY stores it. Five covers a
+ *  full range (1..99,999) and never moves, because it is what is already
+ *  written in the delivered masters and in the database. */
 const POSITION_DIGITS = 5;
+
+/**
+ * Digits after the edition letter, as it is PRINTED.
+ *
+ * Four, at the client's request on 8 November 2026 and before Krystal printed
+ * any of the editions that use this form. Every run that does fits inside it:
+ * Variant 4,777, Rare 7,777, Super Rare 2,777, Spare 3,000.
+ *
+ * It is a padding width, not a cap. A run that ever passed 9,999 would print
+ * five digits rather than silently wrap to a position that names another
+ * piece. Nothing on order comes close, so what the factory receives is four.
+ */
+const PRINTED_POSITION_DIGITS = 4;
 
 export const EDITION_RANGES: Record<EditionType, EditionRange> = {
   CLASSIC:
@@ -228,6 +243,18 @@ const LETTER_PATTERN = /^([A-Z]{2,3})-([A-Z]{0,2})(\d{5})$/;
  */
 const PRINTED_PATTERN = /^([A-Z]{2,3})-(\d{2,3})(-AP)?$/;
 
+/**
+ * The separated letter form, as printed from 8 November 2026.
+ *
+ *   BIZ-V-1427    Variant piece 1427
+ *   BR-R-5321     Rare piece 5321
+ *
+ * Four digits is what is printed; five is accepted so that a run which ever
+ * outgrew the padding still reads back. It cannot collide with the forms
+ * above: those have digits where this has a single letter.
+ */
+const SEPARATED_PATTERN = /^([A-Z]{2,3})-([A-Z]{1,2})-(\d{4,5})$/;
+
 /** Reverse of EDITION_LETTERS, built once. */
 const TYPE_BY_LETTER = new Map<string, EditionType>(
   EDITION_TYPES.flatMap((type) => {
@@ -270,6 +297,25 @@ export function parseSerial(serial: string): ParsedSerial | null {
     };
   }
 
+  const separated = SEPARATED_PATTERN.exec(serial);
+  if (separated) {
+    const [, code, letter, digits] = separated;
+    if (!isCharacterCode(code!)) return null;
+
+    const type = TYPE_BY_LETTER.get(letter!);
+    if (!type) return null;
+
+    // Positions are 1-based, so 0000 is not a piece, and a position past the
+    // end of its range belongs to no piece either.
+    const position = Number.parseInt(digits!, 10);
+    if (position < 1) return null;
+
+    const number = EDITION_RANGES[type].min + position - 1;
+    if (number > EDITION_RANGES[type].max) return null;
+
+    return { characterCode: code, number, editionType: type };
+  }
+
   const plain = CLASSIC_PATTERN.exec(serial);
   if (plain) {
     const [, code, digits] = plain;
@@ -306,9 +352,16 @@ export function parseSerial(serial: string): ParsedSerial | null {
  * position is printed at its real width, and an Artist Proof says so at the
  * end rather than in the middle.
  *
- * Classic is untouched because it is already at the factory, and Variant,
- * Rare and Super Rare are untouched because the client asked for them to stay
- * out of this change. So the two spellings coexist on purpose.
+ * Classic is untouched because it is already at the factory.
+ *
+ * Variant, Rare, Super Rare and Spare sat out that change and keep their
+ * letter, but on 8 November 2026 the client asked for the letter to be
+ * SEPARATED from the position and the position cut to four digits, so
+ * BIZ-V01427 is printed BIZ-V-1427. Same reasoning as above and the same
+ * safety: the registry still holds BIZ-V01427, the QR token and the claim
+ * code are untouched, and no piece is regenerated. Only the spelling moves.
+ *
+ * So three spellings coexist on purpose, each pinned to when it was agreed.
  */
 export function printedSerial(serial: string): string {
   const parsed = parseSerial(serial);
@@ -329,7 +382,13 @@ export function printedSerial(serial: string): string {
     const width = LEGENDARY_CHARACTERS.has(characterCode) ? 2 : 3;
     return `${characterCode}-${String(position).padStart(width, '0')}-AP`;
   }
-  return serial;
+
+  // Everything that still carries its letter: Variant, Rare, Super Rare and
+  // Spare. The letter is separated from the position and the position is
+  // printed at four digits, per the client on 8 November 2026.
+  const letter = EDITION_LETTERS[editionType];
+  if (letter === null || letter === '') return serial;
+  return `${characterCode}-${letter}-${String(position).padStart(PRINTED_POSITION_DIGITS, '0')}`;
 }
 
 export function editionTypeForNumber(serialNumber: number): EditionType | null {

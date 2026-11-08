@@ -213,6 +213,9 @@ export const en = {
     chapters: 'Chapters',
     page: 'Page {numbers}',
     closing: 'UNIVERSALS, the full league',
+    // The same drawing before it was coloured, added 8 November 2026 at the
+    // client's request to show both.
+    closingInk: 'UNIVERSALS, the full league, in ink',
     spreadHint: 'Pinch or double tap to enlarge a page.',
   },
 

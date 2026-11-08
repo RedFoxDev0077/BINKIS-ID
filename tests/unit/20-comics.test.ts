@@ -166,7 +166,7 @@ describe('where the button goes', () => {
     const paths = new Set<string>(COMICS.map((c) => c.hero));
     for (const comic of COMICS) {
       for (const ch of comic.chapters) {
-        if (ch.closing) paths.add(ch.closing.image);
+        for (const plate of ch.closing ?? []) paths.add(plate.image);
         for (const locale of ['es', 'en'] as const) {
           for (const page of ch.pages?.[locale] ?? []) paths.add(page.image);
         }
@@ -193,20 +193,40 @@ describe('where the button goes', () => {
    * deployed; that is a separate step with its own verification.
    */
   /*
-   * The closing plate is artwork, not a page. If it ever leaked into `pages`
+   * The closing plates are artwork, not pages. If one ever leaked into `pages`
    * it would be counted through as page 29 and labelled with a number that is
    * printed nowhere on it.
    */
-  it('keeps the closing plate out of the numbered run', () => {
+  it('keeps the closing plates out of the numbered run', () => {
     const chapter = findChapter('krox', 1, 'es')!.chapter;
-    expect(chapter.closing).toBeDefined();
-    for (const locale of ['es', 'en'] as const) {
-      expect(chapter.pages![locale].map((p) => p.image)).not.toContain(
-        chapter.closing!.image,
-      );
+    const closing = chapter.closing ?? [];
+    expect(closing.length).toBeGreaterThan(0);
+
+    for (const plate of closing) {
+      for (const locale of ['es', 'en'] as const) {
+        expect(chapter.pages![locale].map((p) => p.image)).not.toContain(plate.image);
+      }
+      // The same plates for both languages: they have no words in them.
+      expect(plate.image).not.toContain('/es/');
     }
-    // Same plate for both languages: it has no words in it.
-    expect(chapter.closing!.image).not.toContain('/es/');
+  });
+
+  /*
+   * Both versions of the group plate, ink then colour, "si porfa las dos" on
+   * 8 November 2026. Distinct files and distinct captions, because two images
+   * carrying the same caption is how a duplicate paste goes unnoticed.
+   */
+  it('shows the ink plate and the colour plate, each captioned as itself', () => {
+    const closing = findChapter('krox', 1, 'es')!.chapter.closing ?? [];
+    expect(closing.map((p) => p.label)).toEqual(['closingInk', 'closing']);
+    expect(new Set(closing.map((p) => p.image)).size).toBe(closing.length);
+
+    for (const d of [es, en]) {
+      for (const plate of closing) {
+        expect(d.comic[plate.label], plate.label).toBeTruthy();
+      }
+      expect(d.comic.closing).not.toBe(d.comic.closingInk);
+    }
   });
 
   it('points at files that are actually there, where the art is present', async () => {

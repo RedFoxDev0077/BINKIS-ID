@@ -227,6 +227,9 @@ export const es: typeof en = {
     chapters: 'Capítulos',
     page: 'Página {numbers}',
     closing: 'UNIVERSALS, la Liga completa',
+    // The same drawing before it was coloured, added 8 November 2026 at the
+    // client's request to show both.
+    closingInk: 'UNIVERSALS, la Liga completa, a tinta',
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
   },
 

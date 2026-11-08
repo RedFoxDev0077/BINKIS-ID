@@ -31,6 +31,18 @@ export interface ComicPlate {
   height: number;
 }
 
+/**
+ * Which caption the reader sets under a closing plate.
+ *
+ * A key of the dictionary rather than a string, so a plate can never be
+ * declared with a caption that was never translated.
+ */
+export type ClosingLabel = 'closing' | 'closingInk';
+
+export interface ClosingPlate extends ComicPlate {
+  label: ClosingLabel;
+}
+
 export interface ComicPage extends ComicPlate {
   /**
    * The printed page numbers this one file carries.
@@ -56,13 +68,13 @@ export interface ComicChapter {
    */
   pages: Localised<readonly ComicPage[]> | null;
   /**
-   * A full-page plate after the last numbered page.
+   * Full-page plates after the last numbered page, in the order they are shown.
    *
-   * Not part of `pages`, because it carries no printed page number and must
+   * Not part of `pages`, because they carry no printed page number and must
    * not disturb the 1..28 run the reader counts through. Not localised
-   * either: this one is the UNIVERSALS team and has no words in it.
+   * either: these are the UNIVERSALS team and have no words in them.
    */
-  closing?: ComicPlate;
+  closing?: readonly ClosingPlate[];
   /** ISO date. Null means written but not released. */
   publishedAt: string | null;
 }
@@ -177,9 +189,21 @@ const KROX: Comic = {
         en: 'The Last Warrior of Athos',
       },
       pages: { es: withLettered(KROX_ES_LETTERED), en: KROX_RAW },
-      // "si puedes poner esta al mero final del comic", 8 November 2026. The
-      // team, in colour, from an 8794x6800 master.
-      closing: { image: '/comics/krox/1/closing.jpg', width: 1600, height: 1237 },
+      // "si puedes poner esta al mero final del comic. y luego a color",
+      // 8 November 2026, and "si porfa las dos" when he was asked whether he
+      // wanted the ink plate as well as the colour one.
+      //
+      // Ink first, then colour, which is the order he described and the order
+      // the work happened in. It also ends the book on the stronger image.
+      //
+      // The ink plate is 1000px against the colour one's 1600 because that is
+      // the size it was delivered at. Upscaling it to match would add bytes
+      // and not one pixel of detail, and the reader fits every plate to the
+      // width of the screen, so nobody sees the difference until they pinch.
+      closing: [
+        { image: '/comics/krox/1/closing-ink.jpg', width: 1000, height: 773, label: 'closingInk' },
+        { image: '/comics/krox/1/closing.jpg', width: 1600, height: 1237, label: 'closing' },
+      ],
       publishedAt: '2026-11-06',
     },
   ],

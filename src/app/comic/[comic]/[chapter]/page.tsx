@@ -115,16 +115,17 @@ export default async function ComicReaderPage({ params }: Params) {
             />
           ))}
 
-          {/* The closing plate, after the last numbered page. It is artwork
-              rather than a page, so it is labelled by what it is and never
-              given a page number it does not have. */}
-          {chapter.closing ? (
+          {/* The closing plates, after the last numbered page. They are
+              artwork rather than pages, so each is labelled by what it is and
+              never given a page number it does not have. */}
+          {(chapter.closing ?? []).map((plate) => (
             <ComicPageImage
-              page={chapter.closing}
-              label={t.comic.closing}
+              key={plate.image}
+              page={plate}
+              label={t.comic[plate.label]}
               priority={false}
             />
-          ) : null}
+          ))}
         </div>
 
         <div className="px-4 pt-8 sm:px-0">

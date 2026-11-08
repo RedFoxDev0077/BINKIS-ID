@@ -212,6 +212,7 @@ export const en = {
     back: 'Back to BINKIS ID',
     chapters: 'Chapters',
     page: 'Page {numbers}',
+    closing: 'UNIVERSALS, the full league',
     spreadHint: 'Pinch or double tap to enlarge a page.',
   },
 

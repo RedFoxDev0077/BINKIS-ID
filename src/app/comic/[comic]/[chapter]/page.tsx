@@ -6,7 +6,7 @@ import {
   chapterHref,
   findChapter,
   readableChapters,
-  type ComicPage,
+  type ComicPlate,
 } from '@/lib/comics/catalog';
 
 /**
@@ -114,6 +114,17 @@ export default async function ComicReaderPage({ params }: Params) {
               priority={index === 0}
             />
           ))}
+
+          {/* The closing plate, after the last numbered page. It is artwork
+              rather than a page, so it is labelled by what it is and never
+              given a page number it does not have. */}
+          {chapter.closing ? (
+            <ComicPageImage
+              page={chapter.closing}
+              label={t.comic.closing}
+              priority={false}
+            />
+          ) : null}
         </div>
 
         <div className="px-4 pt-8 sm:px-0">
@@ -155,7 +166,7 @@ function ComicPageImage({
   label,
   priority,
 }: {
-  page: ComicPage;
+  page: ComicPlate;
   label: string;
   priority: boolean;
 }) {

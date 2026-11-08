@@ -21,13 +21,17 @@
 export type ComicLocale = 'es' | 'en';
 export type Localised<T> = Record<ComicLocale, T>;
 
-export interface ComicPage {
+/** One image the reader shows whole, fitted to the width of the screen. */
+export interface ComicPlate {
   /** Served path, e.g. /comics/krox/1/es/02-03.jpg */
   image: string;
   /** Intrinsic size, so the reader reserves the box and the page never jumps
    *  under a thumb while the image is still arriving. */
   width: number;
   height: number;
+}
+
+export interface ComicPage extends ComicPlate {
   /**
    * The printed page numbers this one file carries.
    *
@@ -51,6 +55,14 @@ export interface ComicChapter {
    * set with a text layer over it.
    */
   pages: Localised<readonly ComicPage[]> | null;
+  /**
+   * A full-page plate after the last numbered page.
+   *
+   * Not part of `pages`, because it carries no printed page number and must
+   * not disturb the 1..28 run the reader counts through. Not localised
+   * either: this one is the UNIVERSALS team and has no words in it.
+   */
+  closing?: ComicPlate;
   /** ISO date. Null means written but not released. */
   publishedAt: string | null;
 }
@@ -108,7 +120,13 @@ const KROX_RAW: readonly ComicPage[] = [
  * The client is delivering these page by page rather than as a finished
  * chapter ("te ire pasando las paginas con forme las avanzo con texto",
  * 6 November 2026), so this list grows and the unlettered tail shrinks. Nine
- * files arrived first, covering pages 1 to 17.
+ * files arrived on 7 November covering pages 1 to 17, and five more on
+ * 8 November taking it to page 27. Only page 28 is still silent.
+ *
+ * Pages 18-19 exist in two letterings. The one here is the file he named for
+ * its own pages, and page 20-21 opens on "la recompensa pagaba el viaje",
+ * which follows from it and not from the other. The alternate sits in his
+ * "todas las versiones" archive as a draft.
  *
  * SIZES VARY ON PURPOSE. Pages 2-3 came as a 12100x9094 master and were
  * reduced to the usual 1600. The rest arrived over WhatsApp, which had already
@@ -127,6 +145,11 @@ const KROX_ES_LETTERED: readonly ComicPage[] = [
   { image: '/comics/krox/1/es/12-13.jpg', width: 1446, height: 1088, numbers: [12, 13] },
   { image: '/comics/krox/1/es/14-15.jpg', width: 1447, height: 1087, numbers: [14, 15] },
   { image: '/comics/krox/1/es/16-17.jpg', width: 1446, height: 1087, numbers: [16, 17] },
+  { image: '/comics/krox/1/es/18-19.jpg', width: 1426, height: 1103, numbers: [18, 19] },
+  { image: '/comics/krox/1/es/20-21.jpg', width: 1447, height: 1087, numbers: [20, 21] },
+  { image: '/comics/krox/1/es/22-23.jpg', width: 1447, height: 1087, numbers: [22, 23] },
+  { image: '/comics/krox/1/es/24-25.jpg', width: 1446, height: 1087, numbers: [24, 25] },
+  { image: '/comics/krox/1/es/26-27.jpg', width: 1446, height: 1087, numbers: [26, 27] },
 ];
 
 /**
@@ -154,6 +177,9 @@ const KROX: Comic = {
         en: 'The Last Warrior of Athos',
       },
       pages: { es: withLettered(KROX_ES_LETTERED), en: KROX_RAW },
+      // "si puedes poner esta al mero final del comic", 8 November 2026. The
+      // team, in colour, from an 8794x6800 master.
+      closing: { image: '/comics/krox/1/closing.jpg', width: 1600, height: 1237 },
       publishedAt: '2026-11-06',
     },
   ],

@@ -148,7 +148,7 @@ describe('where the button goes', () => {
 
     const lettered = es.filter((p) => p.image.includes('/1/es/'));
     expect(lettered.flatMap((p) => [...p.numbers])).toEqual(
-      Array.from({ length: 17 }, (_, i) => i + 1),
+      Array.from({ length: 27 }, (_, i) => i + 1),
     );
 
     // Every page Spanish has not reached yet falls back to the delivered art,
@@ -166,6 +166,7 @@ describe('where the button goes', () => {
     const paths = new Set<string>(COMICS.map((c) => c.hero));
     for (const comic of COMICS) {
       for (const ch of comic.chapters) {
+        if (ch.closing) paths.add(ch.closing.image);
         for (const locale of ['es', 'en'] as const) {
           for (const page of ch.pages?.[locale] ?? []) paths.add(page.image);
         }
@@ -191,6 +192,23 @@ describe('where the button goes', () => {
    * is a real assertion. Neither case says anything about whether the art was
    * deployed; that is a separate step with its own verification.
    */
+  /*
+   * The closing plate is artwork, not a page. If it ever leaked into `pages`
+   * it would be counted through as page 29 and labelled with a number that is
+   * printed nowhere on it.
+   */
+  it('keeps the closing plate out of the numbered run', () => {
+    const chapter = findChapter('krox', 1, 'es')!.chapter;
+    expect(chapter.closing).toBeDefined();
+    for (const locale of ['es', 'en'] as const) {
+      expect(chapter.pages![locale].map((p) => p.image)).not.toContain(
+        chapter.closing!.image,
+      );
+    }
+    // Same plate for both languages: it has no words in it.
+    expect(chapter.closing!.image).not.toContain('/es/');
+  });
+
   it('points at files that are actually there, where the art is present', async () => {
     const { access } = await import('node:fs/promises');
     if (!(await access('public/comics').then(() => true, () => false))) {

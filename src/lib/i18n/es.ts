@@ -226,6 +226,7 @@ export const es: typeof en = {
     back: 'Volver a BINKIS ID',
     chapters: 'Capítulos',
     page: 'Página {numbers}',
+    closing: 'UNIVERSALS, la Liga completa',
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
   },
 

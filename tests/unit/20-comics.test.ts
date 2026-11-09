@@ -243,14 +243,17 @@ describe('where the button goes', () => {
    */
   it('shows the ink plate and the colour plate, each captioned as itself', () => {
     const closing = findChapter('krox', 1, 'es')!.chapter.closing ?? [];
-    expect(closing.map((p) => p.label)).toEqual(['closingInk', 'closing']);
+    expect(closing.map((p) => p.label)).toEqual(['closingInk', 'closing', 'closingBinki']);
     expect(new Set(closing.map((p) => p.image)).size).toBe(closing.length);
 
     for (const d of [es, en]) {
       for (const plate of closing) {
         expect(d.comic[plate.label], plate.label).toBeTruthy();
       }
-      expect(d.comic.closing).not.toBe(d.comic.closingInk);
+      // Distinct captions: two plates under one caption is how a duplicate
+      // paste goes unnoticed.
+      const captions = closing.map((plate) => d.comic[plate.label]);
+      expect(new Set(captions).size).toBe(captions.length);
     }
   });
 

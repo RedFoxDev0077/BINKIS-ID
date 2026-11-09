@@ -230,6 +230,10 @@ export const es: typeof en = {
     // The same drawing before it was coloured, added 8 November 2026 at the
     // client's request to show both.
     closingInk: 'UNIVERSALS, la Liga completa, a tinta',
+    // His ask on 8 November 2026: that whoever reads the comic understands
+    // the character has a BINKI of its own. Placeholder wording until he
+    // sends the short text he mentioned.
+    closingBinki: 'KROX también existe como BINKI',
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
   },
 

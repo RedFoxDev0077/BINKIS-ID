@@ -71,7 +71,7 @@ export interface ComicPlate {
  * A key of the dictionary rather than a string, so a plate can never be
  * declared with a caption that was never translated.
  */
-export type ClosingLabel = 'closing' | 'closingInk';
+export type ClosingLabel = 'closing' | 'closingInk' | 'closingBinki';
 
 export interface ClosingPlate extends ComicPlate {
   label: ClosingLabel;
@@ -214,7 +214,16 @@ function withLettered(lettered: readonly ComicPage[]): readonly ComicPage[] {
 const KROX: Comic = {
   slug: 'krox',
   title: 'KROX',
-  hero: '/comics/krox/hero.jpg',
+  // "Foto portada", 8 November 2026. His own cover art, replacing the panel
+  // crop that stood in for it, and the answer to "solo es otra imagen en lugar
+  // de la portada".
+  //
+  // A NEW FILE NAME rather than overwriting hero.jpg. Caddy serves this path
+  // immutable for a year, so a browser holding the old cover would never see
+  // the new one. Shipping a new cut under a new name is how that is handled
+  // everywhere else here, and it beats bumping MEDIA_VERSION, which would make
+  // every reader re-download all 32 pages to change one image.
+  hero: '/comics/krox/portada.jpg',
   chapters: [
     {
       number: 1,
@@ -237,6 +246,19 @@ const KROX: Comic = {
       closing: [
         { image: '/comics/krox/1/closing-ink.jpg', width: 1000, height: 773, label: 'closingInk' },
         { image: '/comics/krox/1/closing.jpg', width: 1600, height: 1237, label: 'closing' },
+        // "Podemos ponerlo al final de las imagenes? ... Como que el que ve el
+        // comic entienda que tiene su version binki", 8 November 2026.
+        //
+        // Last, after the story art, because it is the bridge out of the comic
+        // and into the thing the reader can actually hold. Flattened onto
+        // white rather than kept transparent: the figures are drawn with black
+        // outlines for a light ground and the reader's background is near
+        // black, so on transparency the outlines would disappear.
+        //
+        // The line-up as he sent it. The .af he sent first is a closed
+        // format; its embedded preview was only 1024 wide, and this is the
+        // 1280 he followed up with.
+        { image: '/comics/krox/1/binki.jpg', width: 1280, height: 679, label: 'closingBinki' },
       ],
       publishedAt: '2026-11-06',
     },

@@ -79,6 +79,15 @@ interface Job {
   rows: number;
   /** How many distinct characters the file should contain. */
   characters: number;
+  /**
+   * Why this file cannot be produced yet, if it cannot.
+   *
+   * A blocked job is not skipped quietly: it is printed as blocked, with the
+   * reason. The whole point of this run is that the client can tell which
+   * file is the one to send to the factory, and a folder that quietly holds
+   * three of the four he needs is how the wrong one gets sent.
+   */
+  blockedBy?: string;
 }
 
 const JOBS: readonly Job[] = [
@@ -105,6 +114,9 @@ const JOBS: readonly Job[] = [
     edition: 'RARE',
     rows: 7_777,
     characters: 1,
+    blockedBy:
+      'Brainiac pasa de 7,777 a 8,000. Faltan acunar las 223 piezas nuevas ' +
+      '(docs/RUNBOOK-ADDITIONS.md), luego unirlas aqui y poner rows en 8,000.',
   },
   {
     source: 'factory-exports/SEND-TO-KRY/BINKIS-SUPERRARE-RED.xlsx',
@@ -113,6 +125,9 @@ const JOBS: readonly Job[] = [
     edition: 'SUPER_RARE',
     rows: 2_222,
     characters: 1,
+    blockedBy:
+      'Poison Ivy pasa de 2,222 a 2,777. Faltan acunar las 555 piezas nuevas ' +
+      '(docs/RUNBOOK-ADDITIONS.md), luego unirlas aqui y poner rows en 2,777.',
   },
 ];
 
@@ -213,7 +228,11 @@ async function write(job: Job, rows: Row[]): Promise<void> {
 
 console.log(`\nLa letra de edicion, separada. Origen: los archivos ya entregados.\n`);
 
+const blocked = JOBS.filter((j) => j.blockedBy);
+
 for (const job of JOBS) {
+  if (job.blockedBy) continue;
+
   const rows = await read(job);
 
   rows.sort((a, b) =>
@@ -261,3 +280,11 @@ for (const job of JOBS) {
 }
 
 console.log(`\nEscrito en ${OUT}. Los archivos entregados no se tocaron.\n`);
+
+
+if (blocked.length > 0) {
+  console.log('');
+  console.log('NO generados todavia. NO mandar estos a fabrica:');
+  for (const job of blocked) console.log(`  ${job.name.padEnd(30)} ${job.blockedBy}`);
+}
+console.log('');

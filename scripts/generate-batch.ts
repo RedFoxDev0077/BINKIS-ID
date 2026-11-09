@@ -35,6 +35,7 @@ import {
   EDITION_RANGES,
   allocateSerialNumbers,
   planProduction,
+  reconcileRunSize,
   characterName,
   formatSerial,
   isCharacterCode,
@@ -333,7 +334,25 @@ async function main(): Promise<void> {
       detail(`Overage     ${plan.overage}  (${args.overage}% for press setup and waste)`);
       detail(`Rows        ${plan.total}`);
     }
+    // The run size governs every piece of the edition, and the upsert above
+    // deliberately does not touch it. So a batch appended to an existing
+    // product either declares the new size or is refused here, before a row
+    // is written, rather than shipping passports that read "7,999 / 7,777".
+    const lastPosition = from + plan.total - 1;
+    const run = reconcileRunSize({
+      current: product.runSize,
+      declared: args.runSize,
+      lastPosition,
+      editionNumbered: range.editionNumbered,
+    });
+
     detail(`Serials     ${firstSerial} .. ${lastSerial}`);
+    detail(
+      run.move
+        ? `Run size    ${run.move.from} -> ${run.move.to}  ` +
+            `(moves EVERY ${character} ${range.label} passport, not just this batch)`
+        : `Run size    ${run.runSize}`,
+    );
     detail(`QR origin   ${args.origin}`);
     detail(`Output      ${outputDir}`);
 
@@ -352,6 +371,16 @@ async function main(): Promise<void> {
     }
 
     await mkdir(outputDir, { recursive: true });
+
+    // After the confirmation, because it rewrites what every passport in the
+    // edition prints after the slash.
+    if (run.move) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { runSize: run.move.to },
+      });
+      detail(`Run size moved ${run.move.from} -> ${run.move.to}`);
+    }
 
     const batch = await prisma.batch.create({
       data: {

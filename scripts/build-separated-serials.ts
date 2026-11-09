@@ -38,13 +38,19 @@
  * THE DELIVERED FILES ARE NOT OVERWRITTEN. They are the record of what was
  * sent. This writes beside them.
  *
- * NOT YET RUN. The client asked on 8 November 2026 for Brainiac to go from
- * 7,777 to 8,000 and Poison Ivy from 2,222 to 2,777, and has not confirmed
- * it. When he does, those are ADDITIONS - new batches appended, nothing
- * regenerated - and the two row counts below move with them. The counts are
- * deliberately assertions rather than inputs, so running this against a file
- * whose run has changed fails here instead of silently shipping a short file
- * to the press.
+ * ORDER OF OPERATIONS, and it matters.
+ *
+ * The client confirmed on 8 November 2026 that Brainiac goes from 7,777 to
+ * 8,000 and Poison Ivy from 2,222 to 2,777. Those are ADDITIONS: 223 and 555
+ * new pieces minted into their own batches, with the run size moved so the
+ * whole edition prints "/ 8,000" and "/ 2,777". Nothing existing is touched.
+ *
+ * So the Variant two run now, and the Rare and Super Rare two run only AFTER
+ * those additions exist, merging the delivered file with the continuation
+ * batch the way build-variant-4777.ts merges its B2 batches. Until then the
+ * row counts below are the delivered counts and this script will refuse the
+ * two files rather than ship a short run to the press. That refusal is the
+ * feature: the counts are assertions, not inputs.
  */
 
 import { existsSync, mkdirSync } from 'node:fs';

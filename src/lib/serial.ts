@@ -535,6 +535,76 @@ export function planProduction(
   return { sellable, overage, total: sellable + overage };
 }
 
+export interface RunSizeInput {
+  /** What the Product row says today. */
+  current: number;
+  /** What the caller asked for, if anything (--run-size). */
+  declared?: number | undefined;
+  /** The highest edition position this batch will occupy. */
+  lastPosition: number;
+  /** Whether the edition prints its position, as in "45 / 777". */
+  editionNumbered: boolean;
+}
+
+export interface RunSizeDecision {
+  /** The run size the product should hold after this batch. */
+  runSize: number;
+  /** Non-null when the stored value has to move, for reporting it. */
+  move: { from: number; to: number } | null;
+}
+
+/**
+ * Decide what a run size must become before a batch is written into it.
+ *
+ * The run size lives on the Product, so one row governs every piece of the
+ * edition, and the generator upserts that row with `update: {}`. A batch
+ * appended to an existing product therefore inherits the OLD run size unless
+ * something makes it move. Add 223 Brainiacs to a run of 7,777 and the new
+ * pieces read "7,999 / 7,777" while every piece already sold still reads
+ * "/ 7,777" - two different lies from one forgotten flag.
+ *
+ * That has already happened once, when Variant went from 2,777 to 4,777 on
+ * 4 November 2026 and the run size was moved by hand afterwards. A manual step
+ * that must not be forgotten is a bug waiting for the one time it is, so this
+ * refuses the batch instead.
+ *
+ * Shrinking is refused outright. Pieces are immutable and may already be
+ * printed; a smaller run would orphan numbers that exist.
+ */
+export function reconcileRunSize(input: RunSizeInput): RunSizeDecision {
+  const { current, declared, lastPosition, editionNumbered } = input;
+
+  if (declared !== undefined && declared !== current) {
+    if (declared < current) {
+      throw new SerialRangeError(
+        `Run size cannot shrink from ${current.toLocaleString('en-US')} to ` +
+          `${declared.toLocaleString('en-US')}. Pieces are immutable and may already be ` +
+          'printed, so a smaller run would orphan numbers that exist.',
+      );
+    }
+    if (editionNumbered && lastPosition > declared) {
+      throw new SerialRangeError(
+        `This batch reaches position ${lastPosition.toLocaleString('en-US')}, past the ` +
+          `declared run of ${declared.toLocaleString('en-US')}. The passport prints the ` +
+          'position over the run, so those pieces would read as more than the whole edition.',
+      );
+    }
+    return { runSize: declared, move: { from: current, to: declared } };
+  }
+
+  if (editionNumbered && lastPosition > current) {
+    throw new SerialRangeError(
+      `This batch reaches position ${lastPosition.toLocaleString('en-US')} in a run of ` +
+        `${current.toLocaleString('en-US')}. The passport prints the position over the run, ` +
+        `so these pieces would read "${lastPosition.toLocaleString('en-US')} / ` +
+        `${current.toLocaleString('en-US')}" and every piece already in the edition would ` +
+        'keep the old total. Pass --run-size with the new size of the edition.',
+    );
+  }
+
+  return { runSize: current, move: null };
+}
+
 /** Inverse of allocateSerialNumbers: which 1-based position a serial holds. */
 export function sequenceForNumber(editionType: EditionType, serialNumber: number): number {
   return serialNumber - EDITION_RANGES[editionType].min + 1;

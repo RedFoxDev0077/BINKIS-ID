@@ -7,8 +7,18 @@ import { getAdminUser } from '@/lib/auth/admin';
 import { prisma } from '@/lib/db/client';
 import { signOut } from '@/app/actions/auth';
 import { LocaleSwitch } from '@/components/LocaleSwitch';
+import { DEFAULT_PUBLIC_ORIGIN } from '@/lib/codes/qr-token';
 
 export const metadata: Metadata = {
+  /**
+   * Required for Open Graph images to resolve.
+   *
+   * Without it, a relative og:image is dropped rather than made absolute, so
+   * every link shared to WhatsApp previews as a bare URL with no picture.
+   * That matters here more than on most sites: the way a passport or a comic
+   * actually travels is somebody pasting the link into a chat.
+   */
+  metadataBase: new URL(process.env.PUBLIC_ORIGIN || DEFAULT_PUBLIC_ORIGIN),
   title: { default: 'BINKIS ID', template: '%s' },
   description: 'Digital identity registry for physical BINKIS collectible figures.',
 };

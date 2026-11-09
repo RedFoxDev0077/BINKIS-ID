@@ -35,9 +35,21 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const found = findChapter(comicSlug, Number(chapterParam), locale);
   if (!found) return { title: 'BINKIS ID' };
 
+  const title = `${found.comic.title}: ${found.chapter.title[locale]} · UNIVERSALS`;
+  const description = found.chapter.title[locale];
+
   return {
-    title: `${found.comic.title}: ${found.chapter.title[locale]} · UNIVERSALS`,
-    description: found.chapter.title[locale],
+    title,
+    description,
+    // So the link previews with the cover when somebody pastes it into a
+    // chat, which is how this comic is actually going to travel.
+    openGraph: {
+      type: 'article',
+      title,
+      description,
+      images: [{ url: mediaUrl(found.comic.hero), alt: found.comic.title }],
+    },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 

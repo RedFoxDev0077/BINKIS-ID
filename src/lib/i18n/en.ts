@@ -216,10 +216,11 @@ export const en = {
     // The same drawing before it was coloured, added 8 November 2026 at the
     // client's request to show both.
     closingInk: 'UNIVERSALS, the full league, in ink',
-    // His ask on 8 November 2026: that whoever reads the comic understands
-    // the character has a BINKI of its own. Placeholder wording until he
-    // sends the short text he mentioned.
-    closingBinki: 'KROX also exists as a BINKI',
+    // The plate's own words, which the client wrote and baked into the
+    // artwork on 9 November 2026. The type on it is Spanish and cannot be
+    // translated, so this caption carries the meaning for an English reader
+    // and for a screen reader rather than describing what the picture shows.
+    closingBinki: 'You have met KROX. His story does not end here. BINKI KROX, coming soon.',
     share: 'Share the comic',
     shareCopied: 'Link copied',
     spreadHint: 'Pinch or double tap to enlarge a page.',

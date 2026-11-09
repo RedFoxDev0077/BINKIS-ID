@@ -264,15 +264,27 @@ const KROX: Comic = {
         // comic entienda que tiene su version binki", 8 November 2026.
         //
         // Last, after the story art, because it is the bridge out of the comic
-        // and into the thing the reader can actually hold. Flattened onto
-        // white rather than kept transparent: the figures are drawn with black
-        // outlines for a light ground and the reader's background is near
-        // black, so on transparency the outlines would disappear.
+        // and into the thing the reader can actually hold.
         //
-        // The line-up as he sent it. The .af he sent first is a closed
-        // format; its embedded preview was only 1024 wide, and this is the
-        // 1280 he followed up with.
-        { image: '/comics/krox/1/binki.jpg', width: 1280, height: 679, label: 'closingBinki' },
+        // The plate as the client designed it, sent 9 November 2026. It
+        // replaces the bare line-up that stood here under a caption of mine:
+        // his headline, his layout, his KROX art behind it. So the page no
+        // longer explains the line-up in words underneath, because the plate
+        // says it itself. It carries its own near-black ground, which is why
+        // this one is not flattened onto white the way the bare line-up was.
+        //
+        // A NEW FILE NAME, NOT A BUMPED MEDIA_VERSION. binki.jpg is cached in
+        // readers' browsers for a year, so a different plate at that URL would
+        // reach nobody who had already opened the chapter. Shipping it under
+        // its own name is the rule a re-lettered page already follows, and it
+        // costs no reader a re-download of the other 28 files.
+        //
+        // THE TYPE IS SPANISH AND IT IS BAKED INTO THE ARTWORK. An English
+        // reader sees Spanish here and the caption is the only part that can
+        // translate, so closingBinki now carries the meaning instead of
+        // describing the picture. Making it genuinely bilingual needs an
+        // English plate from the client; it cannot be fixed on this side.
+        { image: '/comics/krox/1/binki-krox.jpg', width: 1448, height: 1086, label: 'closingBinki' },
       ],
       publishedAt: '2026-11-06',
     },

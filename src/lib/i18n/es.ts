@@ -234,6 +234,8 @@ export const es: typeof en = {
     // the character has a BINKI of its own. Placeholder wording until he
     // sends the short text he mentioned.
     closingBinki: 'KROX también existe como BINKI',
+    share: 'Compartir el cómic',
+    shareCopied: 'Enlace copiado',
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
   },
 

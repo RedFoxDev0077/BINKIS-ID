@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, fill } from '@/lib/i18n';
+import { ShareButton } from '@/components/ShareButton';
 import {
   chapterHref,
   findChapter,
@@ -141,7 +142,15 @@ export default async function ComicReaderPage({ params }: Params) {
           ))}
         </div>
 
-        <div className="px-4 pt-8 sm:px-0">
+        <div className="space-y-3 px-4 pt-8 sm:px-0">
+          {/* After the last page, which is where someone decides whether to
+              pass it on. The client asked for this on 8 November 2026. */}
+          <ShareButton
+            title={`${comic.title}: ${chapter.title[locale]}`}
+            label={t.comic.share}
+            copiedLabel={t.comic.shareCopied}
+          />
+
           {next ? (
             <Link
               href={chapterHref(comic, next) as never}

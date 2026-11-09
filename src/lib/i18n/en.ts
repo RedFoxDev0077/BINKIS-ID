@@ -220,6 +220,8 @@ export const en = {
     // the character has a BINKI of its own. Placeholder wording until he
     // sends the short text he mentioned.
     closingBinki: 'KROX also exists as a BINKI',
+    share: 'Share the comic',
+    shareCopied: 'Link copied',
     spreadHint: 'Pinch or double tap to enlarge a page.',
   },
 

@@ -223,6 +223,11 @@ export const en = {
     closingBinki: 'You have met KROX. His story does not end here. BINKI KROX, coming soon.',
     share: 'Share the comic',
     shareCopied: 'Link copied',
+    // The size is on the button on purpose. Nearly every reader here is on a
+    // phone, often on mobile data, and this is several megabytes of artwork.
+    // Saying what a tap costs before it is spent is the difference between a
+    // download and an ambush.
+    download: 'Download the comic (PDF, {size})',
     spreadHint: 'Pinch or double tap to enlarge a page.',
   },
 

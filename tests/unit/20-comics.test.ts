@@ -14,6 +14,7 @@ import {
 } from '../../src/lib/comics/catalog.ts';
 import { es } from '../../src/lib/i18n/es.ts';
 import { en } from '../../src/lib/i18n/en.ts';
+import { downloadFileName, downloadSources } from '../../scripts/lib/comic-download.ts';
 
 /**
  * The UNIVERSALS catalogue and the rule that keeps the button honest.
@@ -313,5 +314,68 @@ describe('copy', () => {
 
   it('keeps the two dictionaries the same shape', () => {
     expect(Object.keys(es.comic).sort()).toEqual(Object.keys(en.comic).sort());
+  });
+
+  /**
+   * The download has to be rebuilt whenever its pages change, and nothing
+   * about a static file enforces that by itself.
+   *
+   * So the file name carries a fingerprint of the ordered list of images that
+   * went into it. Change the cover, add the lettered page 28, redraw a plate -
+   * all of which ship under new file names in this project - and the
+   * fingerprint moves. This test recomputes it from the catalog and fails
+   * until someone has re-run scripts/build-comic-pdf.ts and pasted in the
+   * lines it prints.
+   *
+   * It works in CI, where the artwork itself is not checked in, precisely
+   * because it fingerprints the declared paths rather than the bytes.
+   */
+  it('names every download after the exact art that went into it', () => {
+    for (const comic of COMICS) {
+      for (const chapter of comic.chapters) {
+        if (!chapter.downloads) continue;
+        for (const locale of ['es', 'en'] as const) {
+          const declared = chapter.downloads[locale];
+          const expected = downloadFileName(
+            comic,
+            chapter,
+            locale,
+            downloadSources(comic, chapter, locale),
+          );
+          expect(
+            declared.file.endsWith('/' + expected),
+            `${comic.slug} ch${chapter.number} ${locale}: declared ${declared.file}, but its ` +
+              `pages fingerprint to ${expected}. Re-run scripts/build-comic-pdf.ts.`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('declares a download size that could plausibly be the file', () => {
+    for (const comic of COMICS) {
+      for (const chapter of comic.chapters) {
+        for (const locale of ['es', 'en'] as const) {
+          const declared = chapter.downloads?.[locale];
+          if (!declared) continue;
+          // Nineteen full-page JPEGs is megabytes. Far outside that range and
+          // someone hand-edited the number instead of pasting the build's.
+          expect(declared.bytes, `${comic.slug} ${locale}`).toBeGreaterThan(1_000_000);
+          expect(declared.bytes, `${comic.slug} ${locale}`).toBeLessThan(80_000_000);
+        }
+      }
+    }
+  });
+
+  it('serves every download out of the comics tree, as a pdf', () => {
+    for (const comic of COMICS) {
+      for (const chapter of comic.chapters) {
+        for (const download of Object.values(chapter.downloads ?? {})) {
+          expect(download.file, download.file).toMatch(
+            /^\/comics\/[a-z0-9-]+\/\d+\/[A-Za-z0-9.-]+\.pdf$/,
+          );
+        }
+      }
+    }
   });
 });

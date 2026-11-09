@@ -69,6 +69,7 @@ export default async function ComicReaderPage({ params }: Params) {
   const siblings = readableChapters(comic, locale);
   const next = siblings.find((c) => c.number > chapter.number) ?? null;
   const hasSpread = pages.some((page) => page.numbers.length === 2);
+  const download = chapter.downloads?.[locale] ?? null;
 
   return (
     <main className="pb-20">
@@ -151,6 +152,36 @@ export default async function ComicReaderPage({ params }: Params) {
             copiedLabel={t.comic.shareCopied}
           />
 
+          {/* Quieter than share, and below it, because that is the order of
+              what the client wants to happen: a link that travels costs him
+              nothing, a file that travels leaves his hands for good. He was
+              told that plainly on 9 November 2026 and asked for it anyway.
+
+              A plain anchor, so this stays a server component and the file is
+              fetched by the browser rather than assembled by JavaScript. */}
+          {download ? (
+            <a
+              href={mediaUrl(download.file)}
+              download={download.file.slice(download.file.lastIndexOf('/') + 1)}
+              className="press flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-sm text-ink-400 transition hover:text-ink-100"
+            >
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="size-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 4v11M12 15l-4-4M12 15l4-4" />
+                <path d="M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2" />
+              </svg>
+              {fill(t.comic.download, { size: megabytes(download.bytes, locale) })}
+            </a>
+          ) : null}
+
           {next ? (
             <Link
               href={chapterHref(comic, next) as never}
@@ -170,6 +201,19 @@ export default async function ComicReaderPage({ params }: Params) {
       </div>
     </main>
   );
+}
+
+/**
+ * The download size, in the reader's own number format.
+ *
+ * Megabytes rather than anything cleverer: every one of these files is
+ * several MB and none will ever be kilobytes, so a unit-picking helper would
+ * be code for a case that cannot happen. Spanish writes 8,2 and English 8.2,
+ * which Intl already knows.
+ */
+function megabytes(bytes: number, locale: string): string {
+  const mb = bytes / 1024 / 1024;
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(mb)} MB`;
 }
 
 /**

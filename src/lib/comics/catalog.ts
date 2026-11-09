@@ -89,6 +89,31 @@ export interface ComicPage extends ComicPlate {
   numbers: readonly [number] | readonly [number, number];
 }
 
+/**
+ * A finished PDF of one chapter, for readers who want it off the web.
+ *
+ * Added 9 November 2026: the client asked whether the comic could be
+ * downloaded as well as shared, and was told plainly that a downloadable file
+ * can be re-uploaded anywhere by anyone and that there is no taking it back.
+ * He asked for it anyway, which is his call to make about his own art.
+ */
+export interface ComicDownload {
+  /**
+   * Served path. The name carries a fingerprint of every image that went into
+   * the file, so a chapter that gains a lettered page cannot keep serving the
+   * PDF built before it. See scripts/lib/comic-download.ts.
+   */
+  file: string;
+  /**
+   * Size in bytes, printed on the button.
+   *
+   * Nearly every reader here is on a phone, often on mobile data, and this is
+   * several megabytes of artwork. Telling someone what a tap will cost them
+   * before they spend it is the difference between a download and an ambush.
+   */
+  bytes: number;
+}
+
 export interface ComicChapter {
   number: number;
   title: Localised<string>;
@@ -109,6 +134,15 @@ export interface ComicChapter {
    * either: these are the UNIVERSALS team and have no words in them.
    */
   closing?: readonly ClosingPlate[];
+  /**
+   * The built PDF for each language, once one exists.
+   *
+   * Declared rather than discovered, like every other file here, so that a
+   * missing build is a visible gap in this file instead of a dead button on
+   * someone's phone. Written by scripts/build-comic-pdf.ts, which prints the
+   * exact lines to paste.
+   */
+  downloads?: Localised<ComicDownload>;
   /** ISO date. Null means written but not released. */
   publishedAt: string | null;
 }
@@ -286,6 +320,21 @@ const KROX: Comic = {
         // English plate from the client; it cannot be fixed on this side.
         { image: '/comics/krox/1/binki-krox.jpg', width: 1448, height: 1086, label: 'closingBinki' },
       ],
+      /**
+       * Built by scripts/build-comic-pdf.ts and uploaded beside the artwork.
+       *
+       * The name ends in a fingerprint of everything that went into the file,
+       * so the day page 28 arrives in Spanish these names change and the old
+       * PDF stops being served. Rebuild, paste the new lines, upload, deploy.
+       *
+       * English is larger than Spanish because the English set is still the
+       * unlettered 1600px delivery, while most Spanish pages came back from
+       * the letterer at about 1447.
+       */
+      downloads: {
+        es: { file: '/comics/krox/1/KROX-Capitulo-1-41bb71f0.pdf', bytes: 8590212 },
+        en: { file: '/comics/krox/1/KROX-Chapter-1-f97b424e.pdf', bytes: 10721600 },
+      },
       publishedAt: '2026-11-06',
     },
   ],

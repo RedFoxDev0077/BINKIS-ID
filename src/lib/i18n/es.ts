@@ -236,6 +236,11 @@ export const es: typeof en = {
     closingBinki: 'Has conocido a KROX. Pero su historia aún no termina aquí. BINKI KROX, próximamente.',
     share: 'Compartir el cómic',
     shareCopied: 'Enlace copiado',
+    // The size is on the button on purpose. Nearly every reader here is on a
+    // phone, often on mobile data, and this is several megabytes of artwork.
+    // Saying what a tap costs before it is spent is the difference between a
+    // download and an ambush.
+    download: 'Descargar el cómic (PDF, {size})',
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
   },
 

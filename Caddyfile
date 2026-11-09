@@ -84,6 +84,29 @@ id.binkis.com {
 		health_timeout 5s
 	}
 
+	# A MISSING FILE MUST NEVER BE CACHED, LET ALONE MARKED IMMUTABLE.
+	#
+	# Every media block above sets a one-year immutable Cache-Control, and the
+	# header directive applies to whatever file_server returns - including a
+	# 404. So a browser that asked for a comic page in the window before the
+	# art was uploaded was told, with full authority, "this URL is empty and
+	# will still be empty in a year, do not even revalidate".
+	#
+	# That is exactly what happened on 6 and 7 November 2026. The client
+	# reported "aun no se cargan las imagenes" three times while every check
+	# from a fresh client returned 200, because a fresh client had no poisoned
+	# entry and his phone would not re-request for a year.
+	#
+	# Media here is uploaded by hand, separately from the deploy, so the gap
+	# between "the page mentions a file" and "the file is on disk" is a normal
+	# state of this system rather than an accident. The caching policy has to
+	# survive it.
+	handle_errors {
+		header Cache-Control "no-store"
+		header -Etag
+		respond "{err.status_code} {err.status_text}" {err.status_code}
+	}
+
 	log {
 		output stdout
 		format console

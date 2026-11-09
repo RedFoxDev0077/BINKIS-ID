@@ -5,6 +5,7 @@ import { getTranslations, fill } from '@/lib/i18n';
 import {
   chapterHref,
   findChapter,
+  mediaUrl,
   readableChapters,
   type ComicPlate,
 } from '@/lib/comics/catalog';
@@ -175,7 +176,7 @@ function ComicPageImage({
     <figure className="bg-ink-925">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={page.image}
+        src={mediaUrl(page.image)}
         alt={label}
         width={page.width}
         height={page.height}

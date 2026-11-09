@@ -18,6 +18,40 @@
  * repo never carries the client's artwork.
  */
 
+/**
+ * Bumped whenever a comic file has to be re-fetched by browsers that already
+ * asked for it.
+ *
+ * Caddy serves /comics/* with a one-year immutable Cache-Control, which is
+ * right for the files themselves - a re-lettered page ships under a new name -
+ * but until 8 November 2026 that header went out on 404s as well. The art is
+ * uploaded by hand, separately from the deploy, so there is always a window
+ * where the page names a file that is not on disk yet. Anyone who loaded the
+ * reader during that window was told the URL would still be empty in a year
+ * and not to revalidate, and their browser believed it.
+ *
+ * That is why the client reported "aun no se cargan las imagenes" three times
+ * while every check from a fresh client returned 200: a fresh client had no
+ * poisoned entry, and his phone would not re-request until November 2027.
+ *
+ * The Caddyfile now sends no-store on errors, so this cannot happen again.
+ * This constant repairs the browsers that were already told the lie, by
+ * changing the URL out from under the cache entry. Bump it only for that: it
+ * costs every reader a full re-download of the chapter.
+ */
+const MEDIA_VERSION = '2';
+
+/**
+ * The URL to request a comic file at, as opposed to where it lives.
+ *
+ * Kept separate from the declared path so the catalog stays a list of real
+ * files - which is what makes the existence check in the tests meaningful -
+ * and so the version lives in exactly one place instead of in 32 strings.
+ */
+export function mediaUrl(path: string): string {
+  return `${path}?v=${MEDIA_VERSION}`;
+}
+
 export type ComicLocale = 'es' | 'en';
 export type Localised<T> = Record<ComicLocale, T>;
 

@@ -7,6 +7,7 @@ import {
   firstReadable,
   hasReadableComic,
   isReadable,
+  mediaUrl,
   readableChapters,
   type Comic,
   type ComicChapter,
@@ -179,6 +180,30 @@ describe('where the button goes', () => {
     for (const path of declaredPaths()) {
       expect(path, path).toMatch(/^\/comics\/[a-z0-9-]+\/[^?#\s]+\.jpg$/);
     }
+  });
+
+  /**
+   * The declared path is where the file lives; mediaUrl is what the browser
+   * asks for. They have to stay different things.
+   *
+   * Caddy serves /comics/* with a one-year immutable Cache-Control, and until
+   * 8 November 2026 it sent that on 404s too. Art is uploaded by hand after
+   * the deploy, so every reader who opened the chapter before the upload
+   * cached a 404 their browser would not revalidate until 2027. The version
+   * is how those browsers are told to ask again.
+   */
+  it('requests every file at a versioned url, while declaring a real path', () => {
+    for (const path of declaredPaths()) {
+      const url = mediaUrl(path);
+      expect(url, path).toMatch(/^\/comics\/[a-z0-9-]+\/[^?#\s]+\.jpg\?v=\d+$/);
+      expect(url.split('?')[0], path).toBe(path);
+    }
+  });
+
+  it('keeps the version out of the declared paths themselves', () => {
+    // Otherwise the existence check below would look for a file called
+    // "1.jpg?v=2", and the catalog would stop describing the disk.
+    for (const path of declaredPaths()) expect(path).not.toContain('?');
   });
 
   /*

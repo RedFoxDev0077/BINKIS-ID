@@ -119,6 +119,17 @@ export interface Comic {
   title: string;
   /** One strong illustration for the promo block. Never a logo. */
   hero: string;
+  /**
+   * Where to anchor the hero inside the promo panel, as a CSS
+   * background-position. Defaults to '50% 32%'.
+   *
+   * It belongs to the image, not to the component. The panel is wide and
+   * short, so a portrait cover is cropped hard: KROX's own cover at the old
+   * default showed his chest and cut his head off entirely. Any future comic
+   * delivering a differently composed cover needs its own value rather than a
+   * change to a shared class.
+   */
+  heroFocus?: string;
   chapters: readonly ComicChapter[];
 }
 
@@ -224,6 +235,9 @@ const KROX: Comic = {
   // everywhere else here, and it beats bumping MEDIA_VERSION, which would make
   // every reader re-download all 32 pages to change one image.
   hero: '/comics/krox/portada.jpg',
+  // His cover is a full-body portrait, so the face sits high. Checked against
+  // the real panel at 358px: the old default cropped to the torso.
+  heroFocus: '50% 18%',
   chapters: [
     {
       number: 1,

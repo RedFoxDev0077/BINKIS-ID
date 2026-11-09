@@ -63,8 +63,13 @@ export function ComicPromo({
       */}
       <div
         aria-hidden
-        className="relative h-44 bg-gradient-to-br from-ink-850 via-ink-900 to-ink-925 bg-cover bg-[50%_32%] sm:h-56"
-        style={{ backgroundImage: `url('${mediaUrl(comic.hero)}')` }}
+        className="relative h-44 bg-gradient-to-br from-ink-850 via-ink-900 to-ink-925 bg-cover sm:h-56"
+        style={{
+          backgroundImage: `url('${mediaUrl(comic.hero)}')`,
+          // Inline rather than a Tailwind class: the anchor is a property of
+          // whichever cover this comic ships, not of the panel.
+          backgroundPosition: comic.heroFocus ?? '50% 32%',
+        }}
       >
         <span className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1 text-[11px] font-bold tracking-[0.18em] text-ink-950 shadow-[0_4px_16px_-2px_oklch(0.76_0.17_195/0.65)]">
           {t.comic.badge}

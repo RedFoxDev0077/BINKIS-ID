@@ -154,6 +154,18 @@ export interface Comic {
   /** One strong illustration for the promo block. Never a logo. */
   hero: string;
   /**
+   * The finished cover, with its trade dress, for the first page of the PDF.
+   *
+   * Separate from `hero` because the two are cropped by different things. The
+   * promo block is a wide, short panel that cuts a portrait hard, so it wants
+   * bare art; a downloaded comic is a whole page in a reader and wants the
+   * logo, the issue number and the credits that say who drew it.
+   *
+   * Sent 9 November 2026 ("portada para acompañar historia que se descarga").
+   * Falls back to `hero` when a comic has no finished cover yet.
+   */
+  cover?: string;
+  /**
    * Where to anchor the hero inside the promo panel, as a CSS
    * background-position. Defaults to '50% 32%'.
    *
@@ -211,8 +223,12 @@ const KROX_RAW: readonly ComicPage[] = [
  * The client is delivering these page by page rather than as a finished
  * chapter ("te ire pasando las paginas con forme las avanzo con texto",
  * 6 November 2026), so this list grows and the unlettered tail shrinks. Nine
- * files arrived on 7 November covering pages 1 to 17, and five more on
- * 8 November taking it to page 27. Only page 28 is still silent.
+ * files arrived on 7 November covering pages 1 to 17, five more on 8 November
+ * taking it to page 27, and page 28 on 9 November.
+ *
+ * SPANISH IS NOW COMPLETE, 28 of 28, so `withLettered` contributes nothing to
+ * the Spanish set any more. It stays because English is still entirely
+ * unlettered and will arrive the same way, page by page.
  *
  * Pages 18-19 exist in two letterings. The one here is the file he named for
  * its own pages, and page 20-21 opens on "la recompensa pagaba el viaje",
@@ -241,6 +257,7 @@ const KROX_ES_LETTERED: readonly ComicPage[] = [
   { image: '/comics/krox/1/es/22-23.jpg', width: 1447, height: 1087, numbers: [22, 23] },
   { image: '/comics/krox/1/es/24-25.jpg', width: 1446, height: 1087, numbers: [24, 25] },
   { image: '/comics/krox/1/es/26-27.jpg', width: 1446, height: 1087, numbers: [26, 27] },
+  { image: '/comics/krox/1/es/28.jpg', width: 1024, height: 1536, numbers: [28] },
 ];
 
 /**
@@ -272,6 +289,14 @@ const KROX: Comic = {
   // His cover is a full-body portrait, so the face sits high. Checked against
   // the real panel at 358px: the old default cropped to the torso.
   heroFocus: '50% 18%',
+  // The same illustration with the finished cover treatment: the imprint
+  // wordmark, the issue number, the KROX logo, the credits, the barcode.
+  //
+  // It leads the PDF and nothing else, because every one of those elements
+  // sits at the top or bottom edge and the promo panel crops both away. It
+  // also carries roughly four times the pixels of portada.jpg, which matters
+  // at a full PDF page and not at all in a 358px panel.
+  cover: '/comics/krox/portada-01.jpg',
   chapters: [
     {
       number: 1,
@@ -332,8 +357,8 @@ const KROX: Comic = {
        * the letterer at about 1447.
        */
       downloads: {
-        es: { file: '/comics/krox/1/KROX-Capitulo-1-41bb71f0.pdf', bytes: 8590212 },
-        en: { file: '/comics/krox/1/KROX-Chapter-1-f97b424e.pdf', bytes: 10721600 },
+        es: { file: '/comics/krox/1/KROX-Capitulo-1-1544310f.pdf', bytes: 8710214 },
+        en: { file: '/comics/krox/1/KROX-Chapter-1-5a3b54be.pdf', bytes: 11144304 },
       },
       publishedAt: '2026-11-06',
     },

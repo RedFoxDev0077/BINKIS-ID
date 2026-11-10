@@ -38,7 +38,11 @@ import type { Comic, ComicChapter, ComicLocale } from '../../src/lib/comics/cata
 export function downloadSources(comic: Comic, chapter: ComicChapter, locale: ComicLocale): string[] {
   const pages = chapter.pages?.[locale] ?? [];
   if (pages.length === 0) throw new Error(`${comic.slug} chapter ${chapter.number} has no ${locale} pages`);
-  return [comic.hero, ...pages.map((p) => p.image), ...(chapter.closing ?? []).map((p) => p.image)];
+  // The finished cover when there is one, the promo art when there is not.
+  // A comic that opens on its own cover is the point; opening on nothing is
+  // worse than opening on the bare illustration.
+  const cover = comic.cover ?? comic.hero;
+  return [cover, ...pages.map((p) => p.image), ...(chapter.closing ?? []).map((p) => p.image)];
 }
 
 /** Eight hex characters of the ordered source list. */

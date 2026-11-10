@@ -148,9 +148,12 @@ describe('where the button goes', () => {
     const es = findChapter('krox', 1, 'es')!.chapter.pages!.es;
     const en = findChapter('krox', 1, 'en')!.chapter.pages!.en;
 
+    // All 28 as of 9 November 2026: Spanish is finished, so the fallback
+    // below now matches nothing. It is still asserted, because English will
+    // arrive the same way and has to go through the same seam.
     const lettered = es.filter((p) => p.image.includes('/1/es/'));
     expect(lettered.flatMap((p) => [...p.numbers])).toEqual(
-      Array.from({ length: 27 }, (_, i) => i + 1),
+      Array.from({ length: 28 }, (_, i) => i + 1),
     );
 
     // Every page Spanish has not reached yet falls back to the delivered art,
@@ -165,7 +168,10 @@ describe('where the button goes', () => {
 
   /** Every image path the catalog declares, hero included. */
   function declaredPaths(): string[] {
-    const paths = new Set<string>(COMICS.map((c) => c.hero));
+    // Cover as well as hero: the cover is only ever read by the PDF builder,
+    // so without this a missing cover file would surface as a broken build
+    // weeks later instead of here.
+    const paths = new Set<string>(COMICS.flatMap((c) => [c.hero, ...(c.cover ? [c.cover] : [])]));
     for (const comic of COMICS) {
       for (const ch of comic.chapters) {
         for (const plate of ch.closing ?? []) paths.add(plate.image);

@@ -127,6 +127,19 @@ export interface ComicChapter {
    */
   pages: Localised<readonly ComicPage[]> | null;
   /**
+   * The languages whose page set is lettered all the way through.
+   *
+   * Declared rather than inferred from the file paths, because "has words in
+   * it" is a fact about the artwork that only the person holding the art
+   * knows. A half-lettered set is not listed here: a chapter that goes silent
+   * at page 18 is not readable in that language.
+   *
+   * This exists because the site now opens in English (see i18n/DEFAULT_LOCALE)
+   * while English lettering has not started, so without it the default
+   * experience of the whole site would be 28 wordless pages.
+   */
+  lettered: readonly ComicLocale[];
+  /**
    * Full-page plates after the last numbered page, in the order they are shown.
    *
    * Not part of `pages`, because they carry no printed page number and must
@@ -305,6 +318,10 @@ const KROX: Comic = {
         en: 'The Last Warrior of Athos',
       },
       pages: { es: withLettered(KROX_ES_LETTERED), en: KROX_RAW },
+      // Spanish only, 28 of 28 since 9 November 2026. English lettering has
+      // not started: "me falta trabajarlo en inglés", 10 November 2026. Add
+      // 'en' here the day it is finished and the reader switches by itself.
+      lettered: ['es'],
       // "si puedes poner esta al mero final del comic. y luego a color",
       // 8 November 2026, and "si porfa las dos" when he was asked whether he
       // wanted the ink plate as well as the colour one.
@@ -380,6 +397,39 @@ export function isReadable(chapter: ComicChapter, locale: ComicLocale): boolean 
   if (!chapter.publishedAt) return false;
   const pages = chapter.pages?.[locale];
   return Array.isArray(pages) && pages.length > 0;
+}
+
+/**
+ * Which artwork a reader actually gets, and in which language it is lettered.
+ *
+ * The two can differ, and the gap is the point. The site opens in English for
+ * a branding reason that has nothing to do with the comic, while the comic is
+ * lettered only in Spanish. Serving the English reader the unlettered delivery
+ * would mean the default experience of the whole site is a silent comic, so
+ * the lettered edition is shown instead and the page says so.
+ *
+ * Deliberately NOT a silent swap. A reader who opens a comic and finds another
+ * language has to be told why, or the site just looks broken in a new way.
+ */
+export interface ReadingSet {
+  pages: readonly ComicPage[];
+  /** The language the words in the artwork are in. */
+  shownIn: ComicLocale;
+  /** True when that is not the language the reader asked for. */
+  substituted: boolean;
+}
+
+export function readingSet(chapter: ComicChapter, locale: ComicLocale): ReadingSet | null {
+  const asked = chapter.pages?.[locale];
+  if (!asked || asked.length === 0) return null;
+  if (chapter.lettered.includes(locale)) return { pages: asked, shownIn: locale, substituted: false };
+
+  // Nothing is lettered anywhere, so the silent art is the only edition there
+  // is. That was the client's own choice on 6 November 2026 and it stands.
+  const instead = chapter.lettered.find((l) => (chapter.pages?.[l]?.length ?? 0) > 0);
+  if (!instead) return { pages: asked, shownIn: locale, substituted: false };
+
+  return { pages: chapter.pages![instead], shownIn: instead, substituted: true };
 }
 
 export function readableChapters(comic: Comic, locale: ComicLocale): ComicChapter[] {

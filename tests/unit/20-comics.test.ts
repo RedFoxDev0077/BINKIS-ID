@@ -9,6 +9,7 @@ import {
   isReadable,
   mediaUrl,
   readableChapters,
+  readingSet,
   type Comic,
   type ComicChapter,
 } from '../../src/lib/comics/catalog.ts';
@@ -31,6 +32,7 @@ function chapter(overrides: Partial<ComicChapter> = {}): ComicChapter {
     number: 1,
     title: { es: 'Uno', en: 'One' },
     pages: null,
+    lettered: [],
     publishedAt: null,
     ...overrides,
   };
@@ -383,5 +385,58 @@ describe('copy', () => {
         }
       }
     }
+  });
+});
+
+/*
+ * THE SITE OPENS IN ENGLISH AND THE COMIC IS LETTERED IN SPANISH.
+ *
+ * Those two facts arrived on the same day, 10 November 2026, from the same
+ * client, and left alone they combine into the worst version of the site:
+ * every visitor lands in English, taps the one button on the home page, and
+ * gets twenty-eight pages with no words in them.
+ *
+ * readingSet is what keeps them apart. These tests pin the three cases,
+ * because the moment English lettering arrives the right behaviour inverts
+ * and nothing else in the file would notice.
+ */
+describe('readingSet', () => {
+  const PAGES_ES = [{ ...PAGE, image: '/comics/x/es/1.jpg' }] as const;
+  const PAGES_EN = [{ ...PAGE, image: '/comics/x/pages/1.jpg' }] as const;
+
+  it('gives a reader their own language when it is lettered', () => {
+    const ch = chapter({ pages: { es: PAGES_ES, en: PAGES_EN }, lettered: ['es', 'en'] });
+    expect(readingSet(ch, 'en')).toEqual({ pages: PAGES_EN, shownIn: 'en', substituted: false });
+    expect(readingSet(ch, 'es')).toEqual({ pages: PAGES_ES, shownIn: 'es', substituted: false });
+  });
+
+  it('substitutes the lettered edition, and says that it did', () => {
+    const ch = chapter({ pages: { es: PAGES_ES, en: PAGES_EN }, lettered: ['es'] });
+    expect(readingSet(ch, 'en')).toEqual({ pages: PAGES_ES, shownIn: 'es', substituted: true });
+    // The Spanish reader is unaffected, and must not be told anything.
+    expect(readingSet(ch, 'es')!.substituted).toBe(false);
+  });
+
+  it('shows the silent art when nothing is lettered anywhere', () => {
+    // The client published chapter 1 unlettered on purpose on 6 November 2026.
+    // That has to keep working, rather than becoming an empty reader.
+    const ch = chapter({ pages: { es: PAGES_EN, en: PAGES_EN }, lettered: [] });
+    expect(readingSet(ch, 'en')).toEqual({ pages: PAGES_EN, shownIn: 'en', substituted: false });
+  });
+
+  it('is null when there are no pages at all in that language', () => {
+    expect(readingSet(chapter({ pages: null, lettered: [] }), 'en')).toBeNull();
+  });
+
+  it('sends the English reader of KROX to the Spanish lettering, today', () => {
+    const krox = findChapter('krox', 1, 'en')!.chapter;
+    const reading = readingSet(krox, 'en')!;
+    expect(reading.substituted).toBe(true);
+    expect(reading.shownIn).toBe('es');
+    // Every page it hands back is a lettered file, not the silent delivery.
+    expect(reading.pages.every((p) => p.image.includes('/1/es/'))).toBe(true);
+    expect(reading.pages.flatMap((p) => [...p.numbers])).toEqual(
+      Array.from({ length: 28 }, (_, i) => i + 1),
+    );
   });
 });

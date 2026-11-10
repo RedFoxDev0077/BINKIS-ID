@@ -229,6 +229,16 @@ export const en = {
     // download and an ambush.
     download: 'Download the comic (PDF, {size})',
     spreadHint: 'Pinch or double tap to enlarge a page.',
+    /*
+     * Shown when the chapter is not lettered in the reader's language and the
+     * lettered edition is being shown instead.
+     *
+     * It names the language the pages are actually in and says the other one
+     * is coming, which are the only two things the reader needs. It does not
+     * apologise: the comic is finished art either way.
+     */
+    lettering: 'This chapter is lettered in {language}. The English edition is on its way.',
+    language: { es: 'Spanish', en: 'English' },
   },
 
   common: {

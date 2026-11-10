@@ -8,6 +8,7 @@ import {
   findChapter,
   mediaUrl,
   readableChapters,
+  readingSet,
   type ComicPlate,
 } from '@/lib/comics/catalog';
 
@@ -65,11 +66,16 @@ export default async function ComicReaderPage({ params }: Params) {
   if (!found) notFound();
 
   const { comic, chapter } = found;
-  const pages = chapter.pages![locale];
+  // The lettered edition, which is not always the one the reader asked for.
+  const reading = readingSet(chapter, locale)!;
+  const pages = reading.pages;
   const siblings = readableChapters(comic, locale);
   const next = siblings.find((c) => c.number > chapter.number) ?? null;
   const hasSpread = pages.some((page) => page.numbers.length === 2);
-  const download = chapter.downloads?.[locale] ?? null;
+  // The PDF follows the artwork on screen rather than the interface language.
+  // Offering an English reader a download of the silent pages they were just
+  // spared would undo the substitution one tap later.
+  const download = chapter.downloads?.[reading.shownIn] ?? null;
 
   return (
     <main className="pb-20">
@@ -116,6 +122,15 @@ export default async function ComicReaderPage({ params }: Params) {
       </header>
 
       <div className="mx-auto w-full max-w-4xl px-0 sm:px-6">
+        {/* Said once, at the top, before the first page rather than after it.
+            A reader who meets an unexpected language three pages in has
+            already decided the site is broken. */}
+        {reading.substituted ? (
+          <p className="mx-4 mt-3 rounded-lg border border-ink-800 bg-ink-900/60 px-4 py-3 text-center text-xs text-ink-400 sm:mx-0">
+            {fill(t.comic.lettering, { language: t.comic.language[reading.shownIn] })}
+          </p>
+        ) : null}
+
         {hasSpread ? (
           <p className="px-4 py-3 text-center text-xs text-ink-500 sm:px-0">{t.comic.spreadHint}</p>
         ) : null}

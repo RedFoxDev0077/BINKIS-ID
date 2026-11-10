@@ -242,6 +242,8 @@ export const es: typeof en = {
     // download and an ambush.
     download: 'Descargar el cómic (PDF, {size})',
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
+    lettering: 'Este capítulo está rotulado en {language}. La edición en inglés viene en camino.',
+    language: { es: 'español', en: 'inglés' },
   },
 
   common: {

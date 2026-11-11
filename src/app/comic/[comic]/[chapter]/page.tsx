@@ -136,12 +136,27 @@ export default async function ComicReaderPage({ params }: Params) {
         ) : null}
 
         <div className="space-y-2 sm:space-y-4">
+          {/* The cover, ahead of page 1 and outside the numbered run.
+
+              It led the PDF from the day the client sent it, and did not
+              lead the reader until he opened the reader and said so on
+              11 November 2026. It carries no printed page number, so it is
+              captioned by what it is, exactly like the closing plates, and
+              it never enters the 1..28 count.
+
+              It also takes the eager load off page 1: the cover is now the
+              first thing on the screen, and the browser should be fetching
+              what the reader is looking at. */}
+          {comic.cover ? (
+            <ComicPageImage page={comic.cover} label={t.comic.cover} priority />
+          ) : null}
+
           {pages.map((page, index) => (
             <ComicPageImage
               key={page.image}
               page={page}
               label={fill(t.comic.page, { numbers: page.numbers.join('-') })}
-              priority={index === 0}
+              priority={!comic.cover && index === 0}
             />
           ))}
 

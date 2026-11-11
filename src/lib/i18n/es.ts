@@ -225,6 +225,10 @@ export const es: typeof en = {
     chapter: 'Capítulo {number}',
     back: 'Volver a BINKIS ID',
     chapters: 'Capítulos',
+    // The cover plate, which has no printed page number. Captioned by what
+    // it is, like the closing plates, so a screen reader is not told it is
+    // page zero of a book that starts at one.
+    cover: 'Portada',
     page: 'Página {numbers}',
     closing: 'UNIVERSALS, la Liga completa',
     // The same drawing before it was coloured, added 8 November 2026 at the

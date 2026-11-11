@@ -41,7 +41,7 @@ export function downloadSources(comic: Comic, chapter: ComicChapter, locale: Com
   // The finished cover when there is one, the promo art when there is not.
   // A comic that opens on its own cover is the point; opening on nothing is
   // worse than opening on the bare illustration.
-  const cover = comic.cover ?? comic.hero;
+  const cover = comic.cover?.image ?? comic.hero;
   return [cover, ...pages.map((p) => p.image), ...(chapter.closing ?? []).map((p) => p.image)];
 }
 

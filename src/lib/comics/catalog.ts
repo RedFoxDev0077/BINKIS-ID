@@ -167,17 +167,26 @@ export interface Comic {
   /** One strong illustration for the promo block. Never a logo. */
   hero: string;
   /**
-   * The finished cover, with its trade dress, for the first page of the PDF.
+   * The finished cover, with its trade dress. The first page of the reader
+   * and the first page of the PDF.
    *
    * Separate from `hero` because the two are cropped by different things. The
    * promo block is a wide, short panel that cuts a portrait hard, so it wants
-   * bare art; a downloaded comic is a whole page in a reader and wants the
-   * logo, the issue number and the credits that say who drew it.
+   * bare art; a comic opened as a comic is a whole page and wants the logo,
+   * the issue number and the credits that say who drew it.
    *
-   * Sent 9 November 2026 ("portada para acompañar historia que se descarga").
-   * Falls back to `hero` when a comic has no finished cover yet.
+   * Sent 9 November 2026 ("portada para acompañar historia que se descarga")
+   * and led the PDF alone until 11 November, when the client opened the
+   * reader and found the chapter starting on page 1: "aún no salió la portada
+   * al abrirlo... solo falta la portada porfa". A file that opens on the
+   * cover and a reader that does not are the same comic told two ways.
+   *
+   * A ComicPlate rather than a bare path, because the reader has to reserve
+   * the box before the file lands or page 1 jumps under the reader's thumb.
+   * The PDF still falls back to `hero` when a comic has no finished cover;
+   * the reader simply opens on page 1.
    */
-  cover?: string;
+  cover?: ComicPlate;
   /**
    * Where to anchor the hero inside the promo panel, as a CSS
    * background-position. Defaults to '50% 32%'.
@@ -305,11 +314,11 @@ const KROX: Comic = {
   // The same illustration with the finished cover treatment: the imprint
   // wordmark, the issue number, the KROX logo, the credits, the barcode.
   //
-  // It leads the PDF and nothing else, because every one of those elements
-  // sits at the top or bottom edge and the promo panel crops both away. It
-  // also carries roughly four times the pixels of portada.jpg, which matters
-  // at a full PDF page and not at all in a 358px panel.
-  cover: '/comics/krox/portada-01.jpg',
+  // It leads the reader and the PDF, but never the promo panel, because
+  // every one of those elements sits at the top or bottom edge and the panel
+  // crops both away. It also carries roughly four times the pixels of
+  // portada.jpg, which matters at full width and not at all in a 358px panel.
+  cover: { image: '/comics/krox/portada-01.jpg', width: 1004, height: 1567 },
   chapters: [
     {
       number: 1,

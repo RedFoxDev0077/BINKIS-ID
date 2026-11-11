@@ -170,10 +170,12 @@ describe('where the button goes', () => {
 
   /** Every image path the catalog declares, hero included. */
   function declaredPaths(): string[] {
-    // Cover as well as hero: the cover is only ever read by the PDF builder,
-    // so without this a missing cover file would surface as a broken build
-    // weeks later instead of here.
-    const paths = new Set<string>(COMICS.flatMap((c) => [c.hero, ...(c.cover ? [c.cover] : [])]));
+    // Cover as well as hero. The cover is now the first thing in the reader
+    // and the first page of the PDF, so a missing file is a hole at the very
+    // top of the chapter rather than something noticed weeks later.
+    const paths = new Set<string>(
+      COMICS.flatMap((c) => [c.hero, ...(c.cover ? [c.cover.image] : [])]),
+    );
     for (const comic of COMICS) {
       for (const ch of comic.chapters) {
         for (const plate of ch.closing ?? []) paths.add(plate.image);

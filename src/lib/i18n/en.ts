@@ -211,6 +211,10 @@ export const en = {
     chapter: 'Chapter {number}',
     back: 'Back to BINKIS ID',
     chapters: 'Chapters',
+    // The cover plate, which has no printed page number. Captioned by what
+    // it is, like the closing plates, so a screen reader is not told it is
+    // page zero of a book that starts at one.
+    cover: 'Cover',
     page: 'Page {numbers}',
     closing: 'UNIVERSALS, the full league',
     // The same drawing before it was coloured, added 8 November 2026 at the

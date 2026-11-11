@@ -27,6 +27,21 @@ function clipPaths(clip: Animation): string[] {
   return [clip.poster, clip.source.file];
 }
 
+/**
+ * Whether this machine has the video files at all.
+ *
+ * public/videos/ is gitignored - megabytes of the client's animation have no
+ * business in the repo - so on CI the declared paths point at nothing and the
+ * checks that read bytes have nothing to read. They skip rather than fail,
+ * because a green CI run has never meant the media was deployed; that is a
+ * separate step with its own verification.
+ */
+function hasLocalVideo(): boolean {
+  const present = existsSync(join(LOCAL_MEDIA, 'videos'));
+  if (!present) console.info('videos: no local media, file checks not run');
+  return present;
+}
+
 describe('animation catalogue', () => {
   it('declares every path in the one shape Caddy serves', () => {
     // /videos/* is its own handle block in the Caddyfile, rooted at
@@ -37,9 +52,15 @@ describe('animation catalogue', () => {
     }
   });
 
-  it('points at files that exist', () => {
-    // The art is uploaded by hand, separately from the deploy, so this is the
-    // one place a typo in a filename gets caught before it is a dead player.
+  it('points at files that exist, where the video is present', () => {
+    // The clips are uploaded by hand, separately from the deploy, so this is
+    // the one place a typo in a filename gets caught before it is a dead
+    // player. It can only be caught where the files are: public/videos/ is
+    // gitignored and Caddy serves them off the host, so on CI there is
+    // nothing to compare against and this reports what it did instead of
+    // failing. Same arrangement as the comic pages.
+    if (!hasLocalVideo()) return;
+
     for (const clip of ANIMATIONS) {
       for (const path of clipPaths(clip)) {
         expect(existsSync(join(LOCAL_MEDIA, path)), `${clip.slug}: ${path}`).toBe(true);
@@ -47,21 +68,29 @@ describe('animation catalogue', () => {
     }
   });
 
-  it('prints the size the file actually is', () => {
+  it('prints the size the file actually is, where the video is present', () => {
     // The number on the button is a promise about what a tap will cost
     // somebody on mobile data. Declared by hand, so it can drift; a re-encode
     // that changes the bytes and not this line fails here.
+    if (!hasLocalVideo()) return;
+
     for (const clip of ANIMATIONS) {
       const real = statSync(join(LOCAL_MEDIA, clip.source.file)).size;
       expect(clip.source.bytes, clip.slug).toBe(real);
     }
   });
 
-  it('serves H.264 in an MP4 with the index at the front', () => {
+  it('serves H.264 in an MP4 with the index at the front, where the video is present', () => {
     // The two codecs the client's animator has actually sent are AV1, which
     // no iPhone before the 15 Pro decodes, and H.265, which Firefox refuses.
     // Both looked fine on the machine they were made on. This reads the real
     // boxes rather than trusting the extension.
+    //
+    // THE ONE CHECK HERE WORTH RUNNING BEFORE A RELEASE BY HAND. It is the
+    // only guard against the delivered codec, and like the two above it can
+    // only run where the file is, which is not CI.
+    if (!hasLocalVideo()) return;
+
     for (const clip of ANIMATIONS) {
       const buf = readFileSync(join(LOCAL_MEDIA, clip.source.file));
       const boxes = topLevelBoxes(buf);

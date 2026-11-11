@@ -59,7 +59,7 @@ export default async function VideosPage() {
           {clips.map((clip) => (
             <li key={clip.slug}>
               <Link
-                href={`/videos/${clip.slug}` as never}
+                href={`/video/${clip.slug}` as never}
                 className="press group block overflow-hidden rounded-xl border border-ink-800 bg-ink-900 transition hover:border-ink-600"
               >
                 <div className="relative">

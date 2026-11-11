@@ -111,6 +111,40 @@ describe('animation catalogue', () => {
     }
   });
 
+  /**
+   * The bug this encodes shipped to production on 11 November 2026.
+   *
+   * Caddy matches `handle /videos/*` off /srv/media BEFORE a request reaches
+   * the app, so while the reader also lived at /videos, the URL
+   * /videos/krox-origen was looked up as a file on disk, missed, and came
+   * back as a Caddy 404 in text/plain. The page was built, prerendered and
+   * deployed. It was simply unreachable, and nothing in the build, the types
+   * or the other tests had any opinion about it.
+   *
+   * So: every media prefix served off disk must differ from every Next route
+   * segment. The comic already does this, /comic against /comics, and this
+   * now holds the animation to the same rule by reading both the Caddyfile
+   * and the actual route directories rather than taking anyone's word.
+   */
+  it('never serves a media prefix that is also a page route', async () => {
+    const { readFile, readdir } = await import('node:fs/promises');
+
+    const caddy = await readFile(join(process.cwd(), 'Caddyfile'), 'utf8');
+    const served = [...caddy.matchAll(/^\s*handle\s+\/([a-z0-9-]+)\/\*/gm)].map((m) => m[1]);
+    expect(served.length, 'no handle blocks found; did the Caddyfile move?').toBeGreaterThan(0);
+    expect(served, 'the animation files are not served off disk').toContain('videos');
+
+    const routes = (await readdir(join(process.cwd(), 'src', 'app'), { withFileTypes: true }))
+      .filter((e) => e.isDirectory() && !e.name.startsWith('[') && !e.name.startsWith('_'))
+      .map((e) => e.name);
+
+    for (const prefix of served) {
+      expect(routes, `/${prefix}/* is served off disk and would swallow the route`).not.toContain(
+        prefix,
+      );
+    }
+  });
+
   it('keeps slugs unique and URL-safe, because these links get shared', () => {
     const slugs = ANIMATIONS.map((a) => a.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

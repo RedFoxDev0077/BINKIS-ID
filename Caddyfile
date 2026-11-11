@@ -78,7 +78,17 @@ id.binkis.com {
 		header Cache-Control "public, max-age=31536000, immutable"
 	}
 
-	# UNIVERSALS animation. Megabytes per clip, and the one media here that a
+	# UNIVERSALS animation.
+	#
+	# THE MEDIA PREFIX AND THE PAGE ROUTE MUST NOT BE THE SAME WORD. This block
+	# matches /videos/* before the request ever reaches the app, so when the
+	# reader lived at /videos as well, /videos/krox-origen was looked up as a
+	# file on disk, missed, and came back as a Caddy 404 in text/plain. The page
+	# was built, prerendered and deployed; it was simply unreachable. That is
+	# why the pages are /video and the files are /videos, exactly as the comic
+	# reader is /comic and its pages are /comics.
+	#
+	# Megabytes per clip, and the one media here that a
 	# browser fetches in pieces: file_server answers range requests by default,
 	# which is what lets somebody scrub the timeline without re-downloading the
 	# whole file, and what lets a dropped connection resume.

@@ -132,7 +132,7 @@ export function ComicPromo({
             full width, because this is a phone in bad light. */}
         {hasAnimation ? (
           <Link
-            href={'/videos' as never}
+            href={'/video' as never}
             className="press mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-ink-600 px-6 text-[15px] font-semibold text-ink-100 transition hover:border-accent hover:text-white"
           >
             <svg

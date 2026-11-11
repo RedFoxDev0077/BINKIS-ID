@@ -71,7 +71,7 @@ export default async function VideoPage({ params }: Params) {
     <main className="mx-auto w-full max-w-4xl px-0 pb-20 pt-4 sm:px-6">
       <header className="px-4 sm:px-0">
         <Link
-          href={'/videos' as never}
+          href={'/video' as never}
           className="press inline-flex min-h-11 items-center gap-1.5 rounded-lg text-sm text-ink-300 transition hover:text-ink-50"
         >
           <svg

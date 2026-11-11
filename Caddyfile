@@ -78,6 +78,22 @@ id.binkis.com {
 		header Cache-Control "public, max-age=31536000, immutable"
 	}
 
+	# UNIVERSALS animation. Megabytes per clip, and the one media here that a
+	# browser fetches in pieces: file_server answers range requests by default,
+	# which is what lets somebody scrub the timeline without re-downloading the
+	# whole file, and what lets a dropped connection resume.
+	#
+	# Immutable for the same reason as everything else under /srv/media: a new
+	# cut ships under a new file name. That matters more here than anywhere -
+	# the client has already said the clip "va a cambiar mejorar poquito", and
+	# overwriting one of these in place would leave every phone that had
+	# watched it holding the old cut until November 2027.
+	handle /videos/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=31536000, immutable"
+	}
+
 	reverse_proxy app:3000 {
 		health_uri /
 		health_interval 10s

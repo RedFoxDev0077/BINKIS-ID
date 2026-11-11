@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { chapterHref, firstReadable, mediaUrl, type ComicLocale } from '@/lib/comics/catalog';
+import { watchable } from '@/lib/videos/catalog';
 import type { Dictionary } from '@/lib/i18n';
 
 /**
@@ -47,6 +48,9 @@ export function ComicPromo({
   if (!opening) return null;
 
   const { comic, chapter } = opening;
+  // Hidden until a clip is actually watchable, on the same principle as the
+  // block itself: a button is never a promise the site cannot keep.
+  const hasAnimation = watchable().length > 0;
 
   return (
     <section
@@ -117,6 +121,30 @@ export function ComicPromo({
             <path d="M5 12h13M12 5l7 7-7 7" />
           </svg>
         </Link>
+
+        {/* The animation, under the comic rather than beside it.
+
+            The client asked on 10 November 2026 to reach the shorts from
+            "el mismo boton del comic". Two buttons of equal weight would make
+            the reader choose before they know what either is, and the comic
+            is the finished work with 28 pages behind it, so this one is
+            quieter: outline, not gradient, and second. It is still 48px and
+            full width, because this is a phone in bad light. */}
+        {hasAnimation ? (
+          <Link
+            href={'/videos' as never}
+            className="press mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-ink-600 px-6 text-[15px] font-semibold text-ink-100 transition hover:border-accent hover:text-white"
+          >
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              className="size-4 shrink-0 fill-current"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            {t.videos.cta}
+          </Link>
+        ) : null}
 
         {/* The client's closing line, 7 November 2026, in place of the old
             "Gratis / Sin registro". That one answered a question about this

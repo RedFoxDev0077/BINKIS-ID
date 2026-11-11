@@ -137,5 +137,13 @@ public/binkis-tutorial/
 # source and is committed; the pages are not.
 public/comics/
 
+# UNIVERSALS animation. Megabytes of the client's video per clip, re-encoded
+# from what his animator delivers, plus the poster frame pulled out of it.
+# src/lib/videos IS source and is committed; the files are not.
+public/videos/
+
 # Screenshots a test run produces. Output, not source.
 tests/e2e/.artifacts/
+
+# Personal Claude Code permissions, not the team's
+.claude/settings.local.json

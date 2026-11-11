@@ -250,6 +250,23 @@ export const es: typeof en = {
     language: { es: 'español', en: 'inglés' },
   },
 
+  /**
+   * UNIVERSALS animation. Asked for by the client on 10 November 2026, as a
+   * place that grows rather than one clip bolted to the comic.
+   */
+  videos: {
+    cta: 'Ver la animación',
+    title: 'Animación UNIVERSALS',
+    intro: 'Cortos del universo UNIVERSALS. Vienen más en camino.',
+    back: 'Toda la animación',
+    share: 'Compartir la animación',
+    shareCopied: 'Link copiado',
+    backToComic: 'Leer el cómic',
+    meta: '{runtime} · {size}',
+    empty: 'Todavía no hay nada aquí. El primer corto viene pronto.',
+    spoken: 'Este corto está en {language}.',
+  },
+
   common: {
     back: 'Volver',
     loading: 'Cargando',

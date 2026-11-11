@@ -245,6 +245,27 @@ export const en = {
     language: { es: 'Spanish', en: 'English' },
   },
 
+  /**
+   * UNIVERSALS animation. Asked for by the client on 10 November 2026, as a
+   * place that grows rather than one clip bolted to the comic.
+   */
+  videos: {
+    cta: 'Watch the animation',
+    title: 'UNIVERSALS Animation',
+    intro: 'Short films from the UNIVERSALS universe. More on the way.',
+    back: 'All animation',
+    share: 'Share the animation',
+    shareCopied: 'Link copied',
+    backToComic: 'Read the comic',
+    // Runtime and weight, both before the tap. Nearly every viewer here is on
+    // a phone, often on mobile data.
+    meta: '{runtime} · {size}',
+    empty: 'Nothing here yet. The first short is coming soon.',
+    // Shown when the clip carries words in a language that is not the one the
+    // site is set to. Same reasoning as the comic's lettering note.
+    spoken: 'This short is in {language}.',
+  },
+
   common: {
     back: 'Back',
     loading: 'Loading',

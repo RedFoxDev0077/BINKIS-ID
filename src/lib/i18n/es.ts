@@ -255,7 +255,8 @@ export const es: typeof en = {
    * place that grows rather than one clip bolted to the comic.
    */
   videos: {
-    cta: 'Ver la animación',
+    cta: 'Ver el video animado',
+    ctaSub: 'KROX y EVA: de héroes a Binkis.',
     title: 'Animación UNIVERSALS',
     intro: 'Cortos del universo UNIVERSALS. Vienen más en camino.',
     back: 'Toda la animación',

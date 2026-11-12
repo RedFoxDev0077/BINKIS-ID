@@ -125,24 +125,43 @@ export function ComicPromo({
         {/* The animation, under the comic rather than beside it.
 
             The client asked on 10 November 2026 to reach the shorts from
-            "el mismo boton del comic". Two buttons of equal weight would make
-            the reader choose before they know what either is, and the comic
-            is the finished work with 28 pages behind it, so this one is
-            quieter: outline, not gradient, and second. It is still 48px and
-            full width, because this is a phone in bad light. */}
+            "el mismo boton del comic", and it shipped quiet: outline, not
+            gradient, and second, because the comic is the finished work with
+            28 pages behind it.
+
+            HE CAME BACK ON 11 NOVEMBER AND ASKED FOR IT LOUD. His spec, taken
+            as given: amber gold #F4B860, dark letters, first line large and
+            bold, second line smaller "pero perfectamente legible", both
+            inside the one button. So the subtitle keeps the full ink colour
+            and earns its step down from size and weight alone, which is also
+            the only version of it that holds a contrast ratio on a phone in
+            daylight. #F4B860 is his hex rather than a theme token, written
+            inline for that reason: it is a brand decision of his, not a
+            colour this palette owns.
+
+            The amber does not fight the cyan above it. Two buttons that loud
+            in one colour would, but these are opposite sides of the wheel and
+            the cyan one is still the taller, so the order reads. */}
         {hasAnimation ? (
           <Link
             href={'/video' as never}
-            className="press mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-ink-600 px-6 text-[15px] font-semibold text-ink-100 transition hover:border-accent hover:text-white"
+            className="press mt-3 flex min-h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-[#F4B860] px-3 py-2.5 text-center text-ink-950 shadow-[0_10px_30px_-10px_#F4B860] ring-1 ring-[#F8D093]/70 transition hover:brightness-105 sm:gap-3 sm:px-5"
           >
-            <svg
-              aria-hidden
-              viewBox="0 0 24 24"
-              className="size-4 shrink-0 fill-current"
-            >
+            <svg aria-hidden viewBox="0 0 24 24" className="size-5 shrink-0 fill-current">
               <path d="M8 5v14l11-7z" />
             </svg>
-            {t.videos.cta}
+            {/* Both lines step down a little on the narrowest phones. Not
+                taste: the English is longer than the client's Spanish, and at
+                360px the full sizes wrapped it to four lines, which is not a
+                button any more. */}
+            <span className="min-w-0">
+              <span className="block text-[17px] font-bold leading-tight sm:text-lg">
+                {t.videos.cta}
+              </span>
+              <span className="mt-0.5 block text-xs font-medium leading-snug sm:text-[13px]">
+                {t.videos.ctaSub}
+              </span>
+            </span>
           </Link>
         ) : null}
 

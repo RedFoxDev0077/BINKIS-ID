@@ -250,7 +250,11 @@ export const en = {
    * place that grows rather than one clip bolted to the comic.
    */
   videos: {
-    cta: 'Watch the animation',
+    cta: 'Watch the animated video',
+    // The client's own second line, 11 November 2026. His wording in Spanish,
+    // so the English is a translation of his sentence and not a new claim:
+    // these are the characters, and the Binkis are the figures they became.
+    ctaSub: 'KROX and EVA: from heroes to Binkis.',
     title: 'UNIVERSALS Animation',
     intro: 'Short films from the UNIVERSALS universe. More on the way.',
     back: 'All animation',

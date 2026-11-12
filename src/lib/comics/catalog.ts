@@ -206,8 +206,8 @@ export interface Comic {
  *
  * 28 pages drawn by Jon Malin, hand-coloured, delivered 5 November 2026. The
  * script in both languages arrived 6 November 2026, and Spanish lettering
- * started arriving page by page on 7 November. English lettering has not
- * started.
+ * started arriving page by page on 7 November, finishing on the 9th. English
+ * lettering ran 11 to 12 November. Both editions are now complete.
  */
 
 /**
@@ -289,17 +289,18 @@ const KROX_ES_LETTERED: readonly ComicPage[] = [
  * a poco ... tal vez me tarde unos dias". Same delivery shape as the Spanish
  * set, so it grows the same way and the silent tail shrinks behind it.
  *
- * 25 of 28. PAGE 1 AND THE 10-11 SPREAD ARE STILL MISSING, and the client
- * believes the set is finished ("listo Goodman, todas en ingles", 11 November
- * 2026). It is not: both of those pages carry Spanish captions today, so they
- * would open and close the chapter in the wrong language.
+ * COMPLETE, 28 of 28, on 12 November 2026. It stood at 25 overnight: the
+ * client called it finished on the 11th ("listo Goodman, todas en ingles")
+ * while page 1 and the 10-11 spread were still carrying Spanish captions, and
+ * sent both the next morning once told which two and what they said. So the
+ * chapter is listed as lettered in English from today and an English reader
+ * now gets the English edition rather than the Spanish one with a notice.
  *
- * THE CHAPTER IS THEREFORE NOT LISTED AS LETTERED IN ENGLISH, and must not be
- * until all 28 are here: a reader who opens a comic that speaks for
- * twenty-five pages and goes quiet on the first one has been handed a broken
- * book, which is worse than being told plainly that it is only in Spanish
- * today. Until then this list reaches only the English PDF, where the
- * alternative is a page with no words on it at all.
+ * THE RULE THAT HELD THE LINE IS WORTH KEEPING: a language goes into
+ * `lettered` only when every page of it is here. A reader who opens a comic
+ * that speaks for twenty-five pages and goes quiet on the first one has been
+ * handed a broken book, which is worse than being told plainly that it is
+ * only in Spanish today. There is a test for it now.
  *
  * WHICH LETTERING, WHERE, WAS NOT GUESSED. His second archive of the day,
  * "KROX_Origin_All_Versions_English", holds eleven plates whose own read-me
@@ -327,10 +328,12 @@ const KROX_ES_LETTERED: readonly ComicPage[] = [
  * master, which is exactly how the Spanish 2-3 arrived too.
  */
 const KROX_EN_LETTERED: readonly ComicPage[] = [
+  { image: '/comics/krox/1/en/1.jpg', width: 1009, height: 1559, numbers: [1] },
   { image: '/comics/krox/1/en/2-3.jpg', width: 1600, height: 1203, numbers: [2, 3] },
   { image: '/comics/krox/1/en/4-5.jpg', width: 1447, height: 1087, numbers: [4, 5] },
   { image: '/comics/krox/1/en/6-7.jpg', width: 1447, height: 1087, numbers: [6, 7] },
   { image: '/comics/krox/1/en/8-9.jpg', width: 1427, height: 1102, numbers: [8, 9] },
+  { image: '/comics/krox/1/en/10-11.jpg', width: 1446, height: 1087, numbers: [10, 11] },
   { image: '/comics/krox/1/en/12-13.jpg', width: 1446, height: 1088, numbers: [12, 13] },
   { image: '/comics/krox/1/en/14-15.jpg', width: 1447, height: 1087, numbers: [14, 15] },
   { image: '/comics/krox/1/en/16-17.jpg', width: 1446, height: 1087, numbers: [16, 17] },
@@ -393,11 +396,12 @@ const KROX: Comic = {
         en: 'The Last Warrior of Athos',
       },
       pages: { es: withLettered(KROX_ES_LETTERED), en: withLettered(KROX_EN_LETTERED) },
-      // Spanish only, 28 of 28 since 9 November 2026. English started arriving
-      // 11 November 2026 and stands at 25 of 28: add 'en' here the day the
-      // last two land, and the reader switches by itself. Still missing:
-      // page 1 and the 10-11 spread, both of which still carry Spanish.
-      lettered: ['es'],
+      // Both languages, 28 of 28 each. Spanish since 9 November 2026, English
+      // since 12 November. `withLettered` now contributes nothing to either
+      // set, and the lettering notice no longer shows to anyone; both stay
+      // because chapter 2 will arrive the same way, page by page, and the
+      // silent art is what the reader gets in the meantime.
+      lettered: ['es', 'en'],
       // "si puedes poner esta al mero final del comic. y luego a color",
       // 8 November 2026, and "si porfa las dos" when he was asked whether he
       // wanted the ink plate as well as the colour one.
@@ -451,7 +455,7 @@ const KROX: Comic = {
        */
       downloads: {
         es: { file: '/comics/krox/1/KROX-Capitulo-1-1544310f.pdf', bytes: 8710214 },
-        en: { file: '/comics/krox/1/KROX-Chapter-1-049caf33.pdf', bytes: 9791329 },
+        en: { file: '/comics/krox/1/KROX-Chapter-1-9e2643d9.pdf', bytes: 9242435 },
       },
       publishedAt: '2026-11-06',
     },

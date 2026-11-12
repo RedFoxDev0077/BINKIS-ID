@@ -461,13 +461,17 @@ describe('readingSet', () => {
     expect(readingSet(chapter({ pages: null, lettered: [] }), 'en')).toBeNull();
   });
 
-  it('sends the English reader of KROX to the Spanish lettering, today', () => {
-    const krox = findChapter('krox', 1, 'en')!.chapter;
-    const reading = readingSet(krox, 'en')!;
-    expect(reading.substituted).toBe(true);
-    expect(reading.shownIn).toBe('es');
+  // KROX chapter 1 is lettered in both languages as of 12 November 2026, so
+  // neither reader is substituted any more and nobody sees the notice. The
+  // mechanism itself is still covered by the synthetic cases above, which is
+  // where it belongs: chapter 2 will arrive one language at a time.
+  it.each(['es', 'en'] as const)('serves KROX chapter 1 in %s, all 28 pages, lettered', (locale) => {
+    const krox = findChapter('krox', 1, locale)!.chapter;
+    const reading = readingSet(krox, locale)!;
+    expect(reading.substituted).toBe(false);
+    expect(reading.shownIn).toBe(locale);
     // Every page it hands back is a lettered file, not the silent delivery.
-    expect(reading.pages.every((p) => p.image.includes('/1/es/'))).toBe(true);
+    expect(reading.pages.every((p) => p.image.includes(`/1/${locale}/`))).toBe(true);
     expect(reading.pages.flatMap((p) => [...p.numbers])).toEqual(
       Array.from({ length: 28 }, (_, i) => i + 1),
     );

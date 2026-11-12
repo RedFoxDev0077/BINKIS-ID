@@ -283,16 +283,72 @@ const KROX_ES_LETTERED: readonly ComicPage[] = [
 ];
 
 /**
- * One chapter, assembled: every lettered page, then the silent remainder.
+ * English, lettered, as far as the letterer has reached.
  *
- * Selected by page number rather than by position so that adding the next
- * lettered spread to the list above is the only edit required. Taking a slice
- * at a fixed index would have worked today and quietly dropped or duplicated a
- * page the first time either list changed.
+ * Started 11 November 2026: "ire compartiendo las paginas en ingles zip poco
+ * a poco ... tal vez me tarde unos dias". Same delivery shape as the Spanish
+ * set, so it grows the same way and the silent tail shrinks behind it.
+ *
+ * 16 of 28, pages 2 to 19 bar the 10-11 spread. THE CHAPTER IS NOT LISTED AS
+ * LETTERED IN ENGLISH and must not be until all 28 are here: a reader who
+ * opens a comic that speaks for sixteen pages and then goes quiet has been
+ * handed a broken book, which is worse than being told plainly that it is
+ * only in Spanish today. Until then this list reaches only the English PDF,
+ * where the alternative is a page with no words on it at all.
+ *
+ * WHICH LETTERING, WHERE, WAS NOT GUESSED. His second archive of the day,
+ * "KROX_Origin_All_Versions_English", holds eleven plates whose own read-me
+ * says the numbers "identify the order of files in the supplied package, not
+ * story page numbers", and four of the eleven are alternate dialogue takes of
+ * a spread that already had one. Pages were matched by comparing the artwork
+ * itself against the Spanish set, which is unambiguous because the English is
+ * lettered over the same files; where two takes competed, the one chosen is
+ * the one whose words are the Spanish edition's words. The Spanish is the
+ * edition the client approved and shipped, so an English page that says
+ * something else is not a translation of this comic.
+ *
+ * Rejected on those grounds, and still in his archive if he wants them:
+ * plate 02 for 12-13 (drops "don't let them take them back"), plate 08 for
+ * 14-15 ("let me go" for "cowards"), plate 01 for 16-17 (Mara sends him
+ * rather than Silus recognising his army), plate 11 for 18-19 (the rescue,
+ * where the Spanish has the bounty hunting that page 20-21 then follows from
+ * with "la recompensa pagaba el viaje"). Pages 6-7 also exist as an earlier
+ * English translation under Previous_editable; the plate used is the newer
+ * one he lettered today.
+ *
+ * SIZES COME FROM HIS FILES, and they are the Spanish sizes to the pixel,
+ * because he lettered the English over the same WhatsApp-resampled art. The
+ * 2-3 spread is the exception at 1600, delivered as its own 12100x9094
+ * master, which is exactly how the Spanish 2-3 arrived too.
+ */
+const KROX_EN_LETTERED: readonly ComicPage[] = [
+  { image: '/comics/krox/1/en/2-3.jpg', width: 1600, height: 1203, numbers: [2, 3] },
+  { image: '/comics/krox/1/en/4-5.jpg', width: 1447, height: 1087, numbers: [4, 5] },
+  { image: '/comics/krox/1/en/6-7.jpg', width: 1447, height: 1087, numbers: [6, 7] },
+  { image: '/comics/krox/1/en/8-9.jpg', width: 1427, height: 1102, numbers: [8, 9] },
+  { image: '/comics/krox/1/en/12-13.jpg', width: 1446, height: 1088, numbers: [12, 13] },
+  { image: '/comics/krox/1/en/14-15.jpg', width: 1447, height: 1087, numbers: [14, 15] },
+  { image: '/comics/krox/1/en/16-17.jpg', width: 1446, height: 1087, numbers: [16, 17] },
+  { image: '/comics/krox/1/en/18-19.jpg', width: 1426, height: 1103, numbers: [18, 19] },
+];
+
+/**
+ * One chapter, assembled: the lettered file wherever one exists, the silent
+ * delivery everywhere else, always in reading order.
+ *
+ * WALKS THE DELIVERY AND SUBSTITUTES, rather than putting the lettered pages
+ * first and the rest behind them. Until 11 November 2026 it did the latter,
+ * which was correct only by luck: Spanish lettering arrived from page 1
+ * forwards, so lettered-then-silent happened to be 1..28 in order. English
+ * started at the 2-3 spread, and the old form would have opened the chapter
+ * on page 2 and put page 1 after it.
+ *
+ * Keyed by the first printed number, so adding the next spread to a lettered
+ * list above stays the only edit required.
  */
 function withLettered(lettered: readonly ComicPage[]): readonly ComicPage[] {
-  const done = new Set(lettered.flatMap((page) => page.numbers));
-  return [...lettered, ...KROX_RAW.filter((page) => !page.numbers.some((n) => done.has(n)))];
+  const byFirstNumber = new Map(lettered.map((page) => [page.numbers[0], page]));
+  return KROX_RAW.map((page) => byFirstNumber.get(page.numbers[0]) ?? page);
 }
 
 const KROX: Comic = {
@@ -326,10 +382,12 @@ const KROX: Comic = {
         es: 'El último guerrero de Athos',
         en: 'The Last Warrior of Athos',
       },
-      pages: { es: withLettered(KROX_ES_LETTERED), en: KROX_RAW },
-      // Spanish only, 28 of 28 since 9 November 2026. English lettering has
-      // not started: "me falta trabajarlo en inglés", 10 November 2026. Add
-      // 'en' here the day it is finished and the reader switches by itself.
+      pages: { es: withLettered(KROX_ES_LETTERED), en: withLettered(KROX_EN_LETTERED) },
+      // Spanish only, 28 of 28 since 9 November 2026. English started arriving
+      // 11 November 2026 and stands at 16 of 28, which is not a readable
+      // book: add 'en' here the day the last English spread lands, and the
+      // reader switches by itself. Still missing: page 1, the 10-11 spread,
+      // 20-21, 22-23, 24-25, 26-27 and page 28.
       lettered: ['es'],
       // "si puedes poner esta al mero final del comic. y luego a color",
       // 8 November 2026, and "si porfa las dos" when he was asked whether he
@@ -384,7 +442,7 @@ const KROX: Comic = {
        */
       downloads: {
         es: { file: '/comics/krox/1/KROX-Capitulo-1-1544310f.pdf', bytes: 8710214 },
-        en: { file: '/comics/krox/1/KROX-Chapter-1-5a3b54be.pdf', bytes: 11144304 },
+        en: { file: '/comics/krox/1/KROX-Chapter-1-446cdd8f.pdf', bytes: 10459039 },
       },
       publishedAt: '2026-11-06',
     },

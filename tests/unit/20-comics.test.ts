@@ -146,26 +146,57 @@ describe('where the button goes', () => {
    * and the test above would catch it. This one pins the seam itself, so that
    * when the next lettered spread arrives it is obvious whether it landed.
    */
-  it('prefers the lettered Spanish page wherever one exists', () => {
+  it('prefers the lettered page wherever one exists, in either language', () => {
     const es = findChapter('krox', 1, 'es')!.chapter.pages!.es;
     const en = findChapter('krox', 1, 'en')!.chapter.pages!.en;
 
     // All 28 as of 9 November 2026: Spanish is finished, so the fallback
-    // below now matches nothing. It is still asserted, because English will
-    // arrive the same way and has to go through the same seam.
+    // below now matches nothing. It is still asserted, because English is
+    // arriving the same way and goes through the same seam.
     const lettered = es.filter((p) => p.image.includes('/1/es/'));
     expect(lettered.flatMap((p) => [...p.numbers])).toEqual(
       Array.from({ length: 28 }, (_, i) => i + 1),
     );
 
-    // Every page Spanish has not reached yet falls back to the delivered art,
-    // which is the same file English is reading.
+    // Every page Spanish has not reached yet falls back to the delivered art.
     for (const page of es.filter((p) => !p.image.includes('/1/es/'))) {
-      expect(en).toContain(page);
+      expect(page.image).toContain('/1/pages/');
     }
 
-    // English has no lettering at all yet, so it is still the raw set whole.
-    expect(en.every((p) => p.image.includes('/1/pages/'))).toBe(true);
+    // English began arriving 11 November 2026, spread by spread, and unlike
+    // Spanish it did not start at page 1. Every page it serves is either the
+    // English lettering or the silent delivery and never anything else; the
+    // test above is what holds the join to 1..28 in order.
+    for (const page of en) {
+      expect(page.image, `en p${page.numbers.join('-')}`).toMatch(/\/1\/(?:en|pages)\//);
+    }
+  });
+
+  /**
+   * The guard on the switch itself.
+   *
+   * `lettered` is what makes the reader stop substituting the Spanish edition
+   * and hand an English reader the English files, so flipping it one spread
+   * early is the single edit that would ship a book which speaks for two
+   * pages and then goes silent for twenty-six. That is worse than being told
+   * plainly that the comic is only in Spanish today, and it is a one-word
+   * change somebody will be tempted to make the moment the folder looks full.
+   */
+  it('never calls a language lettered while any of its pages are still silent', () => {
+    for (const comic of COMICS) {
+      for (const chapter of comic.chapters) {
+        for (const locale of chapter.lettered) {
+          const pages = chapter.pages?.[locale] ?? [];
+          const where = `${comic.slug} ch${chapter.number} ${locale}`;
+          expect(pages.length, `${where} is listed as lettered with no pages`).toBeGreaterThan(0);
+          for (const page of pages) {
+            expect(page.image, `${where} p${page.numbers.join('-')} is the silent delivery`).toContain(
+              `/${locale}/`,
+            );
+          }
+        }
+      }
+    }
   });
 
   /** Every image path the catalog declares, hero included. */

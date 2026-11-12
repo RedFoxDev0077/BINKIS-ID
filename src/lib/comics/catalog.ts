@@ -289,12 +289,17 @@ const KROX_ES_LETTERED: readonly ComicPage[] = [
  * a poco ... tal vez me tarde unos dias". Same delivery shape as the Spanish
  * set, so it grows the same way and the silent tail shrinks behind it.
  *
- * 16 of 28, pages 2 to 19 bar the 10-11 spread. THE CHAPTER IS NOT LISTED AS
- * LETTERED IN ENGLISH and must not be until all 28 are here: a reader who
- * opens a comic that speaks for sixteen pages and then goes quiet has been
- * handed a broken book, which is worse than being told plainly that it is
- * only in Spanish today. Until then this list reaches only the English PDF,
- * where the alternative is a page with no words on it at all.
+ * 25 of 28. PAGE 1 AND THE 10-11 SPREAD ARE STILL MISSING, and the client
+ * believes the set is finished ("listo Goodman, todas en ingles", 11 November
+ * 2026). It is not: both of those pages carry Spanish captions today, so they
+ * would open and close the chapter in the wrong language.
+ *
+ * THE CHAPTER IS THEREFORE NOT LISTED AS LETTERED IN ENGLISH, and must not be
+ * until all 28 are here: a reader who opens a comic that speaks for
+ * twenty-five pages and goes quiet on the first one has been handed a broken
+ * book, which is worse than being told plainly that it is only in Spanish
+ * today. Until then this list reaches only the English PDF, where the
+ * alternative is a page with no words on it at all.
  *
  * WHICH LETTERING, WHERE, WAS NOT GUESSED. His second archive of the day,
  * "KROX_Origin_All_Versions_English", holds eleven plates whose own read-me
@@ -330,6 +335,11 @@ const KROX_EN_LETTERED: readonly ComicPage[] = [
   { image: '/comics/krox/1/en/14-15.jpg', width: 1447, height: 1087, numbers: [14, 15] },
   { image: '/comics/krox/1/en/16-17.jpg', width: 1446, height: 1087, numbers: [16, 17] },
   { image: '/comics/krox/1/en/18-19.jpg', width: 1426, height: 1103, numbers: [18, 19] },
+  { image: '/comics/krox/1/en/20-21.jpg', width: 1447, height: 1087, numbers: [20, 21] },
+  { image: '/comics/krox/1/en/22-23.jpg', width: 1447, height: 1087, numbers: [22, 23] },
+  { image: '/comics/krox/1/en/24-25.jpg', width: 1446, height: 1087, numbers: [24, 25] },
+  { image: '/comics/krox/1/en/26-27.jpg', width: 1446, height: 1087, numbers: [26, 27] },
+  { image: '/comics/krox/1/en/28.jpg', width: 1024, height: 1536, numbers: [28] },
 ];
 
 /**
@@ -384,10 +394,9 @@ const KROX: Comic = {
       },
       pages: { es: withLettered(KROX_ES_LETTERED), en: withLettered(KROX_EN_LETTERED) },
       // Spanish only, 28 of 28 since 9 November 2026. English started arriving
-      // 11 November 2026 and stands at 16 of 28, which is not a readable
-      // book: add 'en' here the day the last English spread lands, and the
-      // reader switches by itself. Still missing: page 1, the 10-11 spread,
-      // 20-21, 22-23, 24-25, 26-27 and page 28.
+      // 11 November 2026 and stands at 25 of 28: add 'en' here the day the
+      // last two land, and the reader switches by itself. Still missing:
+      // page 1 and the 10-11 spread, both of which still carry Spanish.
       lettered: ['es'],
       // "si puedes poner esta al mero final del comic. y luego a color",
       // 8 November 2026, and "si porfa las dos" when he was asked whether he
@@ -442,7 +451,7 @@ const KROX: Comic = {
        */
       downloads: {
         es: { file: '/comics/krox/1/KROX-Capitulo-1-1544310f.pdf', bytes: 8710214 },
-        en: { file: '/comics/krox/1/KROX-Chapter-1-446cdd8f.pdf', bytes: 10459039 },
+        en: { file: '/comics/krox/1/KROX-Chapter-1-049caf33.pdf', bytes: 9791329 },
       },
       publishedAt: '2026-11-06',
     },

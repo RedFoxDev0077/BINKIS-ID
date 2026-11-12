@@ -40,6 +40,21 @@ import type { Locale } from '@/lib/i18n';
  * phone. Filling one half carries the colour he wanted, marks the state, and
  * leaves the collection button the loudest thing up there, which is the order
  * he set when he asked for that button.
+ *
+ * AND IT IS MARKED notranslate, WHICH IS THE WHOLE POINT OF THE TWO LINES
+ * BELOW. The client photographed this control reading "Espanol | Espanol" on
+ * 12 November 2026 and asked for one of them to say "Ingles". The server was
+ * sending the right two words: his browser was translating the page into
+ * Spanish and rewrote "English" along with everything else. His own screenshot
+ * proves it twice over, because the nav beside it read "Mi coleccion" while
+ * the active half was English, and the English page has never sent that.
+ *
+ * A language switcher is the one piece of furniture on a page that a machine
+ * translator must not touch. Translating it destroys the only thing it is for:
+ * the name of the language you are not reading, written so that someone who
+ * cannot read this page recognises it. Marked here rather than fixed by
+ * renaming the buttons, because renaming them would have left the next
+ * translated visitor seeing two of whatever word their translator preferred.
  */
 
 /**
@@ -75,7 +90,11 @@ export function LocaleSwitch({ current }: { current: Locale }) {
       // English interface by definition.
       aria-label="Language"
       role="group"
-      className="ml-1 flex shrink-0 items-center rounded-lg bg-ink-900 p-0.5 ring-1 ring-ink-800"
+      // Both forms on purpose: the attribute is the HTML standard one, the
+      // class is what Google's page translator has always honoured, and the
+      // client is reading this site through exactly that translator.
+      translate="no"
+      className="notranslate ml-1 flex shrink-0 items-center rounded-lg bg-ink-900 p-0.5 ring-1 ring-ink-800"
     >
       {ORDER.map((loc) => {
         const active = loc === current;

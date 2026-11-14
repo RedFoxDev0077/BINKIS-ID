@@ -24,21 +24,65 @@ export function ShareButton({
   title,
   label,
   copiedLabel,
+  busyLabel,
+  url,
+  text,
+  file,
   className = '',
 }: {
   title: string;
   label: string;
   copiedLabel: string;
+  /** Shown while a file is being fetched. Falls back to the plain label. */
+  busyLabel?: string;
+  /** What to send. Defaults to the page the button is on. */
+  url?: string;
+  /** A line above the link, for the sheet that shows one. */
+  text?: string;
+  /**
+   * An attachment to send instead of a bare link, built on demand.
+   *
+   * A function rather than a File, because building one means downloading it,
+   * and that must not happen on a page the collector may never share from.
+   * Returning null means "could not build it", and the link goes alone.
+   */
+  file?: () => Promise<File | null>;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   async function share() {
-    const url = window.location.href;
+    const target = url ?? window.location.href;
+    // Both in one string. A sheet that takes `url` shows it as a link, but
+    // the ones that take a file mostly drop every other field, and a clip
+    // arriving with no way back to the site is a dead end.
+    const body = text ? `${text}\n${target}` : target;
+
+    if (file) {
+      setBusy(true);
+      try {
+        const attachment = await file();
+        if (attachment && navigator.canShare?.({ files: [attachment] })) {
+          try {
+            await navigator.share({ files: [attachment], text: body, title });
+            return;
+          } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') return;
+            // Anything else: fall through to sharing the link on its own,
+            // which is still better than telling them it failed.
+          }
+        }
+      } catch {
+        // Offline, or the file moved. The link below still works.
+      } finally {
+        setBusy(false);
+      }
+    }
 
     if (typeof navigator.share === 'function') {
       try {
-        await navigator.share({ title, url });
+        await navigator.share({ title, text, url: target });
         return;
       } catch (error) {
         // They opened the sheet and changed their mind. Nothing to repair.
@@ -47,7 +91,7 @@ export function ShareButton({
     }
 
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(target);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2400);
     } catch {
@@ -61,7 +105,8 @@ export function ShareButton({
     <button
       type="button"
       onClick={share}
-      className={`press inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-xl border border-ink-700 px-6 text-base font-semibold text-ink-100 transition hover:border-ink-600 hover:text-white ${className}`}
+      disabled={busy}
+      className={`press inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-xl border border-ink-700 px-6 text-base font-semibold text-ink-100 transition hover:border-ink-600 hover:text-white disabled:opacity-60 ${className}`}
     >
       <svg
         aria-hidden
@@ -80,7 +125,7 @@ export function ShareButton({
           somewhere else on the page: the finger is already here. aria-live
           announces it for a screen reader, which otherwise gets no signal
           that anything happened at all. */}
-      <span aria-live="polite">{copied ? copiedLabel : label}</span>
+      <span aria-live="polite">{copied ? copiedLabel : busy ? (busyLabel ?? label) : label}</span>
     </button>
   );
 }

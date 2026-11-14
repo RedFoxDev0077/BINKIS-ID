@@ -193,6 +193,14 @@ export const en = {
     viewPassport: 'View passport',
     celebrate: 'Play the film',
     dismiss: 'Close',
+    // Two endings, two animators, two films. A collector who lines all eight
+    // numbers up has earned both, so both are reachable. Short labels: they
+    // sit in a two-part selector on a phone.
+    filmMatched: 'Same number',
+    filmComplete: 'Full collection',
+    share: 'Share',
+    sharePreparing: 'Getting the film ready',
+    shareCopied: 'Link copied',
   },
   comic: {
     // UNIVERSALS is the imprint and stays untranslated: it is a name.

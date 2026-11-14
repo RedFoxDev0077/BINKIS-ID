@@ -201,6 +201,15 @@ export const es: typeof en = {
     viewPassport: 'Ver pasaporte',
     celebrate: 'Ver la animación',
     dismiss: 'Cerrar',
+    // Los dos finales son dos animaciones distintas, de dos animadores
+    // distintos. Quien alinea los ocho números se ganó las dos, así que las
+    // dos se pueden ver. Etiquetas cortas: van dentro de un selector de dos
+    // mitades en un teléfono.
+    filmMatched: 'Mismo número',
+    filmComplete: 'Colección completa',
+    share: 'Compartir',
+    sharePreparing: 'Preparando el video',
+    shareCopied: 'Enlace copiado',
   },
   comic: {
     // Wording from the client, 6 November 2026, kept as he wrote it.

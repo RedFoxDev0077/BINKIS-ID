@@ -132,6 +132,11 @@ export function Vitrina({ progress, t }: { progress: SetProgress; t: Dictionary 
                 matchedExtra: t.set.matchedExtra,
                 celebrate: t.set.celebrate,
                 dismiss: t.set.dismiss,
+                filmMatched: t.set.filmMatched,
+                filmComplete: t.set.filmComplete,
+                share: t.set.share,
+                sharePreparing: t.set.sharePreparing,
+                shareCopied: t.set.shareCopied,
               }}
             />
           ) : null}

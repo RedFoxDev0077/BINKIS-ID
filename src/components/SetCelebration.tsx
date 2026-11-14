@@ -45,7 +45,9 @@ interface Strings {
  * the obvious implementation is the wrong one: this page is /collection, it
  * redirects to the login screen for anyone not signed in, and a link to it
  * would reach a friend as a password prompt. There is no public collection
- * page to point at yet.
+ * page to point at, and there is not going to be one: offered as its own
+ * piece of work the same day, the client answered "Solo el video esta bien."
+ * So this is sharing, finished, and not a stopgap waiting on a page.
  *
  * So what gets shared is the clip, with a link to the site under it. That is
  * also the thing a collector wants to send: the twenty-four seconds with

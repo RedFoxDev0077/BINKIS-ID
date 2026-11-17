@@ -464,6 +464,123 @@ const KROX: Comic = {
 
 export const COMICS: readonly Comic[] = [KROX];
 
+/**
+ * A comic that is announced but not out, and the few pages shown to prove it
+ * is real.
+ *
+ * ITS OWN TYPE, NOT A `Comic` WITH `publishedAt: null`, and that is the whole
+ * point of it. `firstReadable` walks COMICS to decide where the headline
+ * button goes; `hasReadableComic` decides whether the block renders at all.
+ * An announcement that can be reached by either of those is one refactor away
+ * from becoming the thing the big cyan button opens, and then the site is
+ * promising twenty-eight pages of a comic that does not exist. Keeping it out
+ * of COMICS makes that mistake impossible rather than merely unlikely.
+ *
+ * The preview is held to the same all-or-nothing lettering rule as a chapter,
+ * for the same reason: a two-page taste that speaks Spanish on one page and
+ * English on the other reads as broken, and a teaser is the worst possible
+ * place to look broken.
+ */
+export interface UpcomingComic {
+  slug: string;
+  /** The wordmark. Not translated: it is a name. */
+  title: string;
+  /** What this story is called, under the wordmark. */
+  subtitle: Localised<string>;
+  /**
+   * The announcement poster, with the release date set into the artwork.
+   * Leads the teaser page, the way a cover leads the reader.
+   */
+  poster: ComicPlate;
+  /** The cover of the comic itself, which carries no date. */
+  cover: ComicPlate;
+  /**
+   * Release month as `YYYY-MM`.
+   *
+   * A month, not a day, because that is what the client has committed to and
+   * a page that invents "1 January" commits him to something he did not say.
+   * The month name is formatted per language from this value; it is never
+   * read off the poster, where it is English pixels.
+   */
+  releases: string;
+  /** The handful of pages shown as a taste, lettered per language. */
+  preview: Partial<Localised<readonly ComicPage[]>>;
+  lettered: readonly ComicLocale[];
+}
+
+/**
+ * AGUILA: Origenes. Announced for January 2027.
+ *
+ * Asked for by the client on 17 November 2026: a third button under the comic
+ * and the animation, "de proximamente ... por lo pronto queria solo la
+ * portada y dos paginas. tipo tiser."
+ *
+ * He sent five files. Two are posters and three are pages, and which is which
+ * matters: `origenes-2027` is the announcement, built around COMING JANUARY
+ * 2027, and `portada` is the cover of the comic with no date on it. They are
+ * not interchangeable, because the announcement stops being true in February
+ * and the cover never does.
+ *
+ * SPANISH ONLY, AND NOT FOR WANT OF ASKING. He lettered both pages in both
+ * languages, but the English page 2 arrived as a 423x806 screen capture with
+ * the artwork sliced off both edges: "GATLING G...", a cropped KABOOM, and
+ * the entire left column of panels gone. English page 1 is clean and is
+ * sitting in assets/ waiting for it. One good file away from `lettered`
+ * gaining 'en' and this switching itself.
+ */
+const AGUILA: UpcomingComic = {
+  slug: 'aguila',
+  title: 'ÁGUILA',
+  subtitle: { es: 'Orígenes', en: 'Origins' },
+  poster: { image: '/comics/aguila/origenes-2027.jpg', width: 1025, height: 1534 },
+  cover: { image: '/comics/aguila/portada.jpg', width: 1024, height: 1536 },
+  releases: '2027-01',
+  preview: {
+    es: [
+      { image: '/comics/aguila/1/es/1.jpg', width: 1024, height: 1536, numbers: [1] },
+      { image: '/comics/aguila/1/es/2.jpg', width: 1024, height: 1536, numbers: [2] },
+    ],
+  },
+  lettered: ['es'],
+};
+
+export const UPCOMING: readonly UpcomingComic[] = [AGUILA];
+
+export function findUpcoming(slug: string): UpcomingComic | null {
+  return UPCOMING.find((comic) => comic.slug === slug) ?? null;
+}
+
+/** The next announced comic, or null. Drives the third button. */
+export function nextUpcoming(): UpcomingComic | null {
+  return [...UPCOMING].sort((a, b) => a.releases.localeCompare(b.releases))[0] ?? null;
+}
+
+/** Which preview pages a reader gets, and in which lettering. */
+export function previewSet(comic: UpcomingComic, locale: ComicLocale): ReadingSet | null {
+  return letteredEdition({ pages: comic.preview, lettered: comic.lettered }, locale);
+}
+
+/**
+ * "enero de 2027" / "January 2027", from the ISO month.
+ *
+ * PINNED TO UTC, both ends. `new Date('2027-01')` is midnight UTC, and this
+ * renders on a server whose timezone is nobody's business: formatted in any
+ * negative offset it would read December 2026, which is a month early for an
+ * announcement and would be live for exactly the weeks anyone is looking.
+ */
+export function releaseMonth(comic: UpcomingComic, locale: ComicLocale): string {
+  const [year, month] = comic.releases.split('-').map(Number);
+  return new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year!, month! - 1, 1)));
+}
+
+export function upcomingHref(comic: UpcomingComic): string {
+  return `/comic/${comic.slug}`;
+}
+
 export function findComic(slug: string): Comic | null {
   return COMICS.find((comic) => comic.slug === slug) ?? null;
 }
@@ -499,17 +616,42 @@ export interface ReadingSet {
   substituted: boolean;
 }
 
-export function readingSet(chapter: ComicChapter, locale: ComicLocale): ReadingSet | null {
-  const asked = chapter.pages?.[locale];
-  if (!asked || asked.length === 0) return null;
-  if (chapter.lettered.includes(locale)) return { pages: asked, shownIn: locale, substituted: false };
+/**
+ * Anything that ships art in more than one lettering: a chapter, or the
+ * preview pages of a comic that is only announced.
+ *
+ * Structural rather than `ComicChapter`, so the substitution rule exists once.
+ * It is the rule most likely to be got subtly wrong twice, and an announced
+ * comic arrives one language at a time exactly like a chapter does.
+ *
+ * `pages` is Partial here and total on a chapter. A chapter always has both
+ * sets, because the silent delivery is itself a set; a preview can genuinely
+ * have Spanish and nothing else, which is Aguila on 17 November 2026.
+ */
+interface LetteredArt {
+  pages: Partial<Localised<readonly ComicPage[]>> | null;
+  lettered: readonly ComicLocale[];
+}
+
+function letteredEdition(art: LetteredArt, locale: ComicLocale): ReadingSet | null {
+  const asked = art.pages?.[locale];
+  if (asked?.length && art.lettered.includes(locale)) {
+    return { pages: asked, shownIn: locale, substituted: false };
+  }
+
+  // Lettered somewhere else: show that and say so.
+  const instead = art.lettered.find((l) => (art.pages?.[l]?.length ?? 0) > 0);
+  if (instead) {
+    return { pages: art.pages![instead]!, shownIn: instead, substituted: instead !== locale };
+  }
 
   // Nothing is lettered anywhere, so the silent art is the only edition there
   // is. That was the client's own choice on 6 November 2026 and it stands.
-  const instead = chapter.lettered.find((l) => (chapter.pages?.[l]?.length ?? 0) > 0);
-  if (!instead) return { pages: asked, shownIn: locale, substituted: false };
+  return asked?.length ? { pages: asked, shownIn: locale, substituted: false } : null;
+}
 
-  return { pages: chapter.pages![instead], shownIn: instead, substituted: true };
+export function readingSet(chapter: ComicChapter, locale: ComicLocale): ReadingSet | null {
+  return letteredEdition(chapter, locale);
 }
 
 export function readableChapters(comic: Comic, locale: ComicLocale): ComicChapter[] {

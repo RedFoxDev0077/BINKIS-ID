@@ -1,5 +1,13 @@
 import Link from 'next/link';
-import { chapterHref, firstReadable, mediaUrl, type ComicLocale } from '@/lib/comics/catalog';
+import {
+  chapterHref,
+  firstReadable,
+  mediaUrl,
+  nextUpcoming,
+  releaseMonth,
+  upcomingHref,
+  type ComicLocale,
+} from '@/lib/comics/catalog';
 import { watchable } from '@/lib/videos/catalog';
 import type { Dictionary } from '@/lib/i18n';
 
@@ -51,6 +59,10 @@ export function ComicPromo({
   // Hidden until a clip is actually watchable, on the same principle as the
   // block itself: a button is never a promise the site cannot keep.
   const hasAnimation = watchable().length > 0;
+  // The announced comic, if there is one. Same principle again: it comes out
+  // of the catalogue, so the day AGUILA ships it moves to COMICS and this
+  // button disappears on its own rather than advertising January forever.
+  const soon = nextUpcoming();
 
   return (
     <section
@@ -165,6 +177,54 @@ export function ComicPromo({
           </Link>
         ) : null}
 
+        {/* PROXIMAMENTE. The client's third button, 17 November 2026: "un
+            boton abajo de comic krox y video, de proximamente ... enero 2027
+            el comic de aguila".
+
+            THE QUIET ONE, AND ON PURPOSE. Above it are a cyan gradient and a
+            solid amber, both of which open something finished. This one opens
+            a cover and two pages of a comic that is not out, so it is an
+            outline on the dark ground: present, obviously tappable, and
+            visibly a tier below the two things you can actually read and
+            watch today. Three loud buttons stacked would make a wall and cost
+            the cyan one its job.
+
+            The lime is #B8F808, sampled off the words COMING JANUARY 2027 on
+            his own poster, which is the artwork this button leads to. It
+            clears 15:1 on this ground, so it carries the date as text rather
+            than needing a filled chip to be legible. */}
+        {soon ? (
+          <Link
+            href={upcomingHref(soon) as never}
+            className="press mt-3 flex min-h-14 w-full items-center justify-center gap-2.5 rounded-xl border border-[#B8F808]/35 bg-ink-950/50 px-3 py-2.5 text-center transition hover:border-[#B8F808]/70 hover:bg-ink-950 sm:gap-3 sm:px-5"
+          >
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              className="size-5 shrink-0 text-[#B8F808]"
+              fill="currentColor"
+            >
+              <path d="M12 2l2.4 6.1L21 9.2l-4.8 4.3 1.3 6.5L12 16.8 6.5 20l1.3-6.5L3 9.2l6.6-1.1z" />
+            </svg>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-bold leading-tight text-ink-50 sm:text-base">
+                {soon.title}
+                <span className="text-ink-400"> · </span>
+                {soon.subtitle[locale]}
+              </span>
+              {/* Badge and month on one line. Tracking is deliberately
+                  modest: at 360px, "PRÓXIMAMENTE · ENERO DE 2027" is the
+                  longest string this block sets, and the wide letter-spacing
+                  used elsewhere wrapped it. */}
+              <span className="mt-0.5 block text-[11px] font-semibold uppercase leading-snug tracking-[0.08em] text-[#B8F808] sm:text-xs sm:tracking-[0.12em]">
+                {t.comic.upcoming.badge}
+                <span className="text-[#B8F808]/50"> · </span>
+                {releaseMonth(soon, locale)}
+              </span>
+            </span>
+          </Link>
+        ) : null}
+
         {/* The client's closing line, 7 November 2026, in place of the old
             "Gratis / Sin registro". That one answered a question about this
             chapter; this one is about the series, so it is set as a short
@@ -174,9 +234,19 @@ export function ComicPromo({
         <p className="mt-4 text-center text-sm font-medium leading-snug text-ink-100">
           {t.comic.teaser}
         </p>
-        <p className="mt-1 text-center text-[13px] leading-snug text-ink-400">
-          {t.comic.teaserNext}
-        </p>
+        {/* The generic promise, and only while there is no specific one.
+
+            "Nuevas aventuras y héroes, próximamente" was written on
+            7 November 2026, when nothing concrete could be named. The AGUILA
+            button is that same promise with a title and a date on it, so
+            running both puts the word próximamente twice within 40px and
+            makes the dated one look like filler. The line comes back by
+            itself the day the announcement ships and UPCOMING empties. */}
+        {soon ? null : (
+          <p className="mt-1 text-center text-[13px] leading-snug text-ink-400">
+            {t.comic.teaserNext}
+          </p>
+        )}
       </div>
     </section>
   );

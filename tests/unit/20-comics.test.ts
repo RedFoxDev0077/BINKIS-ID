@@ -10,6 +10,12 @@ import {
   mediaUrl,
   readableChapters,
   readingSet,
+  UPCOMING,
+  findUpcoming,
+  nextUpcoming,
+  previewSet,
+  releaseMonth,
+  upcomingHref,
   type Comic,
   type ComicChapter,
 } from '../../src/lib/comics/catalog.ts';
@@ -213,6 +219,15 @@ describe('where the button goes', () => {
         for (const locale of ['es', 'en'] as const) {
           for (const page of ch.pages?.[locale] ?? []) paths.add(page.image);
         }
+      }
+    }
+    // An announced comic ships real files too, and they are uploaded by hand
+    // exactly like the rest, so they belong in every check below.
+    for (const up of UPCOMING) {
+      paths.add(up.poster.image);
+      paths.add(up.cover.image);
+      for (const locale of ['es', 'en'] as const) {
+        for (const page of up.preview[locale] ?? []) paths.add(page.image);
       }
     }
     return [...paths];
@@ -475,5 +490,112 @@ describe('readingSet', () => {
     expect(reading.pages.flatMap((p) => [...p.numbers])).toEqual(
       Array.from({ length: 28 }, (_, i) => i + 1),
     );
+  });
+});
+
+/**
+ * AGUILA: announced on 17 November 2026, out in January 2027.
+ *
+ * The whole risk of an announcement living in a comics catalogue is that it
+ * stops being an announcement. `firstReadable` picks the headline button by
+ * walking COMICS and taking the first readable chapter, so a comic with two
+ * preview pages sitting in that list is one ordering change away from being
+ * what the big cyan button opens. These tests pin the separation, not the
+ * pixels.
+ */
+describe('a comic that is announced but not out', () => {
+  const aguila = findUpcoming('aguila')!;
+
+  it('is declared, with a dated poster and an undated cover', () => {
+    expect(aguila).not.toBeNull();
+    expect(aguila.releases).toBe('2027-01');
+    // Two different jobs: the poster stops being true in February, the cover
+    // never does. Swapping them is the easy mistake and it is silent.
+    expect(aguila.poster.image).not.toBe(aguila.cover.image);
+    expect(nextUpcoming()!.slug).toBe('aguila');
+    expect(upcomingHref(aguila)).toBe('/comic/aguila');
+  });
+
+  it('cannot be reached by anything that serves a readable comic', () => {
+    expect(COMICS.some((c) => c.slug === 'aguila')).toBe(false);
+    expect(findComic('aguila')).toBeNull();
+    expect(findChapter('aguila', 1, 'es')).toBeNull();
+    expect(findChapter('aguila', 1, 'en')).toBeNull();
+    // The headline button still opens the comic that is finished.
+    for (const locale of ['es', 'en'] as const) {
+      expect(firstReadable(locale)!.comic.slug).toBe('krox');
+      expect(hasReadableComic(locale)).toBe(true);
+    }
+  });
+
+  it('never shares a slug with a published comic', () => {
+    // Both resolve at /comic/{slug}; a collision would mean the announcement
+    // shadowing the reading, or the reverse, depending on which ran first.
+    const published = new Set(COMICS.map((c) => c.slug));
+    for (const up of UPCOMING) expect(published.has(up.slug)).toBe(false);
+  });
+
+  /**
+   * The same all-or-nothing rule the chapters follow, and it is load-bearing
+   * here for a different reason: a teaser is the worst place to look broken.
+   *
+   * English page 1 is clean and English page 2 arrived as a 423x806 screen
+   * capture with the artwork sliced off both edges, so 'en' is not listed and
+   * an English reader gets the Spanish pages with the notice.
+   */
+  it('never calls a preview lettered while any of its pages are missing', () => {
+    for (const up of UPCOMING) {
+      for (const locale of up.lettered) {
+        const pages = up.preview[locale] ?? [];
+        expect(pages.length, `${up.slug} is lettered in ${locale} with no pages`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('shows Spanish to a Spanish reader, straight', () => {
+    const set = previewSet(aguila, 'es')!;
+    expect(set.substituted).toBe(false);
+    expect(set.shownIn).toBe('es');
+    expect(set.pages.map((p) => [...p.numbers])).toEqual([[1], [2]]);
+  });
+
+  it('substitutes the Spanish preview for an English reader, and says so', () => {
+    const set = previewSet(aguila, 'en')!;
+    expect(set.shownIn).toBe('es');
+    expect(set.substituted).toBe(true);
+    // The day a clean English page 2 arrives, 'en' joins `lettered` and this
+    // test is the one that has to be changed on purpose.
+    expect(aguila.lettered).not.toContain('en');
+  });
+
+  /**
+   * The month is formatted, never written into a dictionary.
+   *
+   * It is also pinned to UTC at both ends. `new Date('2027-01')` is midnight
+   * UTC, and this renders on a server whose timezone is nobody's business: in
+   * any negative offset an unpinned formatter reads December 2026, which is a
+   * month early and would be wrong for exactly the weeks anyone is looking.
+   */
+  it('names the release month in the reader own language', () => {
+    expect(releaseMonth(aguila, 'es')).toMatch(/enero.*2027/u);
+    expect(releaseMonth(aguila, 'en')).toBe('January 2027');
+    for (const locale of ['es', 'en'] as const) {
+      expect(releaseMonth(aguila, locale)).not.toMatch(/2026|diciembre|December/u);
+    }
+  });
+
+  it('carries the announcement copy in both languages, same shape', () => {
+    expect(Object.keys(es.comic.upcoming).sort()).toEqual(Object.keys(en.comic.upcoming).sort());
+    for (const d of [es, en]) {
+      for (const value of Object.values(d.comic.upcoming)) {
+        expect(typeof value).toBe('string');
+        expect((value as string).length).toBeGreaterThan(0);
+      }
+    }
+    // The month goes in through fill(), so the placeholder has to survive.
+    expect(es.comic.upcoming.firstLookBody).toContain('{month}');
+    expect(en.comic.upcoming.firstLookBody).toContain('{month}');
+    expect(es.comic.upcoming.poster).toContain('{title}');
+    expect(en.comic.upcoming.poster).toContain('{title}');
   });
 });

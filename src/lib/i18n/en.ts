@@ -251,6 +251,18 @@ export const en = {
      */
     lettering: 'This chapter is lettered in {language}. The English edition is on its way.',
     language: { es: 'Spanish', en: 'English' },
+
+    // The announcement, asked for by the client on 17 November 2026. The
+    // month is formatted from the catalog rather than written in here, so a
+    // slipped date is one edit and not a hunt through two dictionaries.
+    upcoming: {
+      badge: 'COMING SOON',
+      cta: 'See the preview',
+      firstLook: 'A first look',
+      firstLookBody: 'The cover and the first two pages. The full chapter arrives in {month}.',
+      poster: '{title} announcement',
+      meanwhile: 'In the meantime, read KROX',
+    },
   },
 
   /**

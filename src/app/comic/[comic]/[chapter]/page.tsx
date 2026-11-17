@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, fill } from '@/lib/i18n';
+import { ComicPlateImage } from '@/components/ComicPlateImage';
 import { ShareButton } from '@/components/ShareButton';
 import {
   chapterHref,
@@ -9,7 +10,6 @@ import {
   mediaUrl,
   readableChapters,
   readingSet,
-  type ComicPlate,
 } from '@/lib/comics/catalog';
 
 /**
@@ -148,11 +148,11 @@ export default async function ComicReaderPage({ params }: Params) {
               first thing on the screen, and the browser should be fetching
               what the reader is looking at. */}
           {comic.cover ? (
-            <ComicPageImage page={comic.cover} label={t.comic.cover} priority />
+            <ComicPlateImage page={comic.cover} label={t.comic.cover} priority />
           ) : null}
 
           {pages.map((page, index) => (
-            <ComicPageImage
+            <ComicPlateImage
               key={page.image}
               page={page}
               label={fill(t.comic.page, { numbers: page.numbers.join('-') })}
@@ -164,7 +164,7 @@ export default async function ComicReaderPage({ params }: Params) {
               artwork rather than pages, so each is labelled by what it is and
               never given a page number it does not have. */}
           {(chapter.closing ?? []).map((plate) => (
-            <ComicPageImage
+            <ComicPlateImage
               key={plate.image}
               page={plate}
               label={t.comic[plate.label]}
@@ -244,43 +244,4 @@ export default async function ComicReaderPage({ params }: Params) {
 function megabytes(bytes: number, locale: string): string {
   const mb = bytes / 1024 / 1024;
   return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(mb)} MB`;
-}
-
-/**
- * One delivered file, which is one page or one two-page spread.
- *
- * width and height are the intrinsic pixel size and they are declared so the
- * browser reserves the right box before the image arrives. Without them a
- * chapter of 14 tall images reflows under the reader's thumb all the way
- * down, which on a phone on mobile data is the difference between reading and
- * chasing the page.
- *
- * A plain img, not next/image: these files are served by Caddy straight off
- * the host, so the optimiser inside the app container cannot fetch them.
- */
-function ComicPageImage({
-  page,
-  label,
-  priority,
-}: {
-  page: ComicPlate;
-  label: string;
-  priority: boolean;
-}) {
-  return (
-    <figure className="bg-ink-925">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={mediaUrl(page.image)}
-        alt={label}
-        width={page.width}
-        height={page.height}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding={priority ? 'sync' : 'async'}
-        fetchPriority={priority ? 'high' : 'auto'}
-        className="h-auto w-full sm:rounded-lg"
-      />
-      <figcaption className="sr-only">{label}</figcaption>
-    </figure>
-  );
 }

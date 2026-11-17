@@ -257,6 +257,22 @@ export const es: typeof en = {
     spreadHint: 'Pellizca o toca dos veces para agrandar una página.',
     lettering: 'Este capítulo está rotulado en {language}. La edición en inglés viene en camino.',
     language: { es: 'español', en: 'inglés' },
+
+    /**
+     * El anuncio. Pedido por el cliente el 17 de noviembre de 2026.
+     *
+     * The month is never written into these strings. It is formatted from
+     * `releases` in the catalog, so January 2027 slipping to February is one
+     * edit in one place and not a hunt through two dictionaries.
+     */
+    upcoming: {
+      badge: 'PRÓXIMAMENTE',
+      cta: 'Ver el adelanto',
+      firstLook: 'Un primer vistazo',
+      firstLookBody: 'La portada y las dos primeras páginas. El capítulo completo llega en {month}.',
+      poster: 'Anuncio de {title}',
+      meanwhile: 'Mientras tanto, lee KROX',
+    },
   },
 
   /**

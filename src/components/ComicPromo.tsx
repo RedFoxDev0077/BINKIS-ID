@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {
   chapterHref,
+  comicSize,
   firstReadable,
   mediaUrl,
   nextUpcoming,
@@ -9,6 +10,7 @@ import {
   type ComicLocale,
 } from '@/lib/comics/catalog';
 import { watchable } from '@/lib/videos/catalog';
+import { fill } from '@/lib/i18n';
 import type { Dictionary } from '@/lib/i18n';
 
 /**
@@ -63,6 +65,7 @@ export function ComicPromo({
   // of the catalogue, so the day AGUILA ships it moves to COMICS and this
   // button disappears on its own rather than advertising January forever.
   const soon = nextUpcoming();
+  const size = comicSize(comic, locale);
 
   return (
     <section
@@ -107,7 +110,10 @@ export function ComicPromo({
 
         {/* How much there is to read. A reason to tap, and an honest one. */}
         <p className="mt-3 font-mono text-xs tracking-wide text-ink-400 tabular-nums">
-          {t.comic.count}
+          {fill(size.chapters === 1 ? t.comic.countOne : t.comic.count, {
+            chapters: size.chapters,
+            pages: size.pages,
+          })}
         </p>
 
         {/* Not ButtonLink: the gradient and the glow would collide with the

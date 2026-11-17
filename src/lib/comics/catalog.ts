@@ -118,6 +118,18 @@ export interface ComicChapter {
   number: number;
   title: Localised<string>;
   /**
+   * This chapter's own cover, ahead of its page 1.
+   *
+   * Added 17 November 2026 with chapter 2, which arrived with a cover of its
+   * own. Until then the cover was a property of the comic, which was right
+   * for a comic with one chapter and wrong the moment there were two: every
+   * chapter would have opened on the chapter 1 cover.
+   *
+   * Optional, and it falls back to `Comic.cover`. Chapter 1 still has none of
+   * its own and still opens on the comic's, so nothing about it changed.
+   */
+  cover?: ComicPlate;
+  /**
    * Lettered pages, one complete set per language.
    *
    * Null until the lettered art arrives. The script exists in both languages
@@ -346,6 +358,64 @@ const KROX_EN_LETTERED: readonly ComicPage[] = [
 ];
 
 /**
+ * KROX chapter 2: RISE FROM DARKNESS. Delivered 17 November 2026.
+ *
+ * Twelve pages and a cover of its own, complete in both languages on the day
+ * it arrived, which is the first time that has happened: chapter 1 came page
+ * by page over six days. His word for these two archives was "completos y
+ * ordenados".
+ *
+ * SINGLE PAGES, NOT SPREADS. Every file here is one printed page, so the
+ * reader shows them one per screen and the spread hint does not appear. That
+ * is a property of this chapter, not a change of mind about chapter 1, whose
+ * art genuinely runs through the gutter.
+ *
+ * THE ORDER WAS CHECKED, NOT ASSUMED. He warned that the loose pages he had
+ * been sending were "un poco desarmonizadas" and that KROX chapter 1 had
+ * already taught us his package numbers are not always story numbers. Three
+ * things agree here: every English page matches the Spanish page of the same
+ * number by its own artwork, page 11 ends on the flying man escaping and page
+ * 12 opens on "he's getting away", and page 1 introduces Melissa Hart by name
+ * before page 12's last caption addresses her. The numbering is the story.
+ *
+ * PAGE 12 IS THE ONE WITH THE SWORD. He sent that plate three times: twice
+ * on its own as KROX_Fin_del_Prologo_EN and once inside this archive. The
+ * first loose copy draws KROX with an empty back, which contradicts page 11,
+ * where the sword is over his shoulder in the foreground. He caught it
+ * himself ("me faltó su espada, ya la integré"), and the file in this archive
+ * is byte-identical to the corrected one.
+ */
+const KROX_2_EN: readonly ComicPage[] = [
+  { image: '/comics/krox/2/en/1.jpg', width: 1024, height: 1536, numbers: [1] },
+  { image: '/comics/krox/2/en/2.jpg', width: 1024, height: 1536, numbers: [2] },
+  { image: '/comics/krox/2/en/3.jpg', width: 1025, height: 1534, numbers: [3] },
+  { image: '/comics/krox/2/en/4.jpg', width: 1025, height: 1534, numbers: [4] },
+  { image: '/comics/krox/2/en/5.jpg', width: 1025, height: 1534, numbers: [5] },
+  { image: '/comics/krox/2/en/6.jpg', width: 1024, height: 1536, numbers: [6] },
+  { image: '/comics/krox/2/en/7.jpg', width: 1024, height: 1536, numbers: [7] },
+  { image: '/comics/krox/2/en/8.jpg', width: 1024, height: 1535, numbers: [8] },
+  { image: '/comics/krox/2/en/9.jpg', width: 1025, height: 1535, numbers: [9] },
+  { image: '/comics/krox/2/en/10.jpg', width: 1024, height: 1535, numbers: [10] },
+  { image: '/comics/krox/2/en/11.jpg', width: 1026, height: 1533, numbers: [11] },
+  { image: '/comics/krox/2/en/12.jpg', width: 1025, height: 1534, numbers: [12] },
+];
+
+const KROX_2_ES: readonly ComicPage[] = [
+  { image: '/comics/krox/2/es/1.jpg', width: 1024, height: 1536, numbers: [1] },
+  { image: '/comics/krox/2/es/2.jpg', width: 1024, height: 1536, numbers: [2] },
+  { image: '/comics/krox/2/es/3.jpg', width: 1025, height: 1534, numbers: [3] },
+  { image: '/comics/krox/2/es/4.jpg', width: 1025, height: 1534, numbers: [4] },
+  { image: '/comics/krox/2/es/5.jpg', width: 1025, height: 1534, numbers: [5] },
+  { image: '/comics/krox/2/es/6.jpg', width: 1024, height: 1536, numbers: [6] },
+  { image: '/comics/krox/2/es/7.jpg', width: 1024, height: 1536, numbers: [7] },
+  { image: '/comics/krox/2/es/8.jpg', width: 1024, height: 1535, numbers: [8] },
+  { image: '/comics/krox/2/es/9.jpg', width: 1025, height: 1535, numbers: [9] },
+  { image: '/comics/krox/2/es/10.jpg', width: 1024, height: 1535, numbers: [10] },
+  { image: '/comics/krox/2/es/11.jpg', width: 1026, height: 1532, numbers: [11] },
+  { image: '/comics/krox/2/es/12.jpg', width: 1025, height: 1534, numbers: [12] },
+];
+
+/**
  * One chapter, assembled: the lettered file wherever one exists, the silent
  * delivery everywhere else, always in reading order.
  *
@@ -458,6 +528,33 @@ const KROX: Comic = {
         en: { file: '/comics/krox/1/KROX-Chapter-1-9e2643d9.pdf', bytes: 9242435 },
       },
       publishedAt: '2026-11-06',
+    },
+    {
+      number: 2,
+      // Not translated, in either direction. The title is set into the cover
+      // art as a logo, in English, the same way UNIVERSALS and KROX are. A
+      // Spanish chapter heading over an English logo would read as a mistake
+      // rather than as a translation; if he wants a Spanish title he can say
+      // so and it is one line here.
+      title: {
+        es: 'Rise from Darkness',
+        en: 'Rise from Darkness',
+      },
+      // Its own cover, shared by both languages: the two archives ship the
+      // identical file, because the only words on it are the title logo.
+      cover: { image: '/comics/krox/2/portada.jpg', width: 1024, height: 1536 },
+      pages: { es: KROX_2_ES, en: KROX_2_EN },
+      // Both, from day one. No substitution notice has ever shown for this
+      // chapter and none should.
+      lettered: ['es', 'en'],
+      // Built by scripts/build-comic-pdf.ts: cover plus twelve pages each.
+      // The name fingerprints the ordered sources, so the chapter cover added
+      // above is already part of it.
+      downloads: {
+        es: { file: '/comics/krox/2/KROX-Capitulo-2-7e29934f.pdf', bytes: 8904724 },
+        en: { file: '/comics/krox/2/KROX-Chapter-2-fad0f88a.pdf', bytes: 8557170 },
+      },
+      publishedAt: '2026-11-17',
     },
   ],
 };
@@ -683,6 +780,28 @@ export function firstReadable(locale: ComicLocale): { comic: Comic; chapter: Com
     if (chapter) return { comic, chapter };
   }
   return null;
+}
+
+/**
+ * How much there is to read, for the line under the blurb.
+ *
+ * Counted rather than written down. It read "Capitulo 1 - 28 paginas" as a
+ * fixed string from 6 to 17 November 2026, which was true for exactly as long
+ * as there was one chapter, and a promo block that undercounts the comic is a
+ * worse lie than one that says nothing.
+ *
+ * Printed pages, not files: chapter 1 ships its spreads as one file carrying
+ * two numbers, so counting files would report 15 pages for a 28 page comic.
+ */
+export function comicSize(comic: Comic, locale: ComicLocale): { chapters: number; pages: number } {
+  const chapters = readableChapters(comic, locale);
+  return {
+    chapters: chapters.length,
+    pages: chapters.reduce(
+      (n, c) => n + (c.pages?.[locale] ?? []).reduce((m, page) => m + page.numbers.length, 0),
+      0,
+    ),
+  };
 }
 
 export function chapterHref(comic: Comic, chapter: ComicChapter): string {

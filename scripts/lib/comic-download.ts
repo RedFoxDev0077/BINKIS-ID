@@ -38,10 +38,12 @@ import type { Comic, ComicChapter, ComicLocale } from '../../src/lib/comics/cata
 export function downloadSources(comic: Comic, chapter: ComicChapter, locale: ComicLocale): string[] {
   const pages = chapter.pages?.[locale] ?? [];
   if (pages.length === 0) throw new Error(`${comic.slug} chapter ${chapter.number} has no ${locale} pages`);
-  // The finished cover when there is one, the promo art when there is not.
-  // A comic that opens on its own cover is the point; opening on nothing is
-  // worse than opening on the bare illustration.
-  const cover = comic.cover?.image ?? comic.hero;
+  // The chapter's own cover first, then the comic's, then the promo art. A
+  // comic that opens on its own cover is the point; opening on nothing is
+  // worse than opening on the bare illustration. The chapter level came with
+  // chapter 2 on 17 November 2026, and it is part of the fingerprint, so a
+  // chapter that gains a cover gets a new PDF name by itself.
+  const cover = chapter.cover?.image ?? comic.cover?.image ?? comic.hero;
   return [cover, ...pages.map((p) => p.image), ...(chapter.closing ?? []).map((p) => p.image)];
 }
 

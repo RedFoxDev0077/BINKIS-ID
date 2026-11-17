@@ -16,6 +16,7 @@ import {
   previewSet,
   releaseMonth,
   upcomingHref,
+  comicSize,
   type Comic,
   type ComicChapter,
 } from '../../src/lib/comics/catalog.ts';
@@ -597,5 +598,98 @@ describe('a comic that is announced but not out', () => {
     expect(en.comic.upcoming.firstLookBody).toContain('{month}');
     expect(es.comic.upcoming.poster).toContain('{title}');
     expect(en.comic.upcoming.poster).toContain('{title}');
+  });
+});
+
+/**
+ * KROX chapter 2: RISE FROM DARKNESS, delivered complete in both languages on
+ * 17 November 2026.
+ *
+ * The first chapter to arrive finished, the first with a cover of its own,
+ * and the first made of single pages rather than spreads. Each of those was
+ * an assumption somewhere in this file until today.
+ */
+describe('KROX chapter 2', () => {
+  const found = (locale: 'es' | 'en') => findChapter('krox', 2, locale)!;
+
+  it('is readable in both languages, 12 pages, in order', () => {
+    for (const locale of ['es', 'en'] as const) {
+      const { chapter } = found(locale);
+      const pages = chapter.pages![locale];
+      expect(pages).toHaveLength(12);
+      expect(pages.flatMap((p) => [...p.numbers])).toEqual(
+        Array.from({ length: 12 }, (_, i) => i + 1),
+      );
+      // Single pages. A spread here would mean a file carrying two numbers,
+      // and the reader shows the spread hint off exactly that.
+      expect(pages.every((p) => p.numbers.length === 1)).toBe(true);
+    }
+  });
+
+  it('is lettered in both, so no reader is ever substituted', () => {
+    for (const locale of ['es', 'en'] as const) {
+      const set = readingSet(found(locale).chapter, locale)!;
+      expect(set.substituted).toBe(false);
+      expect(set.shownIn).toBe(locale);
+      expect(set.pages.every((p) => p.image.includes(`/2/${locale}/`))).toBe(true);
+    }
+  });
+
+  it('keeps its art under its own chapter folder', () => {
+    // The obvious failure when adding a chapter is a pasted path still
+    // pointing at chapter 1, which would silently serve the wrong comic.
+    const { comic } = found('es');
+    for (const chapter of comic.chapters) {
+      for (const locale of ['es', 'en'] as const) {
+        for (const page of chapter.pages?.[locale] ?? []) {
+          expect(page.image, page.image).toContain(`/krox/${chapter.number}/`);
+        }
+      }
+    }
+  });
+
+  it('opens on its own cover, not the comic one', () => {
+    const { comic, chapter } = found('es');
+    expect(chapter.cover).toBeDefined();
+    expect(chapter.cover!.image).not.toBe(comic.cover!.image);
+    // Chapter 1 is unchanged and still falls back to the comic's cover.
+    const one = comic.chapters.find((c) => c.number === 1)!;
+    expect(one.cover).toBeUndefined();
+  });
+
+  it('puts its own cover into the PDF, and therefore into the PDF name', () => {
+    const { comic, chapter } = found('en');
+    const sources = downloadSources(comic, chapter, 'en');
+    expect(sources[0]).toBe(chapter.cover!.image);
+    expect(sources).toHaveLength(13);
+  });
+
+  it('follows chapter 1 rather than replacing it', () => {
+    for (const locale of ['es', 'en'] as const) {
+      // The headline button still opens chapter 1.
+      expect(firstReadable(locale)!.chapter.number).toBe(1);
+      const comic = findComic('krox')!;
+      expect(readableChapters(comic, locale).map((c) => c.number)).toEqual([1, 2]);
+    }
+  });
+
+  it('counts the whole comic for the promo line, in printed pages', () => {
+    const comic = findComic('krox')!;
+    for (const locale of ['es', 'en'] as const) {
+      // 28 + 12. Counting files would say 27, because chapter 1 ships its
+      // spreads as one file carrying two page numbers.
+      expect(comicSize(comic, locale)).toEqual({ chapters: 2, pages: 40 });
+    }
+  });
+
+  it('has a count string for one chapter and for several', () => {
+    for (const d of [es, en]) {
+      expect(d.comic.countOne).toContain('{pages}');
+      expect(d.comic.count).toContain('{pages}');
+      expect(d.comic.count).toContain('{chapters}');
+      // The singular form names chapter 1 itself, so it must not also try to
+      // interpolate a count it is not given.
+      expect(d.comic.countOne).not.toContain('{chapters}');
+    }
   });
 });

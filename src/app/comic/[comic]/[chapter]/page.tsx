@@ -76,6 +76,10 @@ export default async function ComicReaderPage({ params }: Params) {
   // Offering an English reader a download of the silent pages they were just
   // spared would undo the substitution one tap later.
   const download = chapter.downloads?.[reading.shownIn] ?? null;
+  // The chapter's own cover when it has one, the comic's when it does not.
+  // Chapter 2 arrived with its own on 17 November 2026; chapter 1 still opens
+  // on the comic's, which is what it has always done.
+  const cover = chapter.cover ?? comic.cover ?? null;
 
   return (
     <main className="pb-20">
@@ -147,16 +151,14 @@ export default async function ComicReaderPage({ params }: Params) {
               It also takes the eager load off page 1: the cover is now the
               first thing on the screen, and the browser should be fetching
               what the reader is looking at. */}
-          {comic.cover ? (
-            <ComicPlateImage page={comic.cover} label={t.comic.cover} priority />
-          ) : null}
+          {cover ? <ComicPlateImage page={cover} label={t.comic.cover} priority /> : null}
 
           {pages.map((page, index) => (
             <ComicPlateImage
               key={page.image}
               page={page}
               label={fill(t.comic.page, { numbers: page.numbers.join('-') })}
-              priority={!comic.cover && index === 0}
+              priority={!cover && index === 0}
             />
           ))}
 

@@ -211,7 +211,12 @@ export const en = {
     // that is unmissable and obviously tappable; a badge does that without
     // motion, which the reduced-motion rule would otherwise have to carry.
     badge: 'NEW',
-    count: 'Chapter 1 · 28 pages',
+    // Counted from the catalogue since 17 November 2026, when chapter 2
+    // made the old fixed string wrong. Two forms rather than a plural
+    // rule: with one chapter the reader wants its number, with several
+    // they want the total.
+    count: '{chapters} chapters · {pages} pages',
+    countOne: 'Chapter 1 · {pages} pages',
     cta: 'Read the comic',
     // Both facts a reader weighs before tapping, in three words.
     teaser: 'The adventure is only just beginning.',

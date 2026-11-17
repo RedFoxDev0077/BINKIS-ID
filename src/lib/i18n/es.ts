@@ -224,7 +224,12 @@ export const es: typeof en = {
     // that is unmissable and obviously tappable; a badge does that without
     // motion, which the reduced-motion rule would otherwise have to carry.
     badge: 'NUEVO',
-    count: 'Capítulo 1 · 28 páginas',
+    // Counted from the catalogue since 17 November 2026, when chapter 2
+    // made the old fixed string wrong. Two forms rather than a plural
+    // rule: with one chapter the reader wants its number, with several
+    // they want the total.
+    count: '{chapters} capítulos · {pages} páginas',
+    countOne: 'Capítulo 1 · {pages} páginas',
     cta: 'Leer el cómic',
     // Replaced 'Gratis / Sin registro' on 7 November 2026, his words exactly.
     // He wanted the line under the button to open the series rather than
